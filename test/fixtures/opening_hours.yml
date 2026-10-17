@@ -1,0 +1,8 @@
+# Open every day 05:00-22:00.
+<% (0..6).each do |day| %>
+phu_nhuan_<%= day %>:
+  venue: phu_nhuan
+  day_of_week: <%= day %>
+  opens_minute: 300
+  closes_minute: 1320
+<% end %>

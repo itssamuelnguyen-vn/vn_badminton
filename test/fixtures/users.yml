@@ -1,0 +1,10 @@
+an:
+  email: an@example.com
+  full_name: Nguyễn An
+  phone: "+84901234567"
+  role: customer
+
+owner:
+  email: owner@example.com
+  full_name: Chủ Sân
+  role: admin

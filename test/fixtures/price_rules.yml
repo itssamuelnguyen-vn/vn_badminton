@@ -1,0 +1,16 @@
+standard:
+  venue: phu_nhuan
+  name: Giờ thường
+  days_of_week: [0, 1, 2, 3, 4, 5, 6]
+  start_minute: 300
+  end_minute: 1320
+  price_per_hour_vnd: 80000
+
+weekday_peak:
+  venue: phu_nhuan
+  name: Cao điểm
+  days_of_week: [1, 2, 3, 4, 5]
+  start_minute: 1080
+  end_minute: 1260
+  price_per_hour_vnd: 120000
+  priority: 10
