@@ -1,0 +1,28 @@
+p = t(".greeting", name: @booking.customer_name)
+
+p = t(".intro")
+
+table cellpadding="4"
+  tr
+    td = Booking.human_attribute_name(:code)
+    td
+      strong = @booking.code
+  tr
+    td = Booking.human_attribute_name(:court)
+    td = @booking.court.name
+  tr
+    td = t("bookings.details.date")
+    td = l(@booking.starts_at.to_date, format: :full)
+  tr
+    td = t("bookings.details.time")
+    td = time_range(@booking.starts_at, @booking.ends_at)
+  tr
+    td = t("bookings.details.total")
+    td
+      strong = format_vnd(@booking.total_amount_vnd)
+
+p = t("bookings.new.pay_at_venue")
+
+p = link_to t(".view_booking"), booking_url(@booking, locale: (I18n.locale unless I18n.locale == I18n.default_locale))
+
+p = t(".cancel_policy", hours: @booking.court.venue.cancellation_cutoff_hours)

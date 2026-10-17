@@ -1,0 +1,30 @@
+- content_for :title, t(".title")
+
+div class="card mx-auto max-w-lg"
+  h1 class="mb-6 text-2xl font-bold" = t(".title")
+
+  = form_with model: @booking, url: bookings_path, class: "space-y-6" do |f|
+    = render "devise/shared/error_messages", resource: @booking
+
+    = render "bookings/details", booking: @booking
+
+    div class="rounded-lg bg-slate-50 p-4 text-sm"
+      p class="mb-1 font-medium" = t(".customer")
+      p = "#{@booking.customer_name} · #{PhoneNumber.to_local(@booking.customer_phone)}"
+      p class="mt-1 text-xs text-slate-500"
+        = t(".customer_hint_html", link: link_to(t(".account_settings"), edit_user_registration_path, class: "link"))
+
+    div
+      = f.label :note, class: "form-label"
+      = f.text_area :note, rows: 2, maxlength: 500, placeholder: t(".note_placeholder"), class: "form-input"
+
+    p class="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200" = t(".pay_at_venue")
+
+    = f.hidden_field :court_id
+    = f.hidden_field :starts_at, value: @booking.starts_at&.iso8601
+    = f.hidden_field :ends_at, value: @booking.ends_at&.iso8601
+
+    div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"
+      = link_to t(".back"), root_path(date: @booking.starts_at&.to_date&.iso8601), class: "btn-secondary"
+      - if @booking.errors.empty?
+        = f.submit t(".submit"), class: "btn-primary"

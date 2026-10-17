@@ -18,21 +18,20 @@ module Pricing
 
     Result = Data.define(:total_vnd, :breakdown)
 
-    def initialize(court:, starts_at:, ends_at:)
+    # rule_set can be passed in to reuse already loaded rules (e.g. when pricing a whole day).
+    def initialize(court:, starts_at:, ends_at:, rule_set: nil)
       @court = court
       @starts_at = starts_at
       @ends_at = ends_at
+      @rule_set = rule_set || RuleSet.new(court.venue)
     end
 
     def call
-      zone = @court.venue.zone
-      rules = ordered_rules
       segments = []
 
       slot_start = @starts_at
       while slot_start < @ends_at
-        local = slot_start.in_time_zone(zone)
-        rule = rules.find { |r| r.applies_to?(court: @court, local_slot_start: local) }
+        rule = @rule_set.rule_for(court: @court, slot_start: slot_start)
         raise NoPriceError.new(slot_start) unless rule
 
         add_slot(segments, slot_start, rule)
@@ -43,12 +42,6 @@ module Pricing
     end
 
     private
-
-    # Court-specific rules first, then higher priority, then the most recently created rule.
-    def ordered_rules
-      @court.venue.price_rules.active.where(court_id: [ nil, @court.id ]).to_a
-            .sort_by { |r| [ r.court_id ? 0 : 1, -r.priority, -r.id ] }
-    end
 
     # Merge consecutive slots priced by the same rule into one line.
     def add_slot(segments, slot_start, rule)

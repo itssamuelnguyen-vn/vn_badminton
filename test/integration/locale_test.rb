@@ -6,14 +6,14 @@ class LocaleTest < ActionDispatch::IntegrationTest
 
     assert_equal "/", root_path
     assert_select "html[lang=vi]"
-    assert_select "h1", "Đặt sân cầu lông chỉ trong vài giây"
+    assert_select "h1", "Đặt sân"
   end
 
   test "English pages live under /en and keep the prefix in links" do
     get "/en"
 
     assert_select "html[lang=en]"
-    assert_select "h1", "Book a badminton court in seconds"
+    assert_select "h1", "Book a court"
     assert_select "header a[href='/en/users/sign_in']", "Sign in"
   end
 

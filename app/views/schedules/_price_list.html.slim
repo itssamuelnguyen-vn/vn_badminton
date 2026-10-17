@@ -1,0 +1,17 @@
+section class="mt-10" aria-labelledby="price-list-title"
+  h2#price-list-title class="mb-3 text-lg font-semibold" = t(".title")
+  div class="overflow-hidden rounded-xl bg-white ring-1 ring-slate-200"
+    table class="w-full text-left text-sm"
+      thead class="bg-slate-50 text-xs text-slate-500 uppercase"
+        tr
+          th class="px-4 py-2 font-medium" = t(".name")
+          th class="px-4 py-2 font-medium" = t(".when")
+          th class="px-4 py-2 text-right font-medium" = t(".price")
+      tbody class="divide-y divide-slate-100"
+        - venue.price_rules.active.where(court_id: nil).order(:priority, :start_minute).each do |rule|
+          tr
+            td class="px-4 py-2 font-medium" = rule.name
+            td class="px-4 py-2 text-slate-600"
+              = "#{format_days(rule.days_of_week)} · #{OpeningHour.format_minute(rule.start_minute)} – #{OpeningHour.format_minute(rule.end_minute)}"
+            td class="px-4 py-2 text-right whitespace-nowrap tabular-nums" = t(".per_hour", price: format_vnd(rule.price_per_hour_vnd))
+  p class="mt-2 text-xs text-slate-500" = t(".note")

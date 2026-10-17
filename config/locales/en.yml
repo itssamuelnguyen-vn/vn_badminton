@@ -4,6 +4,7 @@
 en:
   time:
     formats:
+      hour_minute: "%H:%M"
       slot: "%H:%M on %d/%m/%Y"
 
   activerecord:
@@ -63,6 +64,7 @@ en:
         customer_name: Customer name
         customer_phone: Customer phone
         total_amount_vnd: Total amount
+        note: Note
         expires_at: Hold expiry
 
     errors:
@@ -102,19 +104,14 @@ en:
   layouts:
     application:
       header:
+        schedule: Book a court
+        my_bookings: My bookings
         sign_in: Sign in
         sign_up: Sign up
         sign_out: Sign out
       locale_switcher:
         label: Language
 
-  home:
-    index:
-      title: Book a badminton court in seconds
-      subtitle: Check free slots, see the price up front and book online, any time.
-      welcome_back: "Welcome back, %{name}!"
-      sign_up: Create an account
-      sign_in: Sign in
 
   devise:
     sessions:
@@ -165,3 +162,92 @@ en:
         action: Change my password
         ignore: "If you didn't request this, please ignore this email."
         unchanged: "Your password won't change until you open the link above and create a new one."
+
+  date:
+    formats:
+      weekday: "%a"
+      day_month: "%d/%m"
+      full: "%A, %d/%m/%Y"
+  helpers:
+    vnd: "%{amount} VND"
+    every_day: Every day
+
+  schedules:
+    show:
+      title: Book a court
+      dates: Choose a date
+      today: Today
+      continue: Continue
+      closed: The venue is closed on this day.
+      too_short: "Please choose at least %{minutes} minutes"
+      too_long: "You can book at most %{minutes} minutes at a time"
+      number_locale: en-US
+    legend:
+      label: Legend
+      available: Available
+      selected: Selected
+      mine: Your booking
+      booked: Booked
+      blocked: Maintenance
+    grid:
+      label: "Court schedule for %{date}"
+      states:
+        available: Available
+        booked: Booked
+        mine: Yours
+        blocked: Maintenance
+        unavailable: Unavailable
+    price_list:
+      title: Prices
+      name: Rate
+      when: Applies
+      price: Price
+      per_hour: "%{price}/hour"
+      note: Prices are charged per 30-minute slot. Pay at the venue.
+
+  bookings:
+    statuses:
+      pending: Pending
+      confirmed: Confirmed
+      checked_in: Checked in
+      completed: Completed
+      cancelled: Cancelled
+      no_show: No-show
+    details:
+      date: Date
+      time: Time
+      total: Total
+    new:
+      title: Confirm your booking
+      customer: Booked by
+      customer_hint_html: "Taken from your account. Need a change? Go to %{link}."
+      account_settings: account settings
+      note_placeholder: "For example: need to rent rackets"
+      pay_at_venue: Pay at the venue when you arrive.
+      back: Choose another time
+      submit: Confirm booking
+    create:
+      success: Your court is booked! We've sent you a confirmation email.
+    cancel:
+      success: Your booking has been cancelled.
+      not_allowed: This booking can no longer be cancelled.
+    show:
+      title: "Booking %{code}"
+      all_bookings: My bookings
+      cancel: Cancel booking
+      cancel_confirm: Are you sure you want to cancel this booking?
+      cancel_cutoff: "Online cancellation closes %{hours} hours before the start time. Please call the venue."
+    index:
+      title: My bookings
+      new: Book a court
+      upcoming: Upcoming
+      no_upcoming: You have no upcoming bookings.
+      past: Past and cancelled
+
+  booking_mailer:
+    confirmed:
+      subject: "Booking confirmed: %{code}"
+      greeting: "Hello %{name},"
+      intro: "Your court booking is confirmed:"
+      view_booking: View booking
+      cancel_policy: "You can cancel online up to %{hours} hours before the start time."

@@ -1,0 +1,24 @@
+- content_for :title, t(".title", code: @booking.code)
+
+div class="card mx-auto max-w-lg"
+  div class="mb-6 flex items-start justify-between gap-4"
+    div
+      p class="text-sm text-slate-500" = Booking.human_attribute_name(:code)
+      p class="font-mono text-2xl font-bold tracking-widest" = @booking.code
+    = booking_status_badge(@booking)
+
+  = render "bookings/details", booking: @booking
+
+  - if @booking.note.present?
+    p class="mt-4 rounded-lg bg-slate-50 p-3 text-sm text-slate-700" = @booking.note
+
+  - if @booking.payment_unpaid? && !@booking.cancelled?
+    p class="mt-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200" = t("bookings.new.pay_at_venue")
+
+  div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between"
+    = link_to t(".all_bookings"), bookings_path, class: "btn-secondary"
+    - if @booking.cancellable_by_customer?
+      = button_to t(".cancel"), cancel_booking_path(@booking), method: :patch, class: "btn w-full bg-red-600 text-white hover:bg-red-700",
+          form: { data: { turbo_confirm: t(".cancel_confirm") } }
+    - elsif @booking.confirmed?
+      p class="text-xs text-slate-500 sm:text-right" = t(".cancel_cutoff", hours: @booking.court.venue.cancellation_cutoff_hours)
