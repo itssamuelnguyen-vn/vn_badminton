@@ -40,6 +40,12 @@ gem "thruster", require: false
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 gem "image_processing", "~> 1.2"
 
+# Locale data (Vietnamese error messages, dates, ...) for Rails [https://github.com/svenfuchs/rails-i18n]
+gem "rails-i18n", "~> 8.1"
+
+# Authentication [https://github.com/heartcombo/devise]
+gem "devise", "~> 5.0"
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"

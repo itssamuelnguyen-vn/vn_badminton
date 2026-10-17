@@ -1,0 +1,64 @@
+# Vietnamese translation of devise.en.yml. Keep the two files in sync when upgrading Devise.
+
+vi:
+  devise:
+    confirmations:
+      confirmed: "Địa chỉ email của bạn đã được xác nhận thành công."
+      send_instructions: "Trong vài phút nữa, bạn sẽ nhận được email hướng dẫn xác nhận địa chỉ email."
+      send_paranoid_instructions: "Nếu địa chỉ email của bạn có trong hệ thống, trong vài phút nữa bạn sẽ nhận được email hướng dẫn xác nhận địa chỉ email."
+    failure:
+      already_authenticated: "Bạn đã đăng nhập rồi."
+      inactive: "Tài khoản của bạn chưa được kích hoạt."
+      invalid: "%{authentication_keys} hoặc mật khẩu không đúng."
+      locked: "Tài khoản của bạn đã bị khóa."
+      last_attempt: "Bạn còn một lần thử trước khi tài khoản bị khóa."
+      not_found_in_database: "%{authentication_keys} hoặc mật khẩu không đúng."
+      timeout: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để tiếp tục."
+      unauthenticated: "Bạn cần đăng nhập hoặc đăng ký trước khi tiếp tục."
+      unconfirmed: "Bạn cần xác nhận địa chỉ email trước khi tiếp tục."
+    mailer:
+      confirmation_instructions:
+        subject: "Hướng dẫn xác nhận email"
+      reset_password_instructions:
+        subject: "Hướng dẫn đặt lại mật khẩu"
+      unlock_instructions:
+        subject: "Hướng dẫn mở khóa tài khoản"
+      email_changed:
+        subject: "Email đã được thay đổi"
+      password_change:
+        subject: "Mật khẩu đã được thay đổi"
+    omniauth_callbacks:
+      failure: "Không thể xác thực bạn qua %{kind} vì \"%{reason}\"."
+      success: "Xác thực thành công qua tài khoản %{kind}."
+    passwords:
+      no_token: "Bạn chỉ có thể truy cập trang này từ email đặt lại mật khẩu. Nếu bạn đã mở từ email đó, hãy kiểm tra lại để chắc chắn đã dùng đầy đủ đường dẫn."
+      send_instructions: "Trong vài phút nữa, bạn sẽ nhận được email hướng dẫn đặt lại mật khẩu."
+      send_paranoid_instructions: "Nếu địa chỉ email của bạn có trong hệ thống, trong vài phút nữa bạn sẽ nhận được đường dẫn khôi phục mật khẩu qua email."
+      updated: "Mật khẩu của bạn đã được thay đổi thành công. Bạn đã được đăng nhập."
+      updated_not_active: "Mật khẩu của bạn đã được thay đổi thành công."
+    registrations:
+      destroyed: "Tạm biệt! Tài khoản của bạn đã được xóa thành công. Hy vọng sớm gặp lại bạn."
+      signed_up: "Chào mừng! Bạn đã đăng ký thành công."
+      signed_up_but_inactive: "Bạn đã đăng ký thành công. Tuy nhiên, chưa thể đăng nhập vì tài khoản của bạn chưa được kích hoạt."
+      signed_up_but_locked: "Bạn đã đăng ký thành công. Tuy nhiên, chưa thể đăng nhập vì tài khoản của bạn đang bị khóa."
+      signed_up_but_unconfirmed: "Chúng tôi đã gửi một đường dẫn xác nhận tới email của bạn. Vui lòng mở đường dẫn đó để kích hoạt tài khoản."
+      update_needs_confirmation: "Bạn đã cập nhật tài khoản thành công, nhưng chúng tôi cần xác minh địa chỉ email mới. Vui lòng kiểm tra email và mở đường dẫn xác nhận."
+      updated: "Tài khoản của bạn đã được cập nhật thành công."
+      updated_but_not_signed_in: "Tài khoản của bạn đã được cập nhật thành công. Vì mật khẩu đã thay đổi, bạn cần đăng nhập lại."
+    sessions:
+      signed_in: "Đăng nhập thành công."
+      signed_out: "Đăng xuất thành công."
+      already_signed_out: "Đăng xuất thành công."
+    unlocks:
+      send_instructions: "Trong vài phút nữa, bạn sẽ nhận được email hướng dẫn mở khóa tài khoản."
+      send_paranoid_instructions: "Nếu tài khoản của bạn tồn tại, trong vài phút nữa bạn sẽ nhận được email hướng dẫn mở khóa."
+      unlocked: "Tài khoản của bạn đã được mở khóa thành công. Vui lòng đăng nhập để tiếp tục."
+  errors:
+    messages:
+      already_confirmed: "đã được xác nhận, vui lòng thử đăng nhập"
+      confirmation_period_expired: "cần được xác nhận trong vòng %{period}, vui lòng yêu cầu gửi lại"
+      expired: "đã hết hạn, vui lòng yêu cầu gửi lại"
+      not_found: "không tìm thấy"
+      not_locked: "chưa bị khóa"
+      not_saved:
+        other: "%{count} lỗi khiến %{resource} không thể được lưu:"

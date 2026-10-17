@@ -1,0 +1,91 @@
+# Vietnamese translations (default locale). Keep in sync with en.yml.
+# Rails' own messages ("không thể để trống", dates, ...) come from the rails-i18n gem.
+
+vi:
+  time:
+    formats:
+      slot: "%H:%M ngày %d/%m/%Y"
+
+  activerecord:
+    models:
+      user: Người dùng
+      venue: Cơ sở
+      opening_hour: Giờ mở cửa
+      court: Sân
+      price_rule: Bảng giá
+      booking: Lượt đặt sân
+
+    attributes:
+      user:
+        email: Email
+        full_name: Họ tên
+        phone: Số điện thoại
+        role: Vai trò
+      venue:
+        name: Tên
+        slug: Đường dẫn
+        address: Địa chỉ
+        phone: Số điện thoại
+        time_zone: Múi giờ
+        min_booking_minutes: Thời lượng đặt tối thiểu
+        max_booking_minutes: Thời lượng đặt tối đa
+        cancellation_cutoff_hours: Hạn hủy (giờ)
+        booking_horizon_days: Số ngày được đặt trước
+        status: Trạng thái
+      opening_hour:
+        day_of_week: Ngày trong tuần
+        opens_minute: Giờ mở cửa
+        closes_minute: Giờ đóng cửa
+      court:
+        name: Tên
+        position: Thứ tự
+        status: Trạng thái
+      price_rule:
+        name: Tên
+        court: Sân
+        days_of_week: Ngày áp dụng
+        start_minute: Giờ bắt đầu
+        end_minute: Giờ kết thúc
+        price_per_hour_vnd: Giá mỗi giờ
+        priority: Độ ưu tiên
+        valid_from: Áp dụng từ ngày
+        valid_until: Áp dụng đến ngày
+      booking:
+        court: Sân
+        user: Tài khoản
+        code: Mã đặt sân
+        starts_at: Giờ bắt đầu
+        ends_at: Giờ kết thúc
+        customer_name: Tên khách
+        customer_phone: Số điện thoại khách
+        total_amount_vnd: Tổng tiền
+        expires_at: Hạn giữ chỗ
+
+    errors:
+      models:
+        venue:
+          not_multiple_of_30: "phải là bội số của 30"
+          less_than_min: "phải lớn hơn hoặc bằng thời lượng tối thiểu"
+        opening_hour:
+          after_opening: "phải sau giờ mở cửa"
+          off_slot_grid: "Giờ mở/đóng cửa phải tròn 30 phút"
+        price_rule:
+          invalid_days: "chỉ được chứa giá trị 0-6"
+          after_start: "phải sau giờ bắt đầu"
+          off_slot_grid: "Khung giờ phải tròn 30 phút"
+          not_multiple_of_1000: "phải là bội số của 1.000đ"
+          before_valid_from: "phải sau ngày bắt đầu"
+          other_venue: "không thuộc cơ sở này"
+        booking:
+          slot_just_taken: "Khung giờ này vừa có người đặt, vui lòng chọn giờ khác"
+          slot_taken: "Khung giờ này đã có người đặt"
+          no_price: "Chưa có bảng giá cho khung %{time}"
+          after_start: "phải sau giờ bắt đầu"
+          off_slot_grid: "Giờ đặt phải tròn 30 phút (VD: 18:00, 18:30)"
+          court_inactive: "đang ngừng hoạt động"
+          venue_inactive: "thuộc cơ sở đang tạm ngừng"
+          outside_opening_hours: "Ngoài giờ mở cửa của cơ sở"
+          not_in_future: "phải ở tương lai"
+          beyond_horizon:
+            other: "chỉ được đặt trước tối đa %{count} ngày"
+          duration_out_of_range: "Thời lượng phải từ %{min} đến %{max} phút"

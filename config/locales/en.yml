@@ -1,31 +1,92 @@
-# Files in the config/locales directory are used for internationalization and
-# are automatically loaded by Rails. If you want to use locales other than
-# English, add the necessary files in this directory.
-#
-# To use the locales, use `I18n.t`:
-#
-#     I18n.t "hello"
-#
-# In views, this is aliased to just `t`:
-#
-#     <%= t("hello") %>
-#
-# To use a different locale, set it with `I18n.locale`:
-#
-#     I18n.locale = :es
-#
-# This would use the information in config/locales/es.yml.
-#
-# To learn more about the API, please read the Rails Internationalization guide
-# at https://guides.rubyonrails.org/i18n.html.
-#
-# Be aware that YAML interprets the following case-insensitive strings as
-# booleans: `true`, `false`, `on`, `off`, `yes`, `no`. Therefore, these strings
-# must be quoted to be interpreted as strings. For example:
-#
-#     en:
-#       "yes": yup
-#       enabled: "ON"
+# English translations. Vietnamese (vi.yml) is the default locale; keep both files in sync.
+# Rails' own messages ("can't be blank", dates, ...) come from the rails-i18n gem.
 
 en:
-  hello: "Hello world"
+  time:
+    formats:
+      slot: "%H:%M on %d/%m/%Y"
+
+  activerecord:
+    models:
+      user: User
+      venue: Venue
+      opening_hour: Opening hours
+      court: Court
+      price_rule: Price rule
+      booking: Booking
+
+    attributes:
+      user:
+        email: Email
+        full_name: Full name
+        phone: Phone number
+        role: Role
+      venue:
+        name: Name
+        slug: Slug
+        address: Address
+        phone: Phone number
+        time_zone: Time zone
+        min_booking_minutes: Minimum booking duration
+        max_booking_minutes: Maximum booking duration
+        cancellation_cutoff_hours: Cancellation cutoff (hours)
+        booking_horizon_days: Booking horizon (days)
+        status: Status
+      opening_hour:
+        day_of_week: Day of week
+        opens_minute: Opening time
+        closes_minute: Closing time
+      court:
+        name: Name
+        position: Position
+        status: Status
+      price_rule:
+        name: Name
+        court: Court
+        days_of_week: Days of week
+        start_minute: Start time
+        end_minute: End time
+        price_per_hour_vnd: Price per hour
+        priority: Priority
+        valid_from: Valid from
+        valid_until: Valid until
+      booking:
+        court: Court
+        user: Account
+        code: Booking code
+        starts_at: Start time
+        ends_at: End time
+        customer_name: Customer name
+        customer_phone: Customer phone
+        total_amount_vnd: Total amount
+        expires_at: Hold expiry
+
+    errors:
+      models:
+        venue:
+          not_multiple_of_30: "must be a multiple of 30"
+          less_than_min: "must be greater than or equal to the minimum duration"
+        opening_hour:
+          after_opening: "must be after the opening time"
+          off_slot_grid: "Opening and closing times must be on the half hour"
+        price_rule:
+          invalid_days: "may only contain values 0-6"
+          after_start: "must be after the start time"
+          off_slot_grid: "The time range must be on the half hour"
+          not_multiple_of_1000: "must be a multiple of 1,000 VND"
+          before_valid_from: "must be after the start date"
+          other_venue: "does not belong to this venue"
+        booking:
+          slot_just_taken: "This slot was just booked by someone else, please choose another time"
+          slot_taken: "This slot is already booked"
+          no_price: "No price is set for the slot at %{time}"
+          after_start: "must be after the start time"
+          off_slot_grid: "Booking times must be on the half hour (e.g. 18:00, 18:30)"
+          court_inactive: "is not in operation"
+          venue_inactive: "belongs to a venue that is temporarily closed"
+          outside_opening_hours: "Outside the venue's opening hours"
+          not_in_future: "must be in the future"
+          beyond_horizon:
+            one: "can be at most %{count} day in advance"
+            other: "can be at most %{count} days in advance"
+          duration_out_of_range: "Duration must be between %{min} and %{max} minutes"
