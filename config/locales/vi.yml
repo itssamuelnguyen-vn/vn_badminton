@@ -4,6 +4,7 @@
 vi:
   time:
     formats:
+      hour_minute: "%H:%M"
       slot: "%H:%M ngày %d/%m/%Y"
 
   activerecord:
@@ -63,6 +64,7 @@ vi:
         customer_name: Tên khách
         customer_phone: Số điện thoại khách
         total_amount_vnd: Tổng tiền
+        note: Ghi chú
         expires_at: Hạn giữ chỗ
 
     errors:
@@ -101,19 +103,14 @@ vi:
   layouts:
     application:
       header:
+        schedule: Đặt sân
+        my_bookings: Lượt đặt của tôi
         sign_in: Đăng nhập
         sign_up: Đăng ký
         sign_out: Đăng xuất
       locale_switcher:
         label: Ngôn ngữ
 
-  home:
-    index:
-      title: Đặt sân cầu lông chỉ trong vài giây
-      subtitle: Xem khung giờ trống, biết trước giá và đặt sân online bất cứ lúc nào.
-      welcome_back: "Chào mừng bạn quay lại, %{name}!"
-      sign_up: Tạo tài khoản
-      sign_in: Đăng nhập
 
   devise:
     sessions:
@@ -162,3 +159,110 @@ vi:
         action: Đổi mật khẩu
         ignore: "Nếu bạn không yêu cầu, hãy bỏ qua email này."
         unchanged: "Mật khẩu của bạn sẽ không thay đổi cho tới khi bạn mở đường dẫn trên và tạo mật khẩu mới."
+
+  date:
+    formats:
+      month_year: "Tháng %-m, %Y"
+      full: "%A, %d/%m/%Y"
+      day_month_year: "%d/%m/%Y"
+  helpers:
+    vnd: "%{amount}đ"
+    every_day: Hằng ngày
+
+  schedules:
+    show:
+      title: Đặt sân
+      continue: Tiếp tục
+      closed: Cơ sở nghỉ vào ngày này.
+      too_short: "Vui lòng chọn tối thiểu %{minutes} phút"
+      too_long: "Chỉ được đặt tối đa %{minutes} phút một lần"
+      number_locale: vi-VN
+      multiple: Đặt nhiều sân cùng lúc
+      total: "Tổng cộng: %{amount}"
+      no_slots_left: Ngày này đã hết giờ có thể đặt. Vui lòng chọn ngày khác.
+    date_picker:
+      label: Chọn ngày
+      today: hôm nay
+      previous_day: Ngày trước
+      next_day: Ngày sau
+      previous_month: Tháng trước
+      next_month: Tháng sau
+      weekdays: [ T2, T3, T4, T5, T6, T7, CN ]
+      horizon:
+        other: "Có thể đặt trước tối đa %{count} ngày (đến %{last})."
+    legend:
+      label: Chú thích
+      available: Còn trống
+      selected: Đang chọn
+      mine: Sân của bạn
+      booked: Đã có người đặt
+      blocked: Bảo trì
+      unavailable: Không thể đặt
+    grid:
+      label: "Lịch sân %{date}"
+      states:
+        available: Còn trống
+        booked: Đã đặt
+        mine: Của bạn
+        blocked: Bảo trì
+        unavailable: Không thể đặt
+    price_list:
+      title: Bảng giá
+      name: Khung giá
+      when: Áp dụng
+      price: Giá
+      per_hour: "%{price}/giờ"
+      note: Giá tính theo từng khung 30 phút. Thanh toán tại sân.
+
+  bookings:
+    statuses:
+      pending: Chờ xác nhận
+      confirmed: Đã xác nhận
+      checked_in: Đã nhận sân
+      completed: Hoàn thành
+      cancelled: Đã huỷ
+      no_show: Không đến
+    details:
+      date: Ngày
+      time: Giờ
+      total: Tổng tiền
+      price: Thành tiền
+    new:
+      title: Xác nhận đặt sân
+      customer: Người đặt
+      customer_hint_html: "Thông tin lấy từ tài khoản của bạn. Cần sửa? Vào %{link}."
+      account_settings: cài đặt tài khoản
+      note_placeholder: "Ví dụ: cần thuê vợt"
+      pay_at_venue: Thanh toán tại sân khi đến chơi.
+      back: Chọn giờ khác
+      submit: Xác nhận đặt sân
+      grand_total:
+        other: "Tổng tiền (%{count} sân)"
+      no_selection: Vui lòng chọn khung giờ trên lịch trước.
+    create:
+      success:
+        other: Đặt sân thành công! Chúng tôi đã gửi email xác nhận cho bạn.
+    cancel:
+      success: Đã huỷ lượt đặt sân.
+      not_allowed: Không thể huỷ lượt đặt này nữa.
+    show:
+      title: "Lượt đặt %{code}"
+      all_bookings: Lượt đặt của tôi
+      cancel: Huỷ đặt sân
+      cancel_confirm: Bạn chắc chắn muốn huỷ lượt đặt sân này?
+      cancel_cutoff: "Đã quá hạn huỷ online (trước giờ chơi %{hours} giờ). Vui lòng gọi cho sân."
+    index:
+      title: Lượt đặt của tôi
+      new: Đặt sân
+      upcoming: Sắp tới
+      no_upcoming: Bạn chưa có lượt đặt nào sắp tới.
+      past: Đã qua và đã huỷ
+
+  booking_mailer:
+    confirmed:
+      subject: "Xác nhận đặt sân %{codes}"
+      greeting: "Xin chào %{name},"
+      intro:
+        other: "Lượt đặt sân của bạn đã được xác nhận (%{count} sân):"
+      view_bookings: Xem lượt đặt của tôi
+      cancel_policy: "Bạn có thể huỷ online trước giờ chơi tối thiểu %{hours} giờ."

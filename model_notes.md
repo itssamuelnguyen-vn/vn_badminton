@@ -10,7 +10,9 @@ Requirements: Rails 8.1 (7.1 at minimum) and PostgreSQL 13 or later.
    ```ruby
    config.time_zone = "Asia/Ho_Chi_Minh"
    ```
-4. Run `bin/rails db:create db:migrate`.
+4. Run `bin/rails db:create db:migrate db:seed`. Seeds create the venue (10 courts, opening hours, prices) and, in development,
+   a demo customer (`khach.demo@example.com` / `password123`) with a few bookings. Add the owner account with
+   `ADMIN_EMAIL=... ADMIN_PASSWORD=... bin/rails db:seed`.
 5. Devise is installed and enabled in `app/models/user.rb`.
    Do not run Devise's migration generator; the users table already has the required columns.
 

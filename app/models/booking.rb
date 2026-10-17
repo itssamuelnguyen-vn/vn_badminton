@@ -60,6 +60,11 @@ class Booking < ApplicationRecord
     false
   end
 
+  # URLs use the customer-facing code (/bookings/K7Q2M9XA) instead of the sequential id.
+  def to_param
+    code
+  end
+
   def holds_slot?
     ACTIVE_STATUSES.include?(status)
   end

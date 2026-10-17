@@ -1,0 +1,34 @@
+- locale = (I18n.locale unless I18n.locale == I18n.default_locale)
+
+p = t(".greeting", name: @bookings.first.customer_name)
+
+p = t(".intro", count: @bookings.size)
+
+- @bookings.each do |booking|
+  table cellpadding="4" style="margin-bottom: 16px"
+    tr
+      td = Booking.human_attribute_name(:code)
+      td
+        strong = link_to booking.code, booking_url(booking, locale: locale)
+    tr
+      td = Booking.human_attribute_name(:court)
+      td = booking.court.name
+    tr
+      td = t("bookings.details.date")
+      td = l(booking.starts_at.to_date, format: :full)
+    tr
+      td = t("bookings.details.time")
+      td = time_range(booking.starts_at, booking.ends_at)
+    tr
+      td = t("bookings.details.price")
+      td = format_vnd(booking.total_amount_vnd)
+
+p
+  => t("bookings.details.total")
+  strong = format_vnd(@bookings.sum(&:total_amount_vnd))
+
+p = t("bookings.new.pay_at_venue")
+
+p = link_to t(".view_bookings"), bookings_url(locale: locale)
+
+p = t(".cancel_policy", hours: @bookings.first.court.venue.cancellation_cutoff_hours)

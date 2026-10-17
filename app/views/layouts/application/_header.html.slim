@@ -1,5 +1,6 @@
+/ Desktop: one row. Phones: logo and language switcher on top, the links on a second row.
 header class="border-b border-slate-200 bg-white"
-  nav class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6"
+  nav class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3 sm:px-6"
     = link_to root_path, class: "flex items-center gap-2 text-lg font-bold text-emerald-700" do
       svg viewBox="0 0 24 24" class="size-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
         path d="M8.5 15.5 4 4l11.5 4.5"
@@ -7,12 +8,20 @@ header class="border-b border-slate-200 bg-white"
         circle cx="16.5" cy="16.5" r="3.5"
       | VN Badminton
 
-    div class="flex items-center gap-3 text-sm sm:gap-4"
-      - if user_signed_in?
-        = link_to current_user.full_name, edit_user_registration_path, class: "font-medium text-slate-700 hover:text-emerald-700"
-        = button_to t(".sign_out"), destroy_user_session_path, method: :delete, class: "btn-secondary"
-      - else
-        = link_to t(".sign_in"), new_user_session_path, class: "font-medium text-slate-700 hover:text-emerald-700"
-        = link_to t(".sign_up"), new_user_registration_path, class: "btn-primary"
-
+    div class="sm:order-last"
       = render "layouts/application/locale_switcher"
+
+    div class="flex w-full items-center gap-4 overflow-x-auto text-sm whitespace-nowrap sm:w-auto sm:flex-1 sm:justify-end"
+      = link_to t(".schedule"), root_path, class: "font-medium text-slate-700 hover:text-emerald-700"
+      - if user_signed_in?
+        = link_to t(".my_bookings"), bookings_path, class: "font-medium text-slate-700 hover:text-emerald-700"
+        / Phones show an account icon instead of the (possibly long) name.
+        = link_to edit_user_registration_path, class: "font-medium text-slate-700 hover:text-emerald-700", aria: { label: current_user.full_name } do
+          span class="hidden max-w-40 truncate sm:inline" = current_user.full_name
+          svg viewBox="0 0 24 24" class="size-6 sm:hidden" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"
+            circle cx="12" cy="8" r="4"
+            path d="M4 20c1.5-3.5 4.5-5 8-5s6.5 1.5 8 5"
+        = button_to t(".sign_out"), destroy_user_session_path, method: :delete, class: "btn-secondary ml-auto px-3 py-1.5 sm:ml-0"
+      - else
+        = link_to t(".sign_in"), new_user_session_path, class: "ml-auto font-medium text-slate-700 hover:text-emerald-700 sm:ml-0"
+        = link_to t(".sign_up"), new_user_registration_path, class: "btn-primary px-3 py-1.5"

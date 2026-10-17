@@ -33,6 +33,11 @@
   @apply btn bg-white text-slate-700 ring-1 ring-slate-300 hover:bg-slate-50;
 }
 
+/* Slots that cannot be booked (already started, or no price): light diagonal stripes. */
+@utility slot-unavailable {
+  background-image: repeating-linear-gradient(135deg, var(--color-slate-200) 0 3px, var(--color-slate-50) 3px 7px);
+}
+
 @utility link {
   @apply font-medium text-emerald-700 hover:text-emerald-800 hover:underline;
 }

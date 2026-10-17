@@ -1,0 +1,27 @@
+/ Rows are 30-minute slots, columns are courts. Scrolls in both directions on small screens,
+/ with the court names and the times kept in view.
+div class="max-h-[70vh] overflow-auto rounded-xl bg-white ring-1 ring-slate-200"
+  div class="grid text-sm" style="grid-template-columns: 4rem repeat(#{day.courts.size}, minmax(4.5rem, 1fr))" role="grid" aria-label=t(".label", date: l(day.date, format: :full))
+    div class="sticky top-0 left-0 z-20 border-b border-slate-200 bg-white"
+    - day.courts.each do |court|
+      div class="sticky top-0 z-10 border-b border-l border-slate-200 bg-white px-2 py-2 text-center font-semibold" role="columnheader" = court.name
+
+    - day.times.each_with_index do |time, index|
+      div class="sticky left-0 z-10 border-b border-slate-100 bg-white px-2 py-2 text-right text-xs text-slate-500 tabular-nums" role="rowheader"
+        = l(time, format: :hour_minute)
+      - day.courts.each do |court|
+        - slot = day.slot(court, time)
+        - label = "#{court.name}, #{time_range(slot.starts_at, slot.ends_at)}: #{t(".states.#{slot.state}")}"
+        - cell_data = { court_id: court.id, court_name: court.name, index: index, starts_at: slot.starts_at.iso8601, ends_at: slot.ends_at.iso8601,
+                        starts_label: l(slot.starts_at, format: :hour_minute), ends_label: l(slot.ends_at, format: :hour_minute), price: slot.price_vnd }
+        - if slot.available?
+          = tag.button type: "button", aria: { pressed: "false", label: label },
+              class: "h-9 cursor-pointer border-b border-l border-slate-100 bg-white transition hover:bg-emerald-50 aria-pressed:bg-emerald-600 aria-pressed:hover:bg-emerald-700",
+              data: cell_data.merge(available: true, action: "slot-picker#select")
+        - else
+          = tag.div title: label, data: cell_data,
+              class: [ "flex h-9 items-center justify-center border-b border-l border-slate-100 text-[11px]",
+                       { "booked" => "bg-slate-200 text-slate-500", "mine" => "bg-sky-100 font-medium text-sky-800",
+                         "blocked" => "bg-amber-100 text-amber-800", "unavailable" => "slot-unavailable" }.fetch(slot.state.to_s) ] do
+            - unless slot.state == :unavailable
+              span = t(".states.#{slot.state}")

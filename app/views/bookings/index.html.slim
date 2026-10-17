@@ -1,0 +1,20 @@
+- content_for :title, t(".title")
+
+div class="mx-auto max-w-2xl"
+  div class="mb-6 flex items-center justify-between gap-4"
+    h1 class="text-2xl font-bold" = t(".title")
+    = link_to t(".new"), root_path, class: "btn-primary"
+
+  section class="mb-10"
+    h2 class="mb-3 text-lg font-semibold" = t(".upcoming")
+    - if @upcoming.any?
+      div class="space-y-3"
+        = render @upcoming
+    - else
+      p class="card text-center text-sm text-slate-600" = t(".no_upcoming")
+
+  - if @past.any?
+    section
+      h2 class="mb-3 text-lg font-semibold" = t(".past")
+      div class="space-y-3"
+        = render @past

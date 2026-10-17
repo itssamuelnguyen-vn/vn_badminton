@@ -17,5 +17,9 @@ end
 module ActionDispatch
   class IntegrationTest
     include Devise::Test::IntegrationHelpers
+
+    # Like ApplicationController#default_url_options: with a :locale key present, positional
+    # route arguments (booking_path(booking)) fill :code instead of the optional (:locale) segment.
+    setup { default_url_options[:locale] = nil }
   end
 end

@@ -3,7 +3,12 @@ Rails.application.routes.draw do
   scope "(:locale)", locale: /en/ do
     devise_for :users
 
-    root "home#index"
+    resources :bookings, only: %i[index show new create], param: :code do
+      patch :cancel, on: :member
+    end
+
+    # The home page is the booking schedule; ?date=YYYY-MM-DD picks the day.
+    root "schedules#show"
   end
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

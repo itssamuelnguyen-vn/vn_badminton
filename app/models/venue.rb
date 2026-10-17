@@ -20,8 +20,22 @@ class Venue < ApplicationRecord
   validates :booking_horizon_days, numericality: { only_integer: true, in: 1..365 }
   validate :booking_minutes_on_slot_grid
 
+  # The app serves a single venue; customer pages always use it.
+  def self.main
+    active.order(:id).first!
+  end
+
   def zone
     ActiveSupport::TimeZone[time_zone]
+  end
+
+  def today
+    zone.today
+  end
+
+  # Dates customers can book online, from today up to the booking horizon.
+  def bookable_dates
+    today..(today + booking_horizon_days)
   end
 
   def opening_hour_for(date)
