@@ -7,11 +7,17 @@ class SchedulesController < ApplicationController
 
   private
 
-  # Falls back to today for a missing, malformed or out-of-range ?date=.
+  # Falls back to the default date for a missing, malformed or out-of-range ?date=.
   def selected_date
     date = Date.iso8601(params[:date].to_s)
-    @venue.bookable_dates.cover?(date) ? date : @venue.today
+    @venue.bookable_dates.cover?(date) ? date : default_date
   rescue Date::Error
-    @venue.today
+    default_date
+  end
+
+  # Today, or tomorrow once today's last slot has started (e.g. after closing time).
+  def default_date
+    today = @venue.today
+    Schedule::Day.new(venue: @venue, date: today).bookable? ? today : today + 1
   end
 end

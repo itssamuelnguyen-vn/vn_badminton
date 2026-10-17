@@ -182,6 +182,7 @@ en:
       too_short: "Please choose at least %{minutes} minutes"
       too_long: "You can book at most %{minutes} minutes at a time"
       number_locale: en-US
+      no_slots_left: There are no more bookable times on this day. Please choose another date.
     legend:
       label: Legend
       available: Available
@@ -189,6 +190,7 @@ en:
       mine: Your booking
       booked: Booked
       blocked: Maintenance
+      unavailable: Unavailable
     grid:
       label: "Court schedule for %{date}"
       states:

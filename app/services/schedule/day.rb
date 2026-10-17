@@ -32,6 +32,11 @@ module Schedule
       opening.present?
     end
 
+    # False once every slot of the day has started (e.g. today after closing time).
+    def bookable?
+      times.any? { |time| time >= @now }
+    end
+
     def times
       return [] unless open?
 

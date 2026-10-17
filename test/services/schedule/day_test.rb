@@ -30,6 +30,11 @@ class Schedule::DayTest < ActiveSupport::TestCase
     assert_equal :available, day.slot(@court, at("19:00")).state
   end
 
+  test "is not bookable once its last slot has started" do
+    assert Schedule::Day.new(venue: @venue, date: Date.new(2026, 10, 20), now: at("21:29")).bookable?
+    assert_not Schedule::Day.new(venue: @venue, date: Date.new(2026, 10, 20), now: at("21:31")).bookable?
+  end
+
   test "prices each slot with the matching rule" do
     day = Schedule::Day.new(venue: @venue, date: Date.new(2026, 10, 20))
 

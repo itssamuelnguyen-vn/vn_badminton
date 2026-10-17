@@ -15,6 +15,17 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     assert_select "a[aria-current=date]", text: /20\/10/
   end
 
+  test "after closing time the schedule opens on tomorrow" do
+    travel_to Time.zone.parse("2026-10-19 22:30") do
+      get root_path
+      assert_select "a[aria-current=date]", text: /20\/10/
+
+      get root_path(date: "2026-10-19")
+      assert_select "[role=status]", text: /hết giờ có thể đặt/
+      assert_select "button[data-available=true]", count: 0
+    end
+  end
+
   test "an out-of-range date falls back to today" do
     get root_path(date: "2030-01-01")
 

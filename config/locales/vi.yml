@@ -179,6 +179,7 @@ vi:
       too_short: "Vui lòng chọn tối thiểu %{minutes} phút"
       too_long: "Chỉ được đặt tối đa %{minutes} phút một lần"
       number_locale: vi-VN
+      no_slots_left: Ngày này đã hết giờ có thể đặt. Vui lòng chọn ngày khác.
     legend:
       label: Chú thích
       available: Còn trống
@@ -186,6 +187,7 @@ vi:
       mine: Sân của bạn
       booked: Đã có người đặt
       blocked: Bảo trì
+      unavailable: Không thể đặt
     grid:
       label: "Lịch sân %{date}"
       states:
