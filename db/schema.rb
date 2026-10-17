@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_17_000007) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_17_000008) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "citext"
@@ -23,24 +23,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_000007) do
     t.bigint "cancelled_by_id"
     t.string "code", null: false
     t.string "kind", default: "reservation", null: false
-    t.datetime "starts_at", null: false
-    t.datetime "ends_at", null: false
+    t.datetime "starts_at", precision: 0, null: false
+    t.datetime "ends_at", precision: 0, null: false
     t.string "status", default: "confirmed", null: false
-    t.datetime "expires_at"
+    t.datetime "expires_at", precision: 0
     t.string "source", default: "online", null: false
     t.string "customer_name"
     t.string "customer_phone"
     t.bigint "total_amount_vnd", default: 0, null: false
     t.jsonb "price_breakdown", default: [], null: false
     t.string "payment_status", default: "unpaid", null: false
-    t.datetime "paid_at"
-    t.datetime "checked_in_at"
-    t.datetime "cancelled_at"
+    t.datetime "paid_at", precision: 0
+    t.datetime "checked_in_at", precision: 0
+    t.datetime "cancelled_at", precision: 0
     t.string "cancellation_reason"
     t.text "note"
     t.integer "lock_version", default: 0, null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
     t.index ["code"], name: "index_bookings_on_code", unique: true
     t.index ["court_id", "starts_at"], name: "index_bookings_on_court_id_and_starts_at"
     t.index ["created_by_id"], name: "index_bookings_on_created_by_id"
@@ -49,7 +49,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_000007) do
     t.index ["user_id"], name: "index_bookings_on_user_id"
     t.check_constraint "(ends_at - starts_at) <= 'PT24H'::interval", name: "bookings_max_duration"
     t.check_constraint "(payment_status::text = 'unpaid'::text) = (paid_at IS NULL)", name: "bookings_paid_at_consistent"
-    t.check_constraint "(status::text <> ALL (ARRAY['checked_in'::character varying, 'completed'::character varying]::text[])) OR checked_in_at IS NOT NULL", name: "bookings_checked_in_at_present"
+    t.check_constraint "(status::text <> ALL (ARRAY['checked_in'::character varying::text, 'completed'::character varying::text])) OR checked_in_at IS NOT NULL", name: "bookings_checked_in_at_present"
     t.check_constraint "(status::text = 'cancelled'::text) = (cancelled_at IS NOT NULL)", name: "bookings_cancelled_at_consistent"
     t.check_constraint "code::text ~ '^[A-Z0-9]{8}$'::text", name: "bookings_code_format"
     t.check_constraint "customer_phone::text ~ '^\\+84[0-9]{9}$'::text", name: "bookings_customer_phone_format"
@@ -64,7 +64,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_000007) do
     t.check_constraint "status::text <> 'pending'::text OR expires_at IS NOT NULL", name: "bookings_pending_requires_expiry"
     t.check_constraint "status::text = ANY (ARRAY['pending'::character varying, 'confirmed'::character varying, 'checked_in'::character varying, 'completed'::character varying, 'cancelled'::character varying, 'no_show'::character varying]::text[])", name: "bookings_status_valid"
     t.check_constraint "total_amount_vnd >= 0", name: "bookings_amount_non_negative"
-    t.exclusion_constraint "court_id WITH =, tstzrange(starts_at, ends_at, '[)'::text) WITH &&", where: "(status)::text = ANY ((ARRAY['pending'::character varying, 'confirmed'::character varying, 'checked_in'::character varying, 'completed'::character varying, 'no_show'::character varying])::text[])", using: :gist, name: "bookings_no_overlap"
+    t.exclusion_constraint "court_id WITH =, tstzrange(starts_at, ends_at, '[)'::text) WITH &&", where: "(status)::text = ANY (ARRAY[('pending'::character varying)::text, ('confirmed'::character varying)::text, ('checked_in'::character varying)::text, ('completed'::character varying)::text, ('no_show'::character varying)::text])", using: :gist, name: "bookings_no_overlap"
   end
 
   create_table "courts", force: :cascade do |t|
@@ -72,8 +72,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_000007) do
     t.string "name", null: false
     t.integer "position", default: 0, null: false
     t.string "status", default: "active", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
     t.index "venue_id, lower((name)::text)", name: "index_courts_on_venue_id_and_lower_name", unique: true
     t.index ["id", "venue_id"], name: "index_courts_on_id_and_venue_id", unique: true
     t.check_constraint "length(btrim(name::text)) >= 1 AND length(btrim(name::text)) <= 50", name: "courts_name_length"
@@ -85,8 +85,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_000007) do
     t.integer "day_of_week", limit: 2, null: false
     t.integer "opens_minute", null: false
     t.integer "closes_minute", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
     t.index ["venue_id", "day_of_week"], name: "index_opening_hours_on_venue_id_and_day_of_week", unique: true
     t.check_constraint "(opens_minute % 30) = 0 AND (closes_minute % 30) = 0", name: "opening_hours_aligned_to_slot"
     t.check_constraint "day_of_week >= 0 AND day_of_week <= 6", name: "opening_hours_day_valid"
@@ -105,8 +105,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_000007) do
     t.date "valid_from"
     t.date "valid_until"
     t.boolean "active", default: true, null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
     t.index ["court_id"], name: "index_price_rules_on_court_id"
     t.index ["venue_id"], name: "index_price_rules_on_venue_id"
     t.check_constraint "cardinality(days_of_week) >= 1 AND cardinality(days_of_week) <= 7 AND days_of_week <@ ARRAY[0::smallint, 1::smallint, 2::smallint, 3::smallint, 4::smallint, 5::smallint, 6::smallint]", name: "price_rules_days_valid"
@@ -120,13 +120,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_000007) do
     t.citext "email", null: false
     t.string "encrypted_password", default: "", null: false
     t.string "reset_password_token"
-    t.datetime "reset_password_sent_at"
-    t.datetime "remember_created_at"
+    t.datetime "reset_password_sent_at", precision: 0
+    t.datetime "remember_created_at", precision: 0
     t.string "full_name", null: false
     t.string "phone"
     t.string "role", default: "customer", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["phone"], name: "index_users_on_phone", unique: true, where: "(phone IS NOT NULL)"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
@@ -147,8 +147,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_000007) do
     t.integer "cancellation_cutoff_hours", default: 2, null: false
     t.integer "booking_horizon_days", default: 14, null: false
     t.string "status", default: "active", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
     t.index ["slug"], name: "index_venues_on_slug", unique: true
     t.check_constraint "booking_horizon_days >= 1 AND booking_horizon_days <= 365", name: "venues_booking_horizon_valid"
     t.check_constraint "cancellation_cutoff_hours >= 0 AND cancellation_cutoff_hours <= 168", name: "venues_cancellation_cutoff_valid"
