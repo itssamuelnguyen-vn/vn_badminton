@@ -182,6 +182,8 @@ en:
       too_short: "Please choose at least %{minutes} minutes"
       too_long: "You can book at most %{minutes} minutes at a time"
       number_locale: en-US
+      multiple: Book several courts
+      total: "Total: %{amount}"
       no_slots_left: There are no more bookable times on this day. Please choose another date.
     legend:
       label: Legend
@@ -219,6 +221,7 @@ en:
       date: Date
       time: Time
       total: Total
+      price: Price
     new:
       title: Confirm your booking
       customer: Booked by
@@ -228,8 +231,14 @@ en:
       pay_at_venue: Pay at the venue when you arrive.
       back: Choose another time
       submit: Confirm booking
+      grand_total:
+        one: "Total (%{count} court)"
+        other: "Total (%{count} courts)"
+      no_selection: Please pick a time on the schedule first.
     create:
-      success: Your court is booked! We've sent you a confirmation email.
+      success:
+        one: Your court is booked! We've sent you a confirmation email.
+        other: Your %{count} courts are booked! We've sent you a confirmation email.
     cancel:
       success: Your booking has been cancelled.
       not_allowed: This booking can no longer be cancelled.
@@ -248,8 +257,10 @@ en:
 
   booking_mailer:
     confirmed:
-      subject: "Booking confirmed: %{code}"
+      subject: "Booking confirmed: %{codes}"
       greeting: "Hello %{name},"
-      intro: "Your court booking is confirmed:"
-      view_booking: View booking
+      intro:
+        one: "Your court booking is confirmed:"
+        other: "Your bookings for %{count} courts are confirmed:"
+      view_bookings: View my bookings
       cancel_policy: "You can cancel online up to %{hours} hours before the start time."

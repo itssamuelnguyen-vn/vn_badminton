@@ -33,24 +33,23 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
   end
 
   test "picking a slot requires sign-in and comes back to the confirmation page" do
-    get new_booking_path(court_id: courts(:court_one).id, starts_at: at("18:00").iso8601, ends_at: at("19:30").iso8601)
+    get new_booking_path(slots: { "0" => slot(:court_one, "18:00", "19:30") })
     assert_redirected_to new_user_session_path
 
     post user_session_path, params: { user: { login: "an@example.com", password: "password123" } }
-    assert_redirected_to %r{/bookings/new\?}
+    assert_redirected_to %r{/bookings/new\?slots}
   end
 
   test "books a court and sends a confirmation email" do
     sign_in users(:an)
 
-    get new_booking_path(court_id: courts(:court_one).id, starts_at: at("18:00").iso8601, ends_at: at("19:30").iso8601)
+    get new_booking_path(slots: { "0" => slot(:court_one, "18:00", "19:30") })
     assert_response :success
     assert_select "dd", text: "180.000đ"
 
     assert_enqueued_emails 1 do
       assert_difference "Booking.count", 1 do
-        post bookings_path, params: { booking: { court_id: courts(:court_one).id, starts_at: at("18:00").iso8601,
-                                                 ends_at: at("19:30").iso8601, note: "Cần thuê vợt" } }
+        post bookings_path, params: { booking: { slots: { "0" => slot(:court_one, "18:00", "19:30") }, note: "Cần thuê vợt" } }
       end
     end
 
@@ -67,7 +66,7 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     sign_in users(:an)
     courts(:court_one).bookings.create!(user: users(:an), starts_at: at("18:00"), ends_at: at("19:00"))
 
-    get new_booking_path(court_id: courts(:court_one).id, starts_at: at("18:30").iso8601, ends_at: at("19:30").iso8601)
+    get new_booking_path(slots: { "0" => slot(:court_one, "18:30", "19:30") })
 
     assert_select "#error_explanation li", "Khung giờ này đã có người đặt"
     assert_select "input[type=submit]", count: 0
@@ -76,7 +75,7 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
   test "a failed booking re-renders the confirmation page" do
     sign_in users(:an)
 
-    post bookings_path, params: { booking: { court_id: courts(:court_one).id, starts_at: at("21:30").iso8601, ends_at: at("22:30").iso8601 } }
+    post bookings_path, params: { booking: { slots: { "0" => slot(:court_one, "21:30", "22:30") } } }
 
     assert_response :unprocessable_content
     assert_select "#error_explanation li", "Ngoài giờ mở cửa của cơ sở"
@@ -123,7 +122,59 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     assert booking.reload.confirmed?
   end
 
+  test "books several courts at once, each with its own time" do
+    sign_in users(:an)
+    slots = { "0" => slot(:court_one, "18:00", "19:30"), "1" => slot(:court_two, "19:00", "21:00") }
+
+    get new_booking_path(slots: slots)
+    assert_select "span", text: "Tổng tiền (2 sân)"
+    assert_select "span", text: "420.000đ"
+
+    assert_enqueued_emails 1 do
+      assert_difference "Booking.count", 2 do
+        post bookings_path, params: { booking: { slots: slots, note: "Đi nhóm 8 người" } }
+      end
+    end
+    assert_redirected_to bookings_path
+    assert_equal [ "Đi nhóm 8 người" ], Booking.last(2).map(&:note).uniq
+  end
+
+  test "a customer who booked two courts can cancel just one of them" do
+    sign_in users(:an)
+    post bookings_path, params: { booking: { slots: { "0" => slot(:court_one, "18:00", "19:30"), "1" => slot(:court_two, "18:00", "19:30") } } }
+    first, second = Booking.last(2).sort_by { |b| b.court.position }
+
+    patch cancel_booking_path(second)
+
+    assert second.reload.cancelled?
+    assert first.reload.confirmed?
+  end
+
+  test "books none of the courts when one of them is taken" do
+    sign_in users(:an)
+    courts(:court_two).bookings.create!(user: users(:an), starts_at: at("19:00"), ends_at: at("20:00"))
+
+    assert_no_difference "Booking.count" do
+      post bookings_path, params: { booking: { slots: { "0" => slot(:court_one, "18:00", "19:30"), "1" => slot(:court_two, "19:30", "21:00") } } }
+    end
+
+    assert_response :unprocessable_content
+    assert_select "#error_explanation li", "Sân 2: Khung giờ này đã có người đặt"
+  end
+
+  test "the confirmation page without a selection goes back to the schedule" do
+    sign_in users(:an)
+
+    get new_booking_path
+
+    assert_redirected_to root_path
+  end
+
   private
+
+  def slot(court, from, to)
+    { court_id: courts(court).id, starts_at: at(from).iso8601, ends_at: at(to).iso8601 }
+  end
 
   def at(hhmm)
     Time.zone.parse("2026-10-20 #{hhmm}")

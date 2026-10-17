@@ -179,6 +179,8 @@ vi:
       too_short: "Vui lòng chọn tối thiểu %{minutes} phút"
       too_long: "Chỉ được đặt tối đa %{minutes} phút một lần"
       number_locale: vi-VN
+      multiple: Đặt nhiều sân cùng lúc
+      total: "Tổng cộng: %{amount}"
       no_slots_left: Ngày này đã hết giờ có thể đặt. Vui lòng chọn ngày khác.
     legend:
       label: Chú thích
@@ -216,6 +218,7 @@ vi:
       date: Ngày
       time: Giờ
       total: Tổng tiền
+      price: Thành tiền
     new:
       title: Xác nhận đặt sân
       customer: Người đặt
@@ -225,8 +228,12 @@ vi:
       pay_at_venue: Thanh toán tại sân khi đến chơi.
       back: Chọn giờ khác
       submit: Xác nhận đặt sân
+      grand_total:
+        other: "Tổng tiền (%{count} sân)"
+      no_selection: Vui lòng chọn khung giờ trên lịch trước.
     create:
-      success: Đặt sân thành công! Chúng tôi đã gửi email xác nhận cho bạn.
+      success:
+        other: Đặt sân thành công! Chúng tôi đã gửi email xác nhận cho bạn.
     cancel:
       success: Đã huỷ lượt đặt sân.
       not_allowed: Không thể huỷ lượt đặt này nữa.
@@ -245,8 +252,9 @@ vi:
 
   booking_mailer:
     confirmed:
-      subject: "Xác nhận đặt sân %{code}"
+      subject: "Xác nhận đặt sân %{codes}"
       greeting: "Xin chào %{name},"
-      intro: "Lượt đặt sân của bạn đã được xác nhận:"
-      view_booking: Xem lượt đặt
+      intro:
+        other: "Lượt đặt sân của bạn đã được xác nhận (%{count} sân):"
+      view_bookings: Xem lượt đặt của tôi
       cancel_policy: "Bạn có thể huỷ online trước giờ chơi tối thiểu %{hours} giờ."

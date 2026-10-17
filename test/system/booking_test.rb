@@ -38,6 +38,43 @@ class BookingTest < ApplicationSystemTestCase
     assert_text "Sân 1 · 20:00 – 20:30"
   end
 
+  test "books two courts with the several-courts box ticked" do
+    sign_in_as users(:an)
+    visit root_path(date: "2026-10-20")
+
+    slot("Sân 1", "18:00").click
+    slot("Sân 1", "19:00").click
+    slot("Sân 2", "19:00").click
+    assert_no_text "Sân 1 · 18:00", wait: 0.5 # without the box, another court replaces the selection
+
+    check "Đặt nhiều sân cùng lúc"
+    slot("Sân 2", "20:30").click
+    slot("Sân 1", "18:00").click
+    slot("Sân 1", "19:00").click
+    assert_text "Sân 1 · 18:00 – 19:30 · 180.000đ"
+    assert_text "Sân 2 · 19:00 – 21:00 · 240.000đ"
+    assert_text "Tổng cộng: 420.000đ"
+
+    click_on "Tiếp tục"
+    click_on "Xác nhận đặt sân"
+
+    assert_text "Đặt sân thành công!"
+    assert_equal [ [ "Sân 1", "18:00", "19:30" ], [ "Sân 2", "19:00", "21:00" ] ],
+                 Booking.order(:starts_at).map { |b| [ b.court.name, b.starts_at.strftime("%H:%M"), b.ends_at.strftime("%H:%M") ] }
+  end
+
+  test "unticking the box keeps only the court picked last" do
+    visit root_path(date: "2026-10-20")
+
+    check "Đặt nhiều sân cùng lúc"
+    slot("Sân 1", "18:00").click
+    slot("Sân 2", "19:00").click
+    uncheck "Đặt nhiều sân cùng lúc"
+
+    assert_text "Sân 2 · 19:00 – 19:30"
+    assert_no_text "Sân 1 · 18:00"
+  end
+
   private
 
   def slot(court, time)
