@@ -9,16 +9,16 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     get root_path(date: "2026-10-20")
 
     assert_response :success
-    assert_select "[role=columnheader]", 2
+    assert_select "[role=grid][aria-label^='Lịch sân'] [role=columnheader]", 2
     assert_select "button[data-available=true][data-court-name='Sân 1'][data-starts-label='18:00']"
     assert_select "div[data-court-name='Sân 2'][data-starts-label='18:00']", text: "Đã đặt"
-    assert_select "a[aria-current=date]", text: /20\/10/
+    assert_select "[role=dialog] [aria-current=date]", text: "20"
   end
 
   test "after closing time the schedule opens on tomorrow" do
     travel_to Time.zone.parse("2026-10-19 22:30") do
       get root_path
-      assert_select "a[aria-current=date]", text: /20\/10/
+      assert_select "[role=dialog] [aria-current=date]", text: "20"
 
       get root_path(date: "2026-10-19")
       assert_select "[role=status]", text: /hết giờ có thể đặt/
@@ -29,7 +29,18 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
   test "an out-of-range date falls back to today" do
     get root_path(date: "2030-01-01")
 
-    assert_select "a[aria-current=date]", text: /Hôm nay/
+    assert_select "button[aria-haspopup=dialog]", text: /Thứ hai, 19\/10\/2026\s*\(hôm nay\)/
+  end
+
+  test "the calendar disables past days and days beyond the booking horizon" do
+    get root_path(date: "2026-10-20")
+
+    assert_select "[role=dialog] span[aria-disabled=true]", text: "18"
+    assert_select "[role=dialog] a[href='/?date=2026-10-19']", text: "19"
+    assert_select "[role=dialog] a[href='/?date=2026-11-02']", text: "2"
+    assert_select "[role=dialog] a[href='/?date=2026-11-03']", count: 0
+    assert_select "a[aria-label='Ngày trước'][href='/?date=2026-10-19']"
+    assert_select "a[aria-label='Ngày sau'][href='/?date=2026-10-21']"
   end
 
   test "picking a slot requires sign-in and comes back to the confirmation page" do

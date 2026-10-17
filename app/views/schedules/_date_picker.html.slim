@@ -1,0 +1,58 @@
+/ ‹ [selected date ▾] ›  The button opens a month calendar; days that cannot be booked are disabled.
+- nav_class = "flex size-10 items-center justify-center rounded-lg bg-white ring-1 ring-slate-200"
+- chevron_left = capture do
+  svg viewBox="0 0 20 20" class="size-5" fill="currentColor" aria-hidden="true"
+    path d="M12.7 5.3a1 1 0 0 1 0 1.4L9.4 10l3.3 3.3a1 1 0 0 1-1.4 1.4l-4-4a1 1 0 0 1 0-1.4l4-4a1 1 0 0 1 1.4 0Z"
+- chevron_right = capture do
+  svg viewBox="0 0 20 20" class="size-5" fill="currentColor" aria-hidden="true"
+    path d="M7.3 14.7a1 1 0 0 1 0-1.4l3.3-3.3-3.3-3.3a1 1 0 0 1 1.4-1.4l4 4a1 1 0 0 1 0 1.4l-4 4a1 1 0 0 1-1.4 0Z"
+
+div class="relative mb-4 flex items-center gap-2" data-controller="date-picker"
+  - if (previous_date = calendar.previous_selectable)
+    = link_to chevron_left, root_path(date: previous_date.iso8601), class: "#{nav_class} text-slate-700 hover:ring-emerald-400", aria: { label: t(".previous_day") }
+  - else
+    span class="#{nav_class} text-slate-300" aria-hidden="true" = chevron_left
+
+  button type="button" class="flex h-10 min-w-0 items-center gap-2 rounded-lg bg-white px-3 font-semibold whitespace-nowrap sm:px-4 ring-1 ring-slate-200 hover:ring-emerald-400" aria-haspopup="dialog" aria-expanded="false" data-date-picker-target="toggle" data-action="date-picker#toggle"
+    svg viewBox="0 0 20 20" class="size-5 text-emerald-700" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"
+      rect x="3" y="4.5" width="14" height="12.5" rx="2"
+      path d="M3 8.5h14M7 3v3M13 3v3"
+    span class="truncate"
+      = l(calendar.selected, format: :full)
+      - if calendar.selected == calendar.venue.today
+        span class="ml-1 hidden font-normal text-emerald-700 sm:inline" = "(#{t(".today")})"
+    svg viewBox="0 0 20 20" class="size-4 text-slate-400" fill="currentColor" aria-hidden="true"
+      path d="M5.3 7.3a1 1 0 0 1 1.4 0L10 10.6l3.3-3.3a1 1 0 1 1 1.4 1.4l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 0 1 0-1.4Z"
+
+  - if (next_date = calendar.next_selectable)
+    = link_to chevron_right, root_path(date: next_date.iso8601), class: "#{nav_class} text-slate-700 hover:ring-emerald-400", aria: { label: t(".next_day") }
+  - else
+    span class="#{nav_class} text-slate-300" aria-hidden="true" = chevron_right
+
+  div class="absolute top-full left-0 z-30 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-xl bg-white p-4 shadow-xl ring-1 ring-slate-200" role="dialog" aria-label=t(".label") hidden=true data-date-picker-target="panel"
+    - months = calendar.months
+    - months.each_with_index do |month, index|
+      div data-date-picker-target="month" hidden=(month != calendar.selected.beginning_of_month)
+        div class="mb-3 flex items-center justify-between"
+          p class="font-semibold" = l(month, format: :month_year)
+          div class="flex gap-1"
+            - [ [ index - 1, chevron_left, t(".previous_month") ], [ index + 1, chevron_right, t(".next_month") ] ].each do |target, icon, label|
+              - enabled = target.between?(0, months.size - 1)
+              = tag.button icon, type: "button", disabled: !enabled, aria: { label: label },
+                  class: "flex size-8 items-center justify-center rounded-md text-slate-600 enabled:cursor-pointer enabled:hover:bg-slate-100 disabled:text-slate-300",
+                  data: { action: "date-picker#showMonth", date_picker_index_param: target }
+
+        div class="grid grid-cols-7 gap-1 text-center text-sm" role="grid"
+          - t(".weekdays").each do |weekday|
+            div class="py-1 text-xs font-medium text-slate-500" role="columnheader" = weekday
+          - calendar.weeks(month).flatten.each do |date|
+            - classes = [ "flex size-10 items-center justify-center rounded-full tabular-nums",
+                          ("text-slate-400" if date.month != month.month),
+                          ("ring-1 ring-emerald-600" if date == calendar.venue.today && date != calendar.selected) ]
+            - if date == calendar.selected
+              span class=[ *classes, "bg-emerald-600 font-semibold text-white" ] aria-current="date" role="gridcell" = date.day
+            - elsif calendar.selectable?(date)
+              = link_to date.day, root_path(date: date.iso8601), role: "gridcell", aria: { label: l(date, format: :full) },
+                  class: [ *classes, "font-medium text-slate-800 hover:bg-emerald-50" ]
+            - else
+              span class=[ *classes, "cursor-not-allowed text-slate-300" ] aria-disabled="true" role="gridcell" = date.day

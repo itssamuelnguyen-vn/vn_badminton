@@ -6,6 +6,9 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
     options.binary = ENV["CHROME_BIN"] if ENV["CHROME_BIN"]
   end
 
+  # Let click_on & co. find icon-only buttons and links by their aria-label.
+  Capybara.enable_aria_label = true
+
   # Same reason as in ActionDispatch::IntegrationTest (test_helper.rb).
   setup { default_url_options[:locale] = nil }
 end

@@ -5,15 +5,7 @@ div class="mb-6 flex flex-wrap items-end justify-between gap-4"
     h1 class="text-2xl font-bold sm:text-3xl" = t(".title")
     p class="mt-1 text-sm text-slate-600" = "#{@venue.name} · #{@venue.address}"
 
-/ Date picker: today up to the booking horizon.
-nav class="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0" aria-label=t(".dates")
-  - @venue.bookable_dates.each do |date|
-    = link_to root_path(date: date.iso8601),
-        aria: { current: ("date" if date == @date) },
-        class: [ "flex min-w-16 flex-col items-center rounded-lg px-3 py-2 text-sm ring-1 transition",
-                 date == @date ? "bg-emerald-600 text-white ring-emerald-600" : "bg-white text-slate-700 ring-slate-200 hover:ring-emerald-400" ] do
-      span class="text-xs font-medium whitespace-nowrap uppercase" = date == @venue.today ? t(".today") : l(date, format: :weekday)
-      span class="font-semibold" = l(date, format: :day_month)
+= render "schedules/date_picker", calendar: @calendar
 
 - if @day.open?
   - unless @day.bookable?

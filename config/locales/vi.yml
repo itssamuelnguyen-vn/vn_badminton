@@ -162,8 +162,7 @@ vi:
 
   date:
     formats:
-      weekday: "%a"
-      day_month: "%d/%m"
+      month_year: "Tháng %-m, %Y"
       full: "%A, %d/%m/%Y"
   helpers:
     vnd: "%{amount}đ"
@@ -172,8 +171,6 @@ vi:
   schedules:
     show:
       title: Đặt sân
-      dates: Chọn ngày
-      today: Hôm nay
       continue: Tiếp tục
       closed: Cơ sở nghỉ vào ngày này.
       too_short: "Vui lòng chọn tối thiểu %{minutes} phút"
@@ -182,6 +179,14 @@ vi:
       multiple: Đặt nhiều sân cùng lúc
       total: "Tổng cộng: %{amount}"
       no_slots_left: Ngày này đã hết giờ có thể đặt. Vui lòng chọn ngày khác.
+    date_picker:
+      label: Chọn ngày
+      today: hôm nay
+      previous_day: Ngày trước
+      next_day: Ngày sau
+      previous_month: Tháng trước
+      next_month: Tháng sau
+      weekdays: [ T2, T3, T4, T5, T6, T7, CN ]
     legend:
       label: Chú thích
       available: Còn trống

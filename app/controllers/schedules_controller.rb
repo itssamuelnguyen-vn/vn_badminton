@@ -3,6 +3,7 @@ class SchedulesController < ApplicationController
     @venue = Venue.main
     @date = selected_date
     @day = Schedule::Day.new(venue: @venue, date: @date, user: current_user)
+    @calendar = Schedule::Calendar.new(venue: @venue, selected: @date)
   end
 
   private
@@ -15,9 +16,8 @@ class SchedulesController < ApplicationController
     default_date
   end
 
-  # Today, or tomorrow once today's last slot has started (e.g. after closing time).
+  # The first day that can still be booked: today, or tomorrow once today's last slot has started.
   def default_date
-    today = @venue.today
-    Schedule::Day.new(venue: @venue, date: today).bookable? ? today : today + 1
+    Schedule::Calendar.new(venue: @venue, selected: @venue.today).first_selectable || @venue.today
   end
 end
