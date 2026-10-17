@@ -1,0 +1,4 @@
+- { notice: "bg-emerald-50 text-emerald-800 ring-emerald-200", alert: "bg-red-50 text-red-800 ring-red-200" }.each do |type, classes|
+  - if flash[type].present?
+    div role=(type == :alert ? "alert" : "status") class="mx-auto mb-6 max-w-md rounded-lg px-4 py-3 text-sm ring-1 #{classes}"
+      = flash[type]

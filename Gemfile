@@ -16,6 +16,8 @@ gem "turbo-rails"
 gem "stimulus-rails"
 # Utility-first CSS framework [https://github.com/rails/tailwindcss-rails]
 gem "tailwindcss-rails", "~> 4.6"
+# Slim templates for views [https://github.com/slim-template/slim-rails]
+gem "slim-rails", "~> 4.0"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
 

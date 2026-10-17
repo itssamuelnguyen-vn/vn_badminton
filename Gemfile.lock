@@ -338,6 +338,13 @@ GEM
       logger (~> 1.4)
       rubyzip (>= 1.2.2, < 4.0)
       websocket (~> 1.0)
+    slim (5.2.2)
+      temple (~> 0.10.0)
+      tilt (>= 2.1.0)
+    slim-rails (4.0.1)
+      actionpack (>= 7.0)
+      railties (>= 7.0)
+      slim (>= 3.0, < 6.0, != 5.0.0)
     solid_cable (4.1.0)
       actioncable (>= 7.2)
       activejob (>= 7.2)
@@ -371,10 +378,12 @@ GEM
     tailwindcss-ruby (4.3.3-aarch64-linux-musl)
     tailwindcss-ruby (4.3.3-x86_64-linux-gnu)
     tailwindcss-ruby (4.3.3-x86_64-linux-musl)
+    temple (0.10.7)
     thor (1.5.0)
     thruster (0.1.27)
     thruster (0.1.27-aarch64-linux)
     thruster (0.1.27-x86_64-linux)
+    tilt (2.9.0)
     timeout (0.6.1)
     tsort (0.2.0)
     turbo-rails (2.0.23)
@@ -431,6 +440,7 @@ DEPENDENCIES
   rails-i18n (~> 8.1)
   rubocop-rails-omakase
   selenium-webdriver
+  slim-rails (~> 4.0)
   solid_cable
   solid_cache
   solid_queue
