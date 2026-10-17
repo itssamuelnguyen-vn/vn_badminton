@@ -37,6 +37,7 @@ It must be kept in sync with the migrations by hand, so prefer the command above
 | Convention | Reason |
 |---|---|
 | Fixed 30-minute slot grid; times stored as timestamptz (UTC) | The DB rejects off-grid times; no time zone drift |
+| Datetimes stored with whole seconds (`precision: 0`); new migrations must pass it (`t.timestamps precision: 0`) | Sub-second precision is not needed; `SchemaConventionsTest` fails if a column is missed |
 | Opening hours and price windows stored as minutes since midnight (`330` = 05:30) | Avoids Rails `time` column pitfalls; can represent 24:00 |
 | VND amounts stored as `bigint` | No floating-point rounding errors |
 | Maintenance and holidays are bookings with `kind = 'block'` | They share the exclusion constraint, so nobody can book during maintenance |

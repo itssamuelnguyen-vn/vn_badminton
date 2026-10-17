@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+/* Shared building blocks for forms and pages. Declared with @utility so they can be combined
+   with other classes and reused in @apply (Tailwind v4). */
+@utility card {
+  @apply rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 sm:p-8;
+}
+
+@utility form-label {
+  @apply mb-1 block text-sm font-medium text-slate-700;
+}
+
+@utility form-input {
+  @apply block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm
+    placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 focus:outline-none
+    aria-invalid:border-red-500 aria-invalid:focus:ring-red-500/30;
+}
+
+@utility form-hint {
+  @apply mt-1 text-xs text-slate-500;
+}
+
+@utility btn {
+  @apply inline-flex cursor-pointer items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold
+    transition focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50;
+}
+
+@utility btn-primary {
+  @apply btn bg-emerald-600 text-white hover:bg-emerald-700;
+}
+
+@utility btn-secondary {
+  @apply btn bg-white text-slate-700 ring-1 ring-slate-300 hover:bg-slate-50;
+}
+
+@utility link {
+  @apply font-medium text-emerald-700 hover:text-emerald-800 hover:underline;
+}

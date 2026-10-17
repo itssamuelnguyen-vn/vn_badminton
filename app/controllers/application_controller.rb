@@ -4,4 +4,24 @@ class ApplicationController < ActionController::Base
 
   # Changes to the importmap will invalidate the etag for HTML responses
   stale_when_importmap_changes
+
+  around_action :switch_locale
+  before_action :configure_permitted_parameters, if: :devise_controller?
+
+  # Keep the current locale in every generated URL (no prefix for the default locale).
+  def default_url_options
+    { locale: I18n.locale == I18n.default_locale ? nil : I18n.locale }
+  end
+
+  private
+
+  def switch_locale(&action)
+    I18n.with_locale(params[:locale] || I18n.default_locale, &action)
+  end
+
+  # Devise only permits its authentication keys by default, which is :login here, so add :email explicitly.
+  def configure_permitted_parameters
+    devise_parameter_sanitizer.permit(:sign_up, keys: %i[email full_name phone])
+    devise_parameter_sanitizer.permit(:account_update, keys: %i[email full_name phone])
+  end
 end

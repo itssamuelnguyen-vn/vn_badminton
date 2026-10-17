@@ -7,6 +7,12 @@ class PhoneNumberTest < ActiveSupport::TestCase
     assert_equal "+84901234567", PhoneNumber.normalize("+84 90-123-4567")
   end
 
+  test "formats a stored number for display" do
+    assert_equal "0901 234 567", PhoneNumber.to_local("+84901234567")
+    assert_equal "12345", PhoneNumber.to_local("12345")
+    assert_nil PhoneNumber.to_local(nil)
+  end
+
   test "leaves invalid numbers for validation to reject" do
     assert_nil PhoneNumber.normalize(" ")
     assert_no_match PhoneNumber::FORMAT, PhoneNumber.normalize("12345")

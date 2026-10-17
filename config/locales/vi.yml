@@ -21,6 +21,10 @@ vi:
         full_name: Họ tên
         phone: Số điện thoại
         role: Vai trò
+        login: Email hoặc số điện thoại
+        password: Mật khẩu
+        password_confirmation: Xác nhận mật khẩu
+        current_password: Mật khẩu hiện tại
       venue:
         name: Tên
         slug: Đường dẫn
@@ -63,6 +67,10 @@ vi:
 
     errors:
       models:
+        user:
+          attributes:
+            password_confirmation:
+              confirmation: "không khớp với mật khẩu"
         venue:
           not_multiple_of_30: "phải là bội số của 30"
           less_than_min: "phải lớn hơn hoặc bằng thời lượng tối thiểu"
@@ -89,3 +97,68 @@ vi:
           beyond_horizon:
             other: "chỉ được đặt trước tối đa %{count} ngày"
           duration_out_of_range: "Thời lượng phải từ %{min} đến %{max} phút"
+
+  layouts:
+    application:
+      header:
+        sign_in: Đăng nhập
+        sign_up: Đăng ký
+        sign_out: Đăng xuất
+      locale_switcher:
+        label: Ngôn ngữ
+
+  home:
+    index:
+      title: Đặt sân cầu lông chỉ trong vài giây
+      subtitle: Xem khung giờ trống, biết trước giá và đặt sân online bất cứ lúc nào.
+      welcome_back: "Chào mừng bạn quay lại, %{name}!"
+      sign_up: Tạo tài khoản
+      sign_in: Đăng nhập
+
+  devise:
+    sessions:
+      new:
+        title: Đăng nhập
+        login: Email hoặc số điện thoại
+        login_hint: "Ví dụ: an@example.com hoặc 0901 234 567"
+        remember_me: Ghi nhớ đăng nhập
+        forgot_password: Quên mật khẩu?
+        submit: Đăng nhập
+        no_account: Chưa có tài khoản?
+        sign_up: Đăng ký
+    registrations:
+      new:
+        title: Tạo tài khoản
+        password_hint:
+          other: "Tối thiểu %{count} ký tự"
+        submit: Đăng ký
+        have_account: Đã có tài khoản?
+        sign_in: Đăng nhập
+      edit:
+        title: Cài đặt tài khoản
+        change_password: Đổi mật khẩu
+        new_password: Mật khẩu mới
+        password_hint: Để trống nếu không muốn đổi mật khẩu
+        current_password_hint: Cần nhập để lưu thay đổi
+        submit: Lưu thay đổi
+    passwords:
+      new:
+        title: Quên mật khẩu?
+        description: Nhập email của bạn, chúng tôi sẽ gửi đường dẫn để đặt lại mật khẩu.
+        submit: Gửi đường dẫn
+        back_to_sign_in: Quay lại đăng nhập
+      edit:
+        title: Đặt mật khẩu mới
+        new_password: Mật khẩu mới
+        submit: Đổi mật khẩu
+    shared:
+      error_messages:
+        title:
+          other: "Vui lòng kiểm tra lại %{count} lỗi bên dưới:"
+    mailer:
+      reset_password_instructions:
+        greeting: "Xin chào %{name},"
+        instruction: "Có người vừa yêu cầu đường dẫn để đổi mật khẩu tài khoản của bạn. Bạn có thể đổi mật khẩu qua đường dẫn bên dưới."
+        action: Đổi mật khẩu
+        ignore: "Nếu bạn không yêu cầu, hãy bỏ qua email này."
+        unchanged: "Mật khẩu của bạn sẽ không thay đổi cho tới khi bạn mở đường dẫn trên và tạo mật khẩu mới."

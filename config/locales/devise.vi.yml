@@ -9,10 +9,10 @@ vi:
     failure:
       already_authenticated: "Bạn đã đăng nhập rồi."
       inactive: "Tài khoản của bạn chưa được kích hoạt."
-      invalid: "%{authentication_keys} hoặc mật khẩu không đúng."
+      invalid: "Email/số điện thoại hoặc mật khẩu không đúng."
       locked: "Tài khoản của bạn đã bị khóa."
       last_attempt: "Bạn còn một lần thử trước khi tài khoản bị khóa."
-      not_found_in_database: "%{authentication_keys} hoặc mật khẩu không đúng."
+      not_found_in_database: "Email/số điện thoại hoặc mật khẩu không đúng."
       timeout: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để tiếp tục."
       unauthenticated: "Bạn cần đăng nhập hoặc đăng ký trước khi tiếp tục."
       unconfirmed: "Bạn cần xác nhận địa chỉ email trước khi tiếp tục."

@@ -21,6 +21,10 @@ en:
         full_name: Full name
         phone: Phone number
         role: Role
+        login: Email or phone number
+        password: Password
+        password_confirmation: Confirm password
+        current_password: Current password
       venue:
         name: Name
         slug: Slug
@@ -63,6 +67,10 @@ en:
 
     errors:
       models:
+        user:
+          attributes:
+            password_confirmation:
+              confirmation: "doesn't match the password"
         venue:
           not_multiple_of_30: "must be a multiple of 30"
           less_than_min: "must be greater than or equal to the minimum duration"
@@ -90,3 +98,70 @@ en:
             one: "can be at most %{count} day in advance"
             other: "can be at most %{count} days in advance"
           duration_out_of_range: "Duration must be between %{min} and %{max} minutes"
+
+  layouts:
+    application:
+      header:
+        sign_in: Sign in
+        sign_up: Sign up
+        sign_out: Sign out
+      locale_switcher:
+        label: Language
+
+  home:
+    index:
+      title: Book a badminton court in seconds
+      subtitle: Check free slots, see the price up front and book online, any time.
+      welcome_back: "Welcome back, %{name}!"
+      sign_up: Create an account
+      sign_in: Sign in
+
+  devise:
+    sessions:
+      new:
+        title: Sign in
+        login: Email or phone number
+        login_hint: "For example: an@example.com or 0901 234 567"
+        remember_me: Remember me
+        forgot_password: Forgot your password?
+        submit: Sign in
+        no_account: Don't have an account?
+        sign_up: Sign up
+    registrations:
+      new:
+        title: Create an account
+        password_hint:
+          one: "At least %{count} character"
+          other: "At least %{count} characters"
+        submit: Sign up
+        have_account: Already have an account?
+        sign_in: Sign in
+      edit:
+        title: Account settings
+        change_password: Change password
+        new_password: New password
+        password_hint: Leave blank to keep your current password
+        current_password_hint: Required to save any changes
+        submit: Save changes
+    passwords:
+      new:
+        title: Forgot your password?
+        description: Enter your email and we'll send you a link to reset your password.
+        submit: Send reset link
+        back_to_sign_in: Back to sign in
+      edit:
+        title: Set a new password
+        new_password: New password
+        submit: Change password
+    shared:
+      error_messages:
+        title:
+          one: "Please fix the error below:"
+          other: "Please fix the %{count} errors below:"
+    mailer:
+      reset_password_instructions:
+        greeting: "Hello %{name},"
+        instruction: "Someone has requested a link to change your password. You can do this through the link below."
+        action: Change my password
+        ignore: "If you didn't request this, please ignore this email."
+        unchanged: "Your password won't change until you open the link above and create a new one."

@@ -1,10 +1,13 @@
+# Every fixture user has the password "password123".
 an:
   email: an@example.com
   full_name: Nguyễn An
   phone: "+84901234567"
   role: customer
+  encrypted_password: <%= Devise::Encryptor.digest(User, "password123") %>
 
 owner:
   email: owner@example.com
   full_name: Chủ Sân
   role: admin
+  encrypted_password: <%= Devise::Encryptor.digest(User, "password123") %>
