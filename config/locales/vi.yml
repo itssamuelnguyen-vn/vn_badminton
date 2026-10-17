@@ -164,6 +164,7 @@ vi:
     formats:
       month_year: "Tháng %-m, %Y"
       full: "%A, %d/%m/%Y"
+      day_month_year: "%d/%m/%Y"
   helpers:
     vnd: "%{amount}đ"
     every_day: Hằng ngày
@@ -187,6 +188,8 @@ vi:
       previous_month: Tháng trước
       next_month: Tháng sau
       weekdays: [ T2, T3, T4, T5, T6, T7, CN ]
+      horizon:
+        other: "Có thể đặt trước tối đa %{count} ngày (đến %{last})."
     legend:
       label: Chú thích
       available: Còn trống

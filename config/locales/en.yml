@@ -167,6 +167,7 @@ en:
     formats:
       month_year: "%B %Y"
       full: "%A, %d/%m/%Y"
+      day_month_year: "%d/%m/%Y"
   helpers:
     vnd: "%{amount} VND"
     every_day: Every day
@@ -190,6 +191,9 @@ en:
       previous_month: Previous month
       next_month: Next month
       weekdays: [ Mo, Tu, We, Th, Fr, Sa, Su ]
+      horizon:
+        one: "You can book up to %{count} day ahead (until %{last})."
+        other: "You can book up to %{count} days ahead (until %{last})."
     legend:
       label: Legend
       available: Available

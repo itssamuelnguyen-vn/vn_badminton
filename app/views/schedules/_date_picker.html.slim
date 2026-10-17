@@ -56,3 +56,6 @@ div class="relative mb-4 flex items-center gap-2" data-controller="date-picker"
                   class: [ *classes, "font-medium text-slate-800 hover:bg-emerald-50" ]
             - else
               span class=[ *classes, "cursor-not-allowed text-slate-300" ] aria-disabled="true" role="gridcell" = date.day
+
+    p class="mt-3 border-t border-slate-100 pt-3 text-xs text-slate-500"
+      = t(".horizon", count: calendar.venue.booking_horizon_days, last: l(calendar.venue.bookable_dates.last, format: :day_month_year))

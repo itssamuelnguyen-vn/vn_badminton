@@ -41,6 +41,7 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     assert_select "[role=dialog] a[href='/?date=2026-11-03']", count: 0
     assert_select "a[aria-label='Ngày trước'][href='/?date=2026-10-19']"
     assert_select "a[aria-label='Ngày sau'][href='/?date=2026-10-21']"
+    assert_select "[role=dialog] p", text: "Có thể đặt trước tối đa 14 ngày (đến 02/11/2026)."
   end
 
   test "picking a slot requires sign-in and comes back to the confirmation page" do
