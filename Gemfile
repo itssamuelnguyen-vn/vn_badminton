@@ -14,6 +14,8 @@ gem "importmap-rails"
 gem "turbo-rails"
 # Hotwire's modest JavaScript framework [https://stimulus.hotwired.dev]
 gem "stimulus-rails"
+# Utility-first CSS framework [https://github.com/rails/tailwindcss-rails]
+gem "tailwindcss-rails", "~> 4.6"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
 
@@ -63,6 +65,9 @@ end
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
+
+  # Open sent emails in the browser instead of delivering them [https://github.com/ryanb/letter_opener]
+  gem "letter_opener", "~> 1.10"
 end
 
 group :test do

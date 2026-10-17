@@ -16,4 +16,11 @@ module PhoneNumber
     else digits # leave as-is so validation reports a format error
     end
   end
+
+  # For display: "+84901234567" -> "0901 234 567". Anything else is returned unchanged.
+  def self.to_local(phone)
+    return phone unless phone.to_s.match?(FORMAT)
+
+    "0#{phone[3, 9]}".sub(/\A(\d{4})(\d{3})(\d{3})\z/, '\1 \2 \3')
+  end
 end

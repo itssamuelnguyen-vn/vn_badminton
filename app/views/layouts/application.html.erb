@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html lang="<%= I18n.locale %>" class="h-full bg-slate-50">
   <head>
-    <title><%= content_for(:title) || "Vn Badminton" %></title>
+    <title><%= content_for?(:title) ? "#{yield(:title)} | VN Badminton" : "VN Badminton" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="application-name" content="Vn Badminton">
+    <meta name="application-name" content="VN Badminton">
     <meta name="mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
@@ -23,7 +23,12 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
-    <%= yield %>
+  <body class="flex min-h-full flex-col text-slate-900 antialiased">
+    <%= render "layouts/application/header" %>
+
+    <main class="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6 sm:py-12">
+      <%= render "layouts/application/flash" %>
+      <%= yield %>
+    </main>
   </body>
 </html>

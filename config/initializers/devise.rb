@@ -24,7 +24,7 @@ Devise.setup do |config|
   # Configure the e-mail address which will be shown in Devise::Mailer,
   # note that it will be overwritten if you use your own mailer class
   # with default "from" parameter.
-  config.mailer_sender = "please-change-me-at-config-initializers-devise@example.com"
+  config.mailer_sender = ENV.fetch("MAILER_SENDER", "VN Badminton <no-reply@example.com>")
 
   # Configure the class responsible to send e-mails.
   # config.mailer = 'Devise::Mailer'
@@ -46,7 +46,8 @@ Devise.setup do |config|
   # session. If you need permissions, you should implement that in a before filter.
   # You can also supply a hash where the value is a boolean determining whether
   # or not authentication should be aborted when the value is not present.
-  # config.authentication_keys = [:email]
+  # Users sign in with either their email or their phone number (see User.find_for_database_authentication).
+  config.authentication_keys = [ :login ]
 
   # Configure parameters from the request object used for authentication. Each entry
   # given should be a request method and it will automatically be passed to the
@@ -63,7 +64,7 @@ Devise.setup do |config|
   # Configure which authentication keys should have whitespace stripped.
   # These keys will have whitespace before and after removed upon creating or
   # modifying a user and when used to authenticate or find a user. Default is :email.
-  config.strip_whitespace_keys = [ :email ]
+  config.strip_whitespace_keys = [ :email, :login ]
 
   # Tell if authentication through request.params is enabled. True by default.
   # It can be set to an array that will enable params authentication only for the
@@ -90,7 +91,7 @@ Devise.setup do |config|
   # It will change confirmation, password recovery and other workflows
   # to behave the same regardless if the e-mail provided was right or wrong.
   # Does not affect registerable.
-  # config.paranoid = true
+  config.paranoid = true
 
   # By default Devise will store the user in session. You can skip storage for
   # particular strategies by setting this option.
@@ -181,12 +182,12 @@ Devise.setup do |config|
 
   # ==> Configuration for :validatable
   # Range for password length.
-  config.password_length = 6..128
+  config.password_length = 8..128
 
   # Email regex used to validate email formats. It simply asserts that
   # one (and only one) @ exists in the given string. This is mainly
   # to give user feedback and not to assert the e-mail validity.
-  config.email_regexp = /\A[^@\s]+@[^@\s]+\z/
+  config.email_regexp = /\A[^@\s]+@[^@\s]+\.[^@\s]+\z/ # same rule as the users_email_format constraint
 
   # ==> Configuration for :timeoutable
   # The time you want to timeout the user session without activity. After this
@@ -284,6 +285,10 @@ Devise.setup do |config|
   #   warden_config.intercept_401 = false
   #   warden_config.default_strategies(scope: :user).unshift :some_external_strategy
   # end
+  config.warden do |warden_config|
+    # Resolved per request because lib/ is autoloaded and cannot be referenced while booting.
+    warden_config.failure_app = ->(env) { LocalizedFailureApp.call(env) }
+  end
 
   # ==> Mountable engine configurations
   # When using Devise inside an engine, let's call it `MyEngine`, and this engine
