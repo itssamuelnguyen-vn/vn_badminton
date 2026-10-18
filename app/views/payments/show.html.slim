@@ -37,6 +37,10 @@ div class="card mx-auto max-w-lg"
 
     div class="flex justify-center"
       = image_tag payment.qr_url(@venue, remaining), alt: t(".qr_alt"), class: "w-64 max-w-full rounded-lg ring-1 ring-slate-200", width: 256, height: 256
+    div class="mt-3 flex flex-col items-center gap-1 text-center" data-controller="qr-save" data-qr-save-filename-value="QR-#{payment.code}.png"
+      = link_to t(".save_qr"), qr_payment_path(payment), download: "QR-#{payment.code}.png", class: "btn-secondary",
+          data: { qr_save_target: "link", action: "qr-save#save", turbo: false }
+      p class="text-xs text-slate-500" = t(".save_qr_hint")
 
     dl class="mt-4 divide-y divide-slate-100 text-sm"
       - [ [ t(".bank"), @venue.bank_code ], [ t(".account_number"), @venue.bank_account_number ], [ t(".account_name"), @venue.bank_account_name ],

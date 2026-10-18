@@ -60,7 +60,9 @@ Rails.application.routes.draw do
     end
 
     get "privacy", to: "pages#privacy"
-    resources :payments, only: :show, param: :token
+    resources :payments, only: :show, param: :token do
+      get :qr, on: :member
+    end
 
     # The home page is the booking schedule; ?date=YYYY-MM-DD picks the day.
     root "schedules#show"

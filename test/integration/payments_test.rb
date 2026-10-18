@@ -48,6 +48,29 @@ class PaymentsTest < ActionDispatch::IntegrationTest
     assert_empty BankTransaction.all
   end
 
+  test "the QR image can be saved as a file while the payment is open" do
+    sign_in users(:an)
+    post bookings_path, params: { booking: { slots: @slots } }
+    payment = Payment.last
+
+    get payment_path(payment)
+    assert_select "a[href='/payments/#{payment.token}/qr'][download='QR-#{payment.code}.png']", text: "Lưu ảnh mã QR"
+
+    urls = with_qr_image { get qr_payment_path(payment) }
+    assert_response :success
+    assert_equal "image/png", response.media_type
+    assert_equal "PNG", response.body
+    assert_match(/attachment; filename="QR-#{payment.code}.png"/, response.headers["Content-Disposition"])
+    assert_equal [ payment.qr_url(Venue.main) ], urls
+
+    with_qr_image(error: true) { get qr_payment_path(payment) }
+    assert_response :bad_gateway
+
+    travel 18.minutes
+    with_qr_image { get qr_payment_path(payment) }
+    assert_response :not_found
+  end
+
   test "a delivery sent twice is handled once" do
     sign_in users(:an)
     post bookings_path, params: { booking: { slots: @slots } }
@@ -274,6 +297,20 @@ class PaymentsTest < ActionDispatch::IntegrationTest
   end
 
   private
+
+  # Stands in for VietQR's server; returns the URLs asked for.
+  def with_qr_image(error: false)
+    urls = []
+    original = Payments::QrImage.method(:fetch)
+    Payments::QrImage.define_singleton_method(:fetch) do |url|
+      urls << url
+      error ? raise(Payments::QrImage::Error, "down") : "PNG"
+    end
+    yield
+    urls
+  ensure
+    Payments::QrImage.define_singleton_method(:fetch, original)
+  end
 
   def at(time) = Time.zone.parse("2026-10-19 #{time}").then { |t| t < Time.current ? t + 1.day : t }
 end

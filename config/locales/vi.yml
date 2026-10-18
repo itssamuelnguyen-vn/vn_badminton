@@ -375,6 +375,8 @@ vi:
       deadline_html: "Vui lòng chuyển khoản trong %{time}."
       deadline_passed: Đã hết thời gian giữ sân. Nếu bạn vừa chuyển, trang sẽ tự cập nhật khi nhận được tiền.
       qr_alt: Mã VietQR để chuyển khoản
+      save_qr: Lưu ảnh mã QR
+      save_qr_hint: "Đang dùng điện thoại? Lưu ảnh, rồi mở app ngân hàng → Quét QR → chọn ảnh vừa lưu."
       bank: Ngân hàng
       account_number: Số tài khoản
       account_name: Chủ tài khoản
