@@ -50,16 +50,32 @@ class RescheduleTest < ActionDispatch::IntegrationTest
     assert_equal at("2026-10-20 08:00"), @booking.reload.starts_at
   end
 
-  test "customers cannot move a paid booking or one past the cutoff" do
+  test "a paid booking moves to a slot that does not cost more, without refunding the difference" do
     sign_in users(:an)
-    @booking.mark_paid!
+    @booking.mark_paid! # 08:00-09:00 at 80.000đ
+
+    get booking_path(@booking)
+    assert_select "a", text: "Đổi giờ"
+
+    get reschedule_booking_path(@booking, slots: { "0" => slot(:court_two, "2026-10-21 18:00", 60) }) # 120.000đ at the peak
+    assert_select "#error_explanation li", text: /đắt hơn số tiền đã trả \(80.000đ\)/
+    assert_select "input[type=submit]", count: 0
+
+    patch reschedule_booking_path(@booking), params: { reschedule: slot(:court_two, "2026-10-21 10:00", 60) } # same price
+    assert_redirected_to booking_path(@booking)
+    @booking.reload
+    assert_equal [ courts(:court_two), 80_000 ], [ @booking.court, @booking.total_amount_vnd ]
+    assert @booking.payment_paid?
+  end
+
+  test "customers cannot move a booking past the cutoff" do
+    sign_in users(:an)
+    travel_to Time.zone.parse("2026-10-20 07:00")
 
     get booking_path(@booking)
     assert_select "a", text: "Đổi giờ", count: 0
     get reschedule_booking_path(@booking, slots: { "0" => slot(:court_two, "2026-10-21 18:00", 60) })
     assert_redirected_to booking_path(@booking)
-    get root_path(date: "2026-10-20", reschedule: @booking.code)
-    assert_select "[role=status]", text: /Đang đổi giờ/, count: 0
   end
 
   test "the venue moves any booking, outside the online rules but within opening hours" do

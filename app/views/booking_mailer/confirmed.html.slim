@@ -10,7 +10,7 @@ p
   => t("bookings.details.total")
   strong = format_vnd(@bookings.sum(&:total_amount_vnd))
 
-p = t("bookings.new.pay_at_venue")
+p = @bookings.all?(&:payment_paid?) ? t(".paid") : t("bookings.new.pay_at_venue")
 
 p = link_to t(".view_bookings"), bookings_url(locale: locale)
 

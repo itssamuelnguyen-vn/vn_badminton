@@ -6,7 +6,8 @@
 module Admin
   class VenueSettings
     VENUE_FIELDS = %i[name address phone min_booking_minutes max_booking_minutes cancellation_cutoff_hours booking_horizon_days
-                      max_upcoming_bookings cancellation_lock_threshold cancellation_lock_days].freeze
+                      max_upcoming_bookings cancellation_lock_threshold cancellation_lock_days
+                      bank_code bank_account_number bank_account_name].freeze
     # Monday first, as on Vietnamese calendars.
     WEEK = [ 1, 2, 3, 4, 5, 6, 0 ].freeze
     DEFAULT_HOURS = { opens_minute: 300, closes_minute: 1320 }.freeze

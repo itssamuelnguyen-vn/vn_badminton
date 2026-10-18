@@ -10,11 +10,37 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_19_000006) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_19_000007) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "citext"
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "bank_transactions", force: :cascade do |t|
+    t.bigint "sepay_id", null: false
+    t.string "direction", null: false
+    t.bigint "amount_vnd", null: false
+    t.text "content"
+    t.string "gateway"
+    t.string "account_number"
+    t.string "reference_code"
+    t.datetime "transacted_at", precision: 0
+    t.jsonb "payload", default: {}, null: false
+    t.string "status", null: false
+    t.string "review_reason"
+    t.bigint "payment_id"
+    t.text "resolution_note"
+    t.bigint "resolved_by_id"
+    t.datetime "resolved_at", precision: 0
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
+    t.index ["payment_id"], name: "index_bank_transactions_on_payment_id"
+    t.index ["resolved_by_id"], name: "index_bank_transactions_on_resolved_by_id"
+    t.index ["sepay_id"], name: "index_bank_transactions_on_sepay_id", unique: true
+    t.index ["status"], name: "index_bank_transactions_on_status"
+    t.check_constraint "direction::text = ANY (ARRAY['in'::character varying, 'out'::character varying]::text[])", name: "bank_transactions_direction_valid"
+    t.check_constraint "status::text = ANY (ARRAY['matched'::character varying, 'needs_review'::character varying, 'ignored'::character varying, 'resolved'::character varying]::text[])", name: "bank_transactions_status_valid"
+  end
 
   create_table "booking_series", force: :cascade do |t|
     t.string "customer_name", null: false
@@ -87,10 +113,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000006) do
     t.bigint "series_id"
     t.bigint "series_refund_vnd"
     t.bigint "series_refund_period_id"
+    t.bigint "payment_id"
+    t.bigint "refund_vnd"
+    t.datetime "refunded_at", precision: 0
+    t.bigint "refunded_by_id"
     t.index ["code"], name: "index_bookings_on_code", unique: true
     t.index ["court_id", "starts_at"], name: "index_bookings_on_court_id_and_starts_at"
     t.index ["created_by_id"], name: "index_bookings_on_created_by_id"
     t.index ["expires_at"], name: "index_bookings_on_expires_at", where: "((status)::text = 'pending'::text)"
+    t.index ["payment_id"], name: "index_bookings_on_payment_id"
+    t.index ["refunded_by_id"], name: "index_bookings_on_refunded_by_id"
     t.index ["series_id"], name: "index_bookings_on_series_id"
     t.index ["series_refund_period_id"], name: "index_bookings_on_series_refund_period_id"
     t.index ["starts_at"], name: "index_bookings_on_starts_at"
@@ -107,6 +139,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000006) do
     t.check_constraint "kind::text = ANY (ARRAY['reservation'::character varying, 'block'::character varying]::text[])", name: "bookings_kind_valid"
     t.check_constraint "mod(EXTRACT(epoch FROM starts_at), 1800::numeric) = 0::numeric AND mod(EXTRACT(epoch FROM ends_at), 1800::numeric) = 0::numeric", name: "bookings_aligned_to_slot"
     t.check_constraint "payment_status::text = ANY (ARRAY['unpaid'::character varying, 'paid'::character varying, 'refunded'::character varying]::text[])", name: "bookings_payment_status_valid"
+    t.check_constraint "refund_vnd IS NULL OR refund_vnd > 0", name: "bookings_refund_positive"
+    t.check_constraint "refunded_at IS NULL OR refund_vnd IS NOT NULL", name: "bookings_refunded_needs_amount"
     t.check_constraint "series_id IS NULL OR kind::text = 'reservation'::text", name: "bookings_series_reservations_only"
     t.check_constraint "series_refund_vnd IS NULL OR series_refund_vnd >= 0 AND series_id IS NOT NULL", name: "bookings_series_refund_valid"
     t.check_constraint "source::text <> 'online'::text OR user_id IS NOT NULL", name: "bookings_online_requires_user"
@@ -155,6 +189,36 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000006) do
     t.check_constraint "(opens_minute % 30) = 0 AND (closes_minute % 30) = 0", name: "opening_hours_aligned_to_slot"
     t.check_constraint "day_of_week >= 0 AND day_of_week <= 6", name: "opening_hours_day_valid"
     t.check_constraint "opens_minute >= 0 AND closes_minute <= 1440 AND closes_minute > opens_minute", name: "opening_hours_range_valid"
+  end
+
+  create_table "payments", force: :cascade do |t|
+    t.string "code", null: false
+    t.string "token", null: false
+    t.string "purpose", null: false
+    t.string "status", default: "awaiting", null: false
+    t.bigint "amount_vnd", null: false
+    t.datetime "expires_at", precision: 0
+    t.datetime "paid_at", precision: 0
+    t.bigint "user_id"
+    t.bigint "created_by_id"
+    t.bigint "series_id"
+    t.date "series_month"
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
+    t.bigint "bank_transaction_id"
+    t.index ["bank_transaction_id"], name: "index_payments_on_bank_transaction_id"
+    t.index ["code"], name: "index_payments_on_code", unique: true
+    t.index ["created_by_id"], name: "index_payments_on_created_by_id"
+    t.index ["series_id"], name: "index_payments_on_series_id"
+    t.index ["token"], name: "index_payments_on_token", unique: true
+    t.index ["user_id"], name: "index_payments_on_user_id"
+    t.check_constraint "(status::text = 'paid'::text) = (paid_at IS NOT NULL)", name: "payments_paid_at_consistent"
+    t.check_constraint "amount_vnd > 0", name: "payments_amount_positive"
+    t.check_constraint "code::text ~ '^VNB[A-Z0-9]{8}$'::text", name: "payments_code_format"
+    t.check_constraint "purpose::text <> 'bookings'::text OR expires_at IS NOT NULL", name: "payments_bookings_expiry"
+    t.check_constraint "purpose::text <> 'series_period'::text OR series_id IS NOT NULL AND series_month IS NOT NULL", name: "payments_series_period_target"
+    t.check_constraint "purpose::text = ANY (ARRAY['bookings'::character varying, 'series_period'::character varying]::text[])", name: "payments_purpose_valid"
+    t.check_constraint "status::text = ANY (ARRAY['awaiting'::character varying, 'paid'::character varying, 'expired'::character varying, 'cancelled'::character varying]::text[])", name: "payments_status_valid"
   end
 
   create_table "price_rules", force: :cascade do |t|
@@ -227,6 +291,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000006) do
     t.integer "max_upcoming_bookings", default: 2, null: false
     t.integer "cancellation_lock_threshold", default: 3, null: false
     t.integer "cancellation_lock_days", default: 7, null: false
+    t.string "bank_code"
+    t.string "bank_account_number"
+    t.string "bank_account_name"
     t.index ["slug"], name: "index_venues_on_slug", unique: true
     t.check_constraint "booking_horizon_days >= 1 AND booking_horizon_days <= 365", name: "venues_booking_horizon_valid"
     t.check_constraint "cancellation_cutoff_hours >= 0 AND cancellation_cutoff_hours <= 168", name: "venues_cancellation_cutoff_valid"
@@ -242,6 +309,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000006) do
     t.check_constraint "status::text = ANY (ARRAY['active'::character varying, 'inactive'::character varying]::text[])", name: "venues_status_valid"
   end
 
+  add_foreign_key "bank_transactions", "payments"
+  add_foreign_key "bank_transactions", "users", column: "resolved_by_id"
   add_foreign_key "booking_series", "users"
   add_foreign_key "booking_series", "users", column: "created_by_id"
   add_foreign_key "booking_series_periods", "booking_series", column: "series_id"
@@ -249,12 +318,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000006) do
   add_foreign_key "bookings", "booking_series", column: "series_id"
   add_foreign_key "bookings", "booking_series_periods", column: "series_refund_period_id"
   add_foreign_key "bookings", "courts"
+  add_foreign_key "bookings", "payments"
   add_foreign_key "bookings", "users"
   add_foreign_key "bookings", "users", column: "cancelled_by_id"
   add_foreign_key "bookings", "users", column: "created_by_id"
+  add_foreign_key "bookings", "users", column: "refunded_by_id"
   add_foreign_key "courts", "venues"
   add_foreign_key "customer_profiles", "users", column: "blocked_by_id"
   add_foreign_key "opening_hours", "venues", on_delete: :cascade
+  add_foreign_key "payments", "bank_transactions"
+  add_foreign_key "payments", "booking_series", column: "series_id"
+  add_foreign_key "payments", "users"
+  add_foreign_key "payments", "users", column: "created_by_id"
   add_foreign_key "price_rules", "courts", column: ["court_id", "venue_id"], primary_key: ["id", "venue_id"], name: "fk_price_rules_court_venue"
   add_foreign_key "price_rules", "venues"
 end

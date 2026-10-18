@@ -27,8 +27,17 @@ div class="mx-auto max-w-3xl space-y-6"
           span class="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200"
             = t(".paid", date: l(bill.period.paid_at.to_date, format: :day_month_year))
         - else
-          = button_to t(".mark_paid", amount: format_vnd(bill.due_vnd)), mark_paid_admin_series_path(series, month: month.iso8601),
-              class: "btn-primary px-3 py-1.5 text-xs", form: { data: { turbo_confirm: t(".mark_paid_confirm", amount: format_vnd(bill.due_vnd)) } }
+          div class="flex flex-wrap gap-2"
+            - unless series.payments.awaiting.exists?(series_month: month)
+              = button_to t(".request_payment"), request_payment_admin_series_path(series, month: month.iso8601), class: "btn-secondary px-3 py-1.5 text-xs"
+            = button_to t(".mark_paid", amount: format_vnd(bill.due_vnd)), mark_paid_admin_series_path(series, month: month.iso8601),
+                class: "btn-primary px-3 py-1.5 text-xs", form: { data: { turbo_confirm: t(".mark_paid_confirm", amount: format_vnd(bill.due_vnd)) } }
+      - if !bill.paid? && (payment = series.payments.awaiting.find_by(series_month: month))
+        div class="flex flex-wrap items-center gap-3 border-b border-slate-100 bg-violet-50 px-4 py-3 text-sm text-violet-900"
+          = image_tag payment.qr_url(Venue.main), alt: "VietQR", class: "w-24 rounded ring-1 ring-violet-200", width: 96, height: 96
+          div class="min-w-0 flex-1 space-y-1"
+            p = t(".awaiting_transfer", amount: format_vnd(payment.amount_vnd), code: payment.code)
+            input type="text" readonly=true value=payment_url(payment) class="form-input text-xs" aria-label=t("admin.bookings.show.payment_link") onclick="this.select()"
       ul class="divide-y divide-slate-100"
         - bill.sessions.each do |booking|
           li

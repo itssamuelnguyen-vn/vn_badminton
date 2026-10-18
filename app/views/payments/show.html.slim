@@ -1,0 +1,59 @@
+- content_for :title, t(".title")
+- content_for :head do
+  meta name="robots" content="noindex"
+/ Refreshes itself when the transfer arrives or the time runs out (Payment#stream).
+- turbo_refreshes_with method: :morph, scroll: :preserve
+= turbo_stream_from @payment.stream
+- payment = @payment
+
+div class="card mx-auto max-w-lg"
+  - if payment.paid?
+    div class="text-center" role="status"
+      p class="text-4xl" aria-hidden="true" = "✓"
+      h1 class="mt-2 text-2xl font-bold text-emerald-700" = t(".paid_title")
+      p class="mt-2 text-sm text-slate-600" = t(payment.for_bookings? ? ".paid_bookings" : ".paid_series")
+      - if payment.for_bookings? && user_signed_in? && @bookings.first&.user == current_user
+        = link_to t(".view_bookings"), (@bookings.one? ? booking_path(@bookings.first) : bookings_path), class: "btn-primary mt-6"
+  - elsif !payment.open?
+    div class="text-center" role="status"
+      h1 class="text-2xl font-bold" = t(".closed_title")
+      p class="mt-2 text-sm text-slate-600" = t(".closed_text")
+      = link_to t(".book_again"), root_path, class: "btn-primary mt-6"
+  - else
+    - received = payment.received_vnd
+    - remaining = payment.amount_vnd - received
+    h1 class="mb-1 text-2xl font-bold" = t(".title")
+    p class="mb-4 text-sm text-slate-600" = t(".intro")
+    - if received.positive?
+      p class="mb-4 rounded-lg bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900 ring-1 ring-amber-200" role="status"
+        = t(".underpaid", received: format_vnd(received), remaining: format_vnd(remaining), code: payment.code)
+
+    - if payment.expires_at
+      = tag.div class: "mb-4 rounded-lg bg-violet-50 px-4 py-3 text-sm text-violet-900 ring-1 ring-violet-200", role: "timer", aria: { live: "off" },
+          data: { controller: "hold-countdown", hold_countdown_seconds_value: [ (payment.expires_at - Time.current).ceil, 0 ].max } do
+        p data-hold-countdown-target="running"
+          = t(".deadline_html", time: tag.strong("--:--", class: "tabular-nums", data: { hold_countdown_target: "clock" }))
+        p hidden=true data-hold-countdown-target="expired" = t(".deadline_passed")
+
+    div class="flex justify-center"
+      = image_tag payment.qr_url(@venue, remaining), alt: t(".qr_alt"), class: "w-64 max-w-full rounded-lg ring-1 ring-slate-200", width: 256, height: 256
+
+    dl class="mt-4 divide-y divide-slate-100 text-sm"
+      - [ [ t(".bank"), @venue.bank_code ], [ t(".account_number"), @venue.bank_account_number ], [ t(".account_name"), @venue.bank_account_name ],
+          [ t(".amount"), format_vnd(remaining) ], [ t(".content"), payment.code ] ].each do |label, value|
+        - next if value.blank?
+        div class="flex justify-between gap-4 py-2"
+          dt class="text-slate-500" = label
+          dd class="font-semibold tabular-nums select-all" = value
+
+    p class="mt-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200" = t(".exact", amount: format_vnd(remaining), code: payment.code)
+
+  - if @bookings.any?
+    div class="mt-6 border-t border-slate-100 pt-4"
+      p class="mb-2 text-sm font-medium" = t(".for")
+      ul class="space-y-1 text-sm text-slate-600"
+        - @bookings.each do |booking|
+          li = "#{booking.court.display_name} · #{l(booking.starts_at.to_date, format: :full)} · #{time_range(booking.starts_at, booking.ends_at)}"
+  - elsif payment.for_series_period?
+    p class="mt-6 border-t border-slate-100 pt-4 text-sm text-slate-600"
+      = t(".for_series", month: l(payment.series_month, format: :month_year), name: payment.series.customer_name)

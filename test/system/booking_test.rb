@@ -18,12 +18,19 @@ class BookingTest < ApplicationSystemTestCase
     click_on "Tiếp tục"
     assert_selector "h1", text: "Xác nhận đặt sân"
     fill_in "Ghi chú", with: "Cần thuê vợt"
-    click_on "Xác nhận đặt sân"
+    click_on "Xác nhận & chuyển khoản"
 
-    assert_text "Đặt sân thành công!"
+    assert_selector "h1", text: "Chuyển khoản" # wait for the request before reading the database
+    payment = Payment.last
+    assert_selector "img[src*='des=#{payment.code}']"
+    assert_text "180.000đ"
     booking = Booking.last
     assert_equal [ courts(:court_one), Time.zone.parse("2026-10-20 18:00"), Time.zone.parse("2026-10-20 19:30") ],
                  [ booking.court, booking.starts_at, booking.ends_at ]
+
+    pay(payment)
+    assert_selector "h1", text: "Đã nhận được tiền"
+    click_on "Xem lượt đặt"
     assert_selector "p", text: booking.code
   end
 
@@ -56,9 +63,12 @@ class BookingTest < ApplicationSystemTestCase
     assert_text "Tổng cộng: 420.000đ"
 
     click_on "Tiếp tục"
-    click_on "Xác nhận đặt sân"
+    click_on "Xác nhận & chuyển khoản"
 
-    assert_text "Đặt sân thành công!"
+    assert_selector "h1", text: "Chuyển khoản" # wait for the payment page (420.000đ is also on the confirmation page)
+    assert_text "420.000đ" # one transfer for both courts
+    pay(Payment.last)
+    assert_selector "h1", text: "Đã nhận được tiền"
     assert_equal [ [ "Sân 1", "18:00", "19:30" ], [ "Sân 2", "19:00", "21:00" ] ],
                  Booking.order(:starts_at).map { |b| [ b.court.display_name, b.starts_at.strftime("%H:%M"), b.ends_at.strftime("%H:%M") ] }
   end
@@ -76,6 +86,13 @@ class BookingTest < ApplicationSystemTestCase
   end
 
   private
+
+  # The transfer reported by SePay, then the page reloaded (live updates need Action Cable, not used in tests).
+  def pay(payment)
+    Payments::Webhook.process({ "id" => SecureRandom.random_number(10**9), "content" => "#{payment.code} ck", "transferType" => "in",
+                                "transferAmount" => payment.amount_vnd })
+    visit current_path
+  end
 
   def slot(court, time)
     find("button[data-court-name='#{court}'][data-starts-label='#{time}']")

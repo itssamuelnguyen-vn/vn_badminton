@@ -29,6 +29,9 @@ Rails.application.routes.draw do
           patch :undo_payment
           get :edit_schedule
           patch :reschedule
+          patch :confirm_payment
+          patch :cancel_venue_fault
+          patch :mark_refunded
         end
       end
       resources :customers, only: %i[index show update], param: :phone
@@ -40,10 +43,14 @@ Rails.application.routes.draw do
           post :end_from
           post :close_range
           post :mark_paid
+          post :request_payment
           patch :update_price
         end
       end
       get "reports", to: "reports#show", as: :reports
+      resources :bank_transactions, path: "transactions", only: %i[index update] do
+        patch :assign, on: :member
+      end
       resources :price_rules, except: :show
       resources :users, only: [] do
         patch :unlock_booking, on: :member
@@ -53,10 +60,14 @@ Rails.application.routes.draw do
     end
 
     get "privacy", to: "pages#privacy"
+    resources :payments, only: :show, param: :token
 
     # The home page is the booking schedule; ?date=YYYY-MM-DD picks the day.
     root "schedules#show"
   end
+
+  # Bank transfers reported by SePay (no locale, no session; authenticated by API key).
+  post "webhooks/sepay", to: "webhooks/sepay#create", as: :sepay_webhook
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.

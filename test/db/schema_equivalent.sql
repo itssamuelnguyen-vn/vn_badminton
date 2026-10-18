@@ -44,6 +44,9 @@ CREATE TABLE venues (
   max_booking_minutes integer NOT NULL DEFAULT 240,
   cancellation_cutoff_hours integer NOT NULL DEFAULT 2,
   booking_horizon_days integer NOT NULL DEFAULT 14,
+  bank_code varchar,
+  bank_account_number varchar,
+  bank_account_name varchar,
   max_upcoming_bookings integer NOT NULL DEFAULT 2,
   cancellation_lock_threshold integer NOT NULL DEFAULT 3,
   cancellation_lock_days integer NOT NULL DEFAULT 7,
@@ -178,6 +181,58 @@ CREATE TABLE booking_series_periods (
 CREATE UNIQUE INDEX index_booking_series_periods_on_series_id_and_month ON booking_series_periods (series_id, month);
 CREATE INDEX index_booking_series_periods_on_paid_by_id ON booking_series_periods (paid_by_id);
 
+CREATE TABLE payments (
+  id bigserial PRIMARY KEY,
+  code varchar NOT NULL,
+  token varchar NOT NULL,
+  purpose varchar NOT NULL,
+  status varchar NOT NULL DEFAULT 'awaiting',
+  amount_vnd bigint NOT NULL,
+  expires_at timestamptz,
+  paid_at timestamptz,
+  user_id bigint REFERENCES users(id),
+  created_by_id bigint REFERENCES users(id),
+  series_id bigint REFERENCES booking_series(id),
+  series_month date,
+  bank_transaction_id bigint,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT payments_code_format CHECK (code ~ '^VNB[A-Z0-9]{8}$'),
+  CONSTRAINT payments_purpose_valid CHECK (purpose IN ('bookings', 'series_period')),
+  CONSTRAINT payments_status_valid CHECK (status IN ('awaiting', 'paid', 'expired', 'cancelled')),
+  CONSTRAINT payments_amount_positive CHECK (amount_vnd > 0),
+  CONSTRAINT payments_paid_at_consistent CHECK ((status = 'paid') = (paid_at IS NOT NULL)),
+  CONSTRAINT payments_series_period_target CHECK (purpose <> 'series_period' OR (series_id IS NOT NULL AND series_month IS NOT NULL)),
+  CONSTRAINT payments_bookings_expiry CHECK (purpose <> 'bookings' OR expires_at IS NOT NULL)
+);
+CREATE UNIQUE INDEX index_payments_on_code ON payments (code);
+CREATE UNIQUE INDEX index_payments_on_token ON payments (token);
+
+CREATE TABLE bank_transactions (
+  id bigserial PRIMARY KEY,
+  sepay_id bigint NOT NULL,
+  direction varchar NOT NULL,
+  amount_vnd bigint NOT NULL,
+  content text,
+  gateway varchar,
+  account_number varchar,
+  reference_code varchar,
+  transacted_at timestamptz,
+  payload jsonb NOT NULL DEFAULT '{}',
+  status varchar NOT NULL,
+  review_reason varchar,
+  payment_id bigint REFERENCES payments(id),
+  resolution_note text,
+  resolved_by_id bigint REFERENCES users(id),
+  resolved_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT bank_transactions_direction_valid CHECK (direction IN ('in', 'out')),
+  CONSTRAINT bank_transactions_status_valid CHECK (status IN ('matched', 'needs_review', 'ignored', 'resolved'))
+);
+CREATE UNIQUE INDEX index_bank_transactions_on_sepay_id ON bank_transactions (sepay_id);
+ALTER TABLE payments ADD FOREIGN KEY (bank_transaction_id) REFERENCES bank_transactions(id);
+
 CREATE TABLE bookings (
   id bigserial PRIMARY KEY,
   court_id bigint NOT NULL REFERENCES courts(id),
@@ -203,6 +258,10 @@ CREATE TABLE bookings (
   series_id bigint REFERENCES booking_series(id),
   series_refund_vnd bigint,
   series_refund_period_id bigint REFERENCES booking_series_periods(id),
+  payment_id bigint REFERENCES payments(id),
+  refund_vnd bigint,
+  refunded_at timestamptz,
+  refunded_by_id bigint REFERENCES users(id),
   cancellation_reason varchar,
   note text,
   lock_version integer NOT NULL DEFAULT 0,
@@ -213,6 +272,8 @@ CREATE TABLE bookings (
   CONSTRAINT bookings_kind_valid CHECK (kind IN ('reservation', 'block')),
   CONSTRAINT bookings_series_reservations_only CHECK (series_id IS NULL OR kind = 'reservation'),
   CONSTRAINT bookings_series_refund_valid CHECK (series_refund_vnd IS NULL OR (series_refund_vnd >= 0 AND series_id IS NOT NULL)),
+  CONSTRAINT bookings_refund_positive CHECK (refund_vnd IS NULL OR refund_vnd > 0),
+  CONSTRAINT bookings_refunded_needs_amount CHECK (refunded_at IS NULL OR refund_vnd IS NOT NULL),
   CONSTRAINT bookings_status_valid CHECK (status IN ('pending', 'confirmed', 'checked_in', 'completed', 'cancelled', 'no_show')),
   CONSTRAINT bookings_source_valid CHECK (source IN ('online', 'phone', 'walk_in', 'staff')),
   CONSTRAINT bookings_payment_status_valid CHECK (payment_status IN ('unpaid', 'paid', 'refunded')),

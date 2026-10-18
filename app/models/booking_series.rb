@@ -16,6 +16,7 @@ class BookingSeries < ApplicationRecord
   belongs_to :created_by, class_name: "User"
   has_many :bookings, foreign_key: :series_id, inverse_of: :series, dependent: :restrict_with_error
   has_many :periods, class_name: "BookingSeriesPeriod", foreign_key: :series_id, inverse_of: :series, dependent: :restrict_with_error
+  has_many :payments, foreign_key: :series_id, inverse_of: :series, dependent: :restrict_with_error
 
   normalizes :customer_phone, with: ->(phone) { PhoneNumber.normalize(phone) }
   normalizes :customer_name, with: ->(name) { name.squish.presence }

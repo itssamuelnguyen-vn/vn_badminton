@@ -4,7 +4,7 @@ module Admin
     FIELDS = [ :customer_name, :customer_phone, :start_minute, :end_minute, :starts_on, :ends_on, :price_per_hour_vnd, :note,
                { court_ids: [], days_of_week: [] } ].freeze
 
-    before_action :set_series, only: %i[show extend end_from close_range mark_paid update_price]
+    before_action :set_series, only: %i[show extend end_from close_range mark_paid request_payment update_price]
 
     def index
       @series = BookingSeries.includes(:user).order(ends_on: :desc, customer_name: :asc)
@@ -64,8 +64,22 @@ module Admin
       redirect_to admin_series_path(@series), notice: t(".success", count: count)
     end
 
+    # A transfer code for the month's amount due (sent to the customer); the webhook marks the month paid.
+    def request_payment
+      month = Date.iso8601(params.require(:month)).beginning_of_month
+      bill = @series.billing(month)
+      return redirect_to(admin_series_path(@series), alert: t(".nothing_due")) if bill.paid? || bill.due_vnd <= 0
+      return redirect_to(edit_admin_settings_path, alert: t("admin.bookings.create.payments_unavailable")) unless venue.payments_enabled?
+
+      @series.payments.awaiting.where(series_month: month).find_each { |p| p.update!(status: :cancelled) }
+      Payment.create!(purpose: :series_period, series: @series, series_month: month, amount_vnd: bill.due_vnd,
+                      user: @series.user, created_by: current_user)
+      redirect_to admin_series_path(@series), notice: t(".success")
+    end
+
     def mark_paid
       @series.billing(Date.iso8601(params.require(:month))).mark_paid!(by: current_user)
+      @series.payments.awaiting.where(series_month: Date.iso8601(params[:month]).beginning_of_month).find_each { |p| p.update!(status: :cancelled) }
       redirect_to admin_series_path(@series), notice: t(".success")
     rescue ArgumentError
       redirect_to admin_series_path(@series), alert: t(".already_paid")

@@ -13,6 +13,7 @@ class BookingsController < ApplicationController
   def index
     bookings = current_user.bookings.kind_reservation.where.not(status: :pending).includes(:court)
     @upcoming = bookings.where(status: UPCOMING_STATUSES).where(ends_at: Time.current..).order(:starts_at)
+    @awaiting_payments = Payment.awaiting.where(user: current_user).where("expires_at > ?", Time.current).order(:expires_at)
     @past = bookings.where.not(id: @upcoming).order(starts_at: :desc).limit(50)
   end
 
@@ -31,15 +32,16 @@ class BookingsController < ApplicationController
     @batch.hold
   end
 
+  # Online bookings are paid in full by bank transfer: the bookings are held for Payment::WINDOW and confirmed
+  # when the transfer arrives (Payments::Webhook), which also sends the confirmation email.
   def create
     booking_params = params.require(:booking)
     @batch = BookingBatch.new(user: current_user, slots: slots_from(booking_params), note: booking_params[:note])
+    return redirect_to(root_path, alert: t(".payments_unavailable")) unless @batch.venue.payments_enabled?
 
-    if @batch.reserve
+    if (payment = @batch.reserve_for_payment)
       current_user.remember_locale(I18n.locale)
-      BookingMailer.with(bookings: @batch.bookings, locale: I18n.locale).confirmed.deliver_later
-      bookings = @batch.bookings
-      redirect_to (bookings.one? ? booking_path(bookings.first) : bookings_path), notice: t(".success", count: bookings.size)
+      redirect_to payment_path(payment)
     else
       render :new, status: :unprocessable_content
     end
@@ -51,6 +53,7 @@ class BookingsController < ApplicationController
   def review_reschedule
     @original = @booking.dup
     slot = slots_from(params).first or return redirect_to(booking_path(@booking), alert: t("bookings.new.no_selection"))
+    @booking.price_cap_vnd = @booking.total_amount_vnd if @booking.payment_paid? # same rule as Booking#reschedule
     @booking.assign_attributes(court: rescheduled_court(slot), starts_at: slot[:starts_at], ends_at: slot[:ends_at])
     @booking.validate
   end

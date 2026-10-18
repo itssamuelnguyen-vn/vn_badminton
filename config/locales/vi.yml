@@ -42,6 +42,9 @@ vi:
         max_upcoming_bookings: Số lượt đặt sắp tới tối đa mỗi khách
         cancellation_lock_threshold: Số lần huỷ trong ngày thì bị khoá
         cancellation_lock_days: Số ngày khoá đặt online
+        bank_code: Ngân hàng
+        bank_account_number: Số tài khoản
+        bank_account_name: Tên chủ tài khoản
       opening_hour:
         day_of_week: Ngày trong tuần
         opens_minute: Giờ mở cửa
@@ -106,6 +109,7 @@ vi:
           before_valid_from: "phải sau ngày bắt đầu"
           other_venue: "không thuộc cơ sở này"
         booking:
+          dearer_than_paid: "Khung giờ mới đắt hơn số tiền đã trả (%{paid}đ). Vui lòng liên hệ sân để đổi"
           not_reschedulable: "Không thể đổi giờ lượt đặt này nữa"
           slot_just_taken: "Khung giờ này vừa có người đặt, vui lòng chọn giờ khác"
           slot_taken: "Khung giờ này đã có người đặt"
@@ -153,6 +157,7 @@ vi:
         customers: Khách hàng
         reports: Báo cáo
         series: Lịch cố định
+        transactions: Giao dịch
 
 
   devise:
@@ -303,15 +308,18 @@ vi:
       note_placeholder: "Ví dụ: cần thuê vợt"
       pay_at_venue: Thanh toán tại sân khi đến chơi.
       back: Chọn giờ khác
-      submit: Xác nhận đặt sân
+      submit: Xác nhận & chuyển khoản
       grand_total:
         other: "Tổng tiền (%{count} sân)"
       no_selection: Vui lòng chọn khung giờ trên lịch trước.
       held_html: "Khung giờ đang được giữ cho bạn trong %{time}. Vui lòng xác nhận trước khi hết giờ."
       hold_expired: Đã hết thời gian giữ chỗ. Bạn vẫn có thể bấm Xác nhận nếu chưa ai đặt khung giờ này.
+      pay_by_transfer:
+        other: "Thanh toán 100% bằng chuyển khoản ngân hàng ở bước tiếp theo (trong %{count} phút). Sân được xác nhận ngay khi nhận được tiền."
     create:
       success:
         other: Đặt sân thành công! Chúng tôi đã gửi email xác nhận cho bạn.
+      payments_unavailable: Sân chưa bật thanh toán online. Vui lòng gọi cho sân để đặt.
     cancel:
       success: Đã huỷ lượt đặt sân.
       not_allowed: Không thể huỷ lượt đặt này nữa.
@@ -327,12 +335,17 @@ vi:
       series_note: Đây là buổi trong lịch cố định đã đóng tiền theo tháng. Nếu bạn báo nghỉ và có người khác đặt chơi giờ này, tiền buổi đó sẽ được trừ vào tháng sau.
       skip: Báo nghỉ buổi này
       skip_confirm: Báo nghỉ buổi này? Giờ này sẽ được mở cho người khác đặt.
+      awaiting_payment: "Đang chờ chuyển khoản (trước %{time}). Sân sẽ được xác nhận ngay khi nhận được tiền."
+      cancel_confirm_paid: Lượt đặt đã thanh toán sẽ KHÔNG được hoàn tiền khi bạn tự huỷ. Bạn vẫn muốn huỷ?
     index:
       title: Lượt đặt của tôi
       new: Đặt sân
       upcoming: Sắp tới
       no_upcoming: Bạn chưa có lượt đặt nào sắp tới.
       past: Đã qua và đã huỷ
+      awaiting_payment: Chờ chuyển khoản
+      awaiting_payment_line: "%{amount} · chuyển trước %{time} để giữ sân"
+      pay_now: Chuyển khoản
     lock_notice: "Tài khoản của bạn tạm thời không thể đặt sân online đến %{until} vì đã huỷ nhiều lần trong một ngày. Vui lòng gọi cho sân nếu cần hỗ trợ."
     unverified: Vui lòng xác minh email trước khi đặt sân. Chúng tôi đã gửi đường dẫn xác minh tới email của bạn.
     changed_meanwhile: Lượt đặt vừa được cập nhật ở nơi khác. Vui lòng xem lại trạng thái rồi thử lại.
@@ -355,6 +368,30 @@ vi:
         other: "Mỗi tài khoản giữ tối đa %{count} lượt đặt sắp tới; bạn chỉ còn đặt thêm được %{remaining} sân."
       blacklisted: Tài khoản của bạn hiện không thể đặt sân online. Vui lòng liên hệ sân.
 
+  payments:
+    show:
+      title: Chuyển khoản
+      intro: Quét mã bằng app ngân hàng, hoặc chuyển theo thông tin bên dưới. Sân được xác nhận tự động khi nhận được tiền.
+      deadline_html: "Vui lòng chuyển khoản trong %{time}."
+      deadline_passed: Đã hết thời gian giữ sân. Nếu bạn vừa chuyển, trang sẽ tự cập nhật khi nhận được tiền.
+      qr_alt: Mã VietQR để chuyển khoản
+      bank: Ngân hàng
+      account_number: Số tài khoản
+      account_name: Chủ tài khoản
+      amount: Số tiền
+      content: Nội dung
+      exact: "Chuyển đúng %{amount} với nội dung %{code} để được xác nhận tự động."
+      underpaid: "Đã nhận %{received}, còn thiếu %{remaining}. Vui lòng chuyển thêm %{remaining} với nội dung %{code}."
+      for: "Cho lượt đặt:"
+      for_series: "Tiền sân tháng %{month} – %{name}"
+      paid_title: Đã nhận được tiền
+      paid_bookings: Lượt đặt sân đã được xác nhận. Chúng tôi đã gửi email xác nhận cho bạn.
+      paid_series: Tiền sân của tháng đã được ghi nhận. Cảm ơn bạn!
+      view_bookings: Xem lượt đặt
+      closed_title: Mã thanh toán đã hết hạn
+      closed_text: Không còn giữ sân cho mã này. Nếu bạn vừa chuyển khoản, sân được xác nhận tự động khi giờ đó vẫn còn trống; nếu không, sân sẽ liên hệ để hoàn tiền.
+      book_again: Đặt sân khác
+
   booking_mailer:
     confirmed:
       subject: "Xác nhận đặt sân %{codes}"
@@ -363,6 +400,7 @@ vi:
         other: "Lượt đặt sân của bạn đã được xác nhận (%{count} sân):"
       view_bookings: Xem lượt đặt của tôi
       cancel_policy: "Bạn có thể huỷ online trước giờ chơi tối thiểu %{hours} giờ."
+      paid: Đã thanh toán đầy đủ bằng chuyển khoản. Hẹn gặp bạn ở sân!
     cancelled:
       subject: "Đã huỷ lượt đặt sân %{code}"
       intro_by_customer: "Lượt đặt sân của bạn đã được huỷ theo yêu cầu:"
@@ -437,6 +475,8 @@ vi:
         undo_no_show_confirm: Đưa lượt đặt về trạng thái đã xác nhận?
         undo_payment: Huỷ "đã thu"
         undo_payment_confirm: "Đánh dấu chưa thu %{amount}?"
+        cancel_venue_fault: Huỷ do sự cố của sân
+        cancel_venue_fault_confirm: "Huỷ vì sân có sự cố (cúp điện, sân hỏng...)? Hệ thống sẽ ghi nhận cần hoàn %{amount} cho khách."
       show:
         title: "Lượt đặt %{code}"
         customer: Khách
@@ -451,6 +491,14 @@ vi:
         reschedule: Đổi giờ
         series: Lịch cố định
         series_link: Xem lịch
+        awaiting_payment: "Chờ khách chuyển %{amount}, nội dung %{code}, trước %{time}."
+        payment_link: Link thanh toán gửi cho khách
+        confirm_payment: Đã nhận tiền (xác nhận tay)
+        confirm_payment_confirm: "Bạn đã kiểm tra tài khoản và nhận đủ %{amount}?"
+        refund_due: "Cần hoàn %{amount} cho khách (sân có sự cố)."
+        refunded: "Đã hoàn %{amount} lúc %{date}."
+        mark_refunded: Đã hoàn tiền
+        mark_refunded_confirm: "Xác nhận đã chuyển trả %{amount} cho khách?"
       new:
         title: Đặt sân / khoá sân
         kind: Loại
@@ -469,6 +517,8 @@ vi:
         success:
           reservation: "Đã đặt %{court} cho khách."
           block: "Đã khoá %{court}."
+        payments_unavailable: Cần nhập tài khoản ngân hàng nhận tiền trong Cài đặt trước khi đặt hộ qua điện thoại (khách chuyển khoản 100%).
+        awaiting_payment: "Đã giữ %{court} 15 phút. Gửi link thanh toán bên dưới cho khách; sân được xác nhận khi nhận được tiền."
       check_in:
         success: Đã nhận sân.
       no_show:
@@ -491,6 +541,13 @@ vi:
         submit: Lưu giờ mới
       reschedule:
         success: Đã đổi giờ.
+      confirm_payment:
+        success: Đã xác nhận thanh toán.
+        slot_taken: Giờ này đã có người khác đặt hoặc đã qua; không thể xác nhận. Cần hoàn tiền cho khách.
+      cancel_venue_fault:
+        success: Đã huỷ do sự cố của sân. Khoản cần hoàn đã được ghi nhận.
+      mark_refunded:
+        success: Đã ghi nhận đã hoàn tiền.
     price_rules:
       index:
         title: Bảng giá
@@ -536,6 +593,8 @@ vi:
         cancellation_lock: Khoá khi huỷ nhiều
         cancellation_lock_hint:
           other: "Khách tự huỷ %{count} lần trong cùng một ngày sẽ không thể đặt online trong %{days} ngày. Bạn có thể mở khoá sớm trong trang chi tiết lượt đặt."
+        bank: Tài khoản nhận tiền
+        bank_hint: "Khách chuyển khoản vào tài khoản này (mã VietQR). Tài khoản phải được kết nối với SePay để sân được xác nhận tự động. Mã ngân hàng theo VietQR, ví dụ: MBBank, VCB, TCB, ACB."
       update:
         success: Đã lưu cài đặt.
     users:
@@ -672,6 +731,8 @@ vi:
         end_hint: Huỷ các buổi từ ngày này trở đi, không hoàn tiền. Muốn đổi giờ cả lịch thì kết thúc rồi tạo lịch mới.
         end_confirm: Kết thúc lịch từ ngày này?
         end_submit: Kết thúc lịch
+        request_payment: Tạo mã chuyển khoản
+        awaiting_transfer: "Chờ khách chuyển %{amount}, nội dung %{code}. Gửi link này cho khách:"
       extend:
         success:
           other: "Đã thêm %{count} buổi."
@@ -687,3 +748,46 @@ vi:
         already_paid: Tháng này đã được đánh dấu đã thu.
       update_price:
         success: Đã cập nhật giá cho các buổi chưa chơi.
+      request_payment:
+        success: Đã tạo mã chuyển khoản cho tháng này.
+        nothing_due: Tháng này không còn khoản cần thu.
+    bank_transactions:
+      index:
+        title: Giao dịch
+        explanation: Tiền chuyển vào tài khoản (qua SePay). Sân được xác nhận tự động khi khách chuyển đủ tiền với đúng nội dung (chuyển trễ thì chỉ khi giờ đó vẫn còn trống); các trường hợp khác cần bạn xử lý.
+        needs_review:
+          other: "Cần xử lý (%{count})"
+        reasons:
+          unknown_code: Không có mã thanh toán
+          underpaid: Chuyển thiếu
+          overpaid: Chuyển thừa
+          late: Chuyển quá hạn, sân không còn trống
+          already_paid: Đã thanh toán trước đó
+          cancelled: Mã thanh toán đã huỷ
+        underpaid_hint: "Đã nhận %{received}, còn thiếu %{remaining}. Liên hệ khách để chuyển thêm (cùng nội dung) hoặc hoàn tiền."
+        overpaid_hint: "Đơn đã được xác nhận. Cần hoàn phần thừa %{excess} cho khách."
+        refund_hint: Đơn không được xác nhận bằng khoản này. Cần hoàn tiền cho khách.
+        code_placeholder: Mã thanh toán (VNB…) hoặc mã đặt sân
+        assign: Gán vào đơn
+        payment: "Mã %{code} · %{amount} · %{status} ·"
+        statuses:
+          awaiting: đang chờ
+          paid: đã thanh toán
+          expired: hết hạn
+          cancelled: đã huỷ
+        note_placeholder: "Đã xử lý thế nào? (vd: đã hoàn tiền, đã xác nhận tay)"
+        resolve: Đã xử lý
+        nothing_to_review: Không có giao dịch nào cần xử lý.
+        refunds:
+          other: "Cần hoàn tiền (%{count})"
+        no_refunds: Không có khoản nào cần hoàn.
+        recent: Giao dịch gần đây
+        matched: Tự động xác nhận
+        resolved_by: "Đã xử lý bởi %{name}: %{note}"
+        no_recent: Chưa có giao dịch nào.
+      update:
+        success: Đã đánh dấu đã xử lý.
+      assign:
+        not_found: "Không tìm thấy mã %{code}."
+        confirmed: Đã gán giao dịch và xác nhận đơn.
+        assigned: Đã gán giao dịch vào đơn; giao dịch vẫn cần xử lý.

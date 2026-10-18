@@ -26,6 +26,12 @@ class Booking < ApplicationRecord
   belongs_to :cancelled_by, class_name: "User", optional: true
   belongs_to :series, class_name: "BookingSeries", optional: true, inverse_of: :bookings
   belongs_to :series_refund_period, class_name: "BookingSeriesPeriod", optional: true
+  belongs_to :payment, optional: true
+  belongs_to :refunded_by, class_name: "User", optional: true
+
+  # Why a booking was cancelled, besides a plain cancellation (see also BookingSeries reasons).
+  PAYMENT_EXPIRED = "payment_expired" # the transfer did not arrive in time
+  VENUE_FAULT = "venue_fault"         # the venue could not provide the court (outage, broken court): refunded
   has_one :venue, through: :court
 
   # Expired holds no longer count, even before they are deleted (see release_expired_holds!).
@@ -69,6 +75,7 @@ class Booking < ApplicationRecord
   validate :within_opening_hours, if: -> { kind_reservation? && schedule_changed? }
   validate :within_customer_policy, if: -> { kind_reservation? && source_online? && schedule_changed? && !staff_change }
   validate :slot_free, if: -> { schedule_changed? && holds_slot? }
+  validate :within_price_cap, if: -> { price_cap_vnd }
 
   # Makes bookings on the same courts wait for each other until the end of the current transaction.
   # Without it, two requests inserting the same slot at the same moment each wait for the other while
@@ -83,18 +90,23 @@ class Booking < ApplicationRecord
 
   # Holds past their expiry still sit in the "bookings_no_overlap" exclusion constraint until deleted, so they
   # are deleted while the courts are locked, before a new booking is inserted. A recurring job tidies up the rest.
+  # Bookings waiting for a transfer (payment_id set) are cancelled rather than deleted, so a late transfer can
+  # still be matched and reviewed; holds of the confirmation page (no payment) are deleted.
   def self.release_expired_holds!(court_ids = nil, now: Time.current)
     scope = expired_holds(now)
     scope = scope.where(court_id: court_ids) if court_ids
+    scope.where.not(payment_id: nil).includes(:payment).find_each { |booking| booking.expire_payment!(now) }
     delete_holds!(scope)
   end
 
+  # Deletes the confirmation-page holds of the scope (not the bookings waiting for a transfer).
   # delete_all skips callbacks, so the open schedules are refreshed here. Returns the number of deleted holds.
   def self.delete_holds!(scope)
-    ranges = scope.pending.pluck(:court_id, :starts_at, :ends_at)
+    holds = scope.pending.where(payment_id: nil)
+    ranges = holds.pluck(:court_id, :starts_at, :ends_at)
     return 0 if ranges.empty?
 
-    deleted = scope.pending.delete_all
+    deleted = holds.delete_all
     Schedule::Live.refresh(ranges)
     deleted
   end
@@ -116,6 +128,8 @@ class Booking < ApplicationRecord
 
   # Set while the owner or staff move a booking: the online booking rules (duration, horizon) do not apply.
   attr_accessor :staff_change
+  # Set when a customer moves a paid booking: the new slot must not cost more than what was paid.
+  attr_accessor :price_cap_vnd
 
   # Moves a confirmed booking (or a block) to another court and/or time, with the court locks of #reserve
   # (old and new courts) and a new price. Customers: see #reschedulable_by_customer?. Returns true when saved.
@@ -127,12 +141,15 @@ class Booking < ApplicationRecord
     end
 
     old_court_id = court_id
+    paid_vnd = total_amount_vnd if payment_paid?
     self.class.transaction(requires_new: true) do
       self.class.lock_courts!([ old_court_id, court&.id ])
       self.class.release_expired_holds!([ old_court_id, court&.id ])
       assign_attributes(court: court, starts_at: starts_at, ends_at: ends_at, reminder_sent_at: nil)
       self.staff_change = by.manager?
-      save
+      # Customers moving a paid booking: not to a dearer slot, and the cheaper price is not refunded.
+      self.price_cap_vnd = paid_vnd unless by.manager?
+      save && (paid_vnd.nil? || by.manager? || total_amount_vnd >= paid_vnd || update_columns(total_amount_vnd: paid_vnd))
     end
   rescue ActiveRecord::ExclusionViolation, ActiveRecord::Deadlocked
     errors.add(:base, :slot_just_taken)
@@ -141,9 +158,10 @@ class Booking < ApplicationRecord
 
   # Customers move their own booking online until the cancellation cutoff, while it is unpaid
   # (a paid booking's price could change) and unless they are blacklisted.
-  # Sessions of a regular customer's series are moved by the venue.
+  # Sessions of a regular customer's series are moved by the venue. A paid booking can be moved to a slot
+  # that does not cost more (see #reschedule: no refund of the difference).
   def reschedulable_by_customer?(now = Time.current)
-    series_id.nil? && confirmed? && cancellable_by_customer?(now) && payment_unpaid? && !CustomerProfile.blocked?(customer_phone)
+    series_id.nil? && confirmed? && cancellable_by_customer?(now) && !payment_refunded? && !CustomerProfile.blocked?(customer_phone)
   end
 
   # URLs use the customer-facing code (/bookings/K7Q2M9XA) instead of the sequential id.
@@ -178,10 +196,39 @@ class Booking < ApplicationRecord
       raise ArgumentError, "Cancellation cutoff has passed"
     end
 
+    # Only a customer cancelling a confirmed booking counts towards the lock: not skipping a regular session
+    # (agreed with the venue), nor giving up a booking still waiting for its transfer.
+    counts_for_lock = user && by == user && series_id.nil? && reason.nil? && confirmed?
     reason ||= BookingSeries::SKIPPED if series_id # a regular customer's session: "I won't come this time"
     update!(status: :cancelled, cancelled_at: now, cancelled_by: by, cancellation_reason: reason)
-    # Skipping a regular session is agreed with the venue, so it does not count towards the lock.
-    user.lock_booking_if_cancelling_too_often(court.venue, now) if user && by == user && series_id.nil?
+    payment.update!(status: :cancelled) if payment&.awaiting? && payment.bookings.where.not(status: :cancelled).none?
+    user.lock_booking_if_cancelling_too_often(court.venue, now) if counts_for_lock
+  end
+
+  # The venue could not provide the court (power cut, broken court...). A paid booking is owed back in full;
+  # the owner transfers it and marks it refunded (#mark_refunded!).
+  def cancel_for_venue_fault!(by:, now: Time.current)
+    transaction do
+      paid = payment_paid?
+      cancel!(by: by, reason: VENUE_FAULT, now: now)
+      update!(refund_vnd: total_amount_vnd) if paid && total_amount_vnd.positive?
+    end
+  end
+
+  def mark_refunded!(by:, now: Time.current)
+    raise ArgumentError, "Nothing to refund" if refund_vnd.nil? || refunded_at
+
+    update!(refunded_at: now, refunded_by: by, payment_status: :refunded)
+  end
+
+  # The transfer did not arrive in time: the slot is released, the booking kept for a late transfer.
+  def expire_payment!(now = Time.current)
+    return unless pending? && payment
+
+    transaction do
+      update!(status: :cancelled, cancelled_at: now, cancellation_reason: PAYMENT_EXPIRED)
+      payment.update!(status: :expired) if payment.awaiting? && payment.bookings.where.not(status: :cancelled).none?
+    end
   end
 
   def check_in!(now: Time.current)
@@ -331,6 +378,10 @@ class Booking < ApplicationRecord
     unless duration_minutes.between?(venue.min_booking_minutes, venue.max_booking_minutes)
       errors.add(:base, :duration_out_of_range, min: venue.min_booking_minutes, max: venue.max_booking_minutes)
     end
+  end
+
+  def within_price_cap
+    errors.add(:base, :dearer_than_paid, paid: ActiveSupport::NumberHelper.number_to_delimited(price_cap_vnd, delimiter: ".")) if total_amount_vnd > price_cap_vnd
   end
 
   def slot_free
