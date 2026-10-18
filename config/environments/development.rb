@@ -50,6 +50,10 @@ Rails.application.configure do
   end
   config.action_mailer.perform_deliveries = true
 
+  # Run jobs with Solid Queue, as in production: bin/dev starts bin/jobs, which also runs config/recurring.yml.
+  config.active_job.queue_adapter = :solid_queue
+  config.solid_queue.connects_to = { database: { writing: :queue } }
+
   # Print deprecation notices to the Rails logger.
   config.active_support.deprecation = :log
 
