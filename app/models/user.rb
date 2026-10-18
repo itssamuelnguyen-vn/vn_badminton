@@ -38,6 +38,32 @@ class User < ApplicationRecord
     end
   end
 
+  # Bookings that count towards Venue#max_upcoming_bookings: not finished yet and not cancelled.
+  def upcoming_bookings(now = Time.current)
+    bookings.kind_reservation.where(status: %w[pending confirmed checked_in]).where("ends_at > ?", now)
+  end
+
+  # Customers who cancel too often in one day cannot book online for a while (Venue#cancellation_lock_days).
+  def booking_locked?(now = Time.current)
+    booking_locked_until.present? && booking_locked_until > now
+  end
+
+  # Cancellations the customer made themselves on the venue's current day.
+  def cancellations_today(venue, now = Time.current)
+    bookings.where(cancelled_by: self, cancelled_at: now.in_time_zone(venue.zone).all_day).count
+  end
+
+  # Called after the customer cancels a booking.
+  def lock_booking_if_cancelling_too_often(venue, now = Time.current)
+    return if manager? || cancellations_today(venue, now) < venue.cancellation_lock_threshold
+
+    update_column(:booking_locked_until, now + venue.cancellation_lock_days.days)
+  end
+
+  def unlock_booking
+    update_column(:booking_locked_until, nil)
+  end
+
   # Keeps the language the customer last used, so later emails are in that language.
   def remember_locale(locale)
     locale = locale.to_s

@@ -167,7 +167,7 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
 
   test "books none of the courts when one of them is taken" do
     sign_in users(:an)
-    courts(:court_two).bookings.create!(user: users(:an), starts_at: at("19:00"), ends_at: at("20:00"))
+    courts(:court_two).bookings.create!(user: users(:chi), starts_at: at("19:00"), ends_at: at("20:00"))
 
     assert_no_difference "Booking.count" do
       post bookings_path, params: { booking: { slots: { "0" => slot(:court_one, "18:00", "19:30"), "1" => slot(:court_two, "19:30", "21:00") } } }

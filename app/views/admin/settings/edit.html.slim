@@ -41,7 +41,21 @@ div class="card mx-auto max-w-2xl"
         div
           = f.label :booking_horizon_days, Venue.human_attribute_name(:booking_horizon_days), class: "form-label"
           = f.number_field :booking_horizon_days, value: venue.booking_horizon_days, min: 1, max: 365, required: true, class: "form-input"
+        div
+          = f.label :max_upcoming_bookings, Venue.human_attribute_name(:max_upcoming_bookings), class: "form-label"
+          = f.number_field :max_upcoming_bookings, value: venue.max_upcoming_bookings, min: 1, max: 50, required: true, class: "form-input"
       p class="form-hint" = t(".policy_hint")
+
+    section class="space-y-4"
+      h2 class="text-lg font-semibold" = t(".cancellation_lock")
+      div class="grid gap-4 sm:grid-cols-2"
+        div
+          = f.label :cancellation_lock_threshold, Venue.human_attribute_name(:cancellation_lock_threshold), class: "form-label"
+          = f.number_field :cancellation_lock_threshold, value: venue.cancellation_lock_threshold, min: 1, max: 20, required: true, class: "form-input"
+        div
+          = f.label :cancellation_lock_days, Venue.human_attribute_name(:cancellation_lock_days), class: "form-label"
+          = f.number_field :cancellation_lock_days, value: venue.cancellation_lock_days, min: 1, max: 90, required: true, class: "form-input"
+      p class="form-hint" = t(".cancellation_lock_hint", count: venue.cancellation_lock_threshold, days: venue.cancellation_lock_days)
 
     section
       h2 class="mb-1 text-lg font-semibold" = t(".opening_hours")

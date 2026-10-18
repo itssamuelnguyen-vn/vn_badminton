@@ -37,6 +37,9 @@ vi:
         cancellation_cutoff_hours: Hạn hủy (giờ)
         booking_horizon_days: Số ngày được đặt trước
         status: Trạng thái
+        max_upcoming_bookings: Số lượt đặt sắp tới tối đa mỗi khách
+        cancellation_lock_threshold: Số lần huỷ trong ngày thì bị khoá
+        cancellation_lock_days: Số ngày khoá đặt online
       opening_hour:
         day_of_week: Ngày trong tuần
         opens_minute: Giờ mở cửa
@@ -262,12 +265,23 @@ vi:
       cancel: Huỷ đặt sân
       cancel_confirm: Bạn chắc chắn muốn huỷ lượt đặt sân này?
       cancel_cutoff: "Đã quá hạn huỷ online (trước giờ chơi %{hours} giờ). Vui lòng gọi cho sân."
+      lock_warning:
+        other: "Lưu ý: đây sẽ là lần huỷ thứ %{count} trong hôm nay. Tài khoản sẽ không thể đặt sân online trong %{days} ngày."
     index:
       title: Lượt đặt của tôi
       new: Đặt sân
       upcoming: Sắp tới
       no_upcoming: Bạn chưa có lượt đặt nào sắp tới.
       past: Đã qua và đã huỷ
+    lock_notice: "Tài khoản của bạn tạm thời không thể đặt sân online đến %{until} vì đã huỷ nhiều lần trong một ngày. Vui lòng gọi cho sân nếu cần hỗ trợ."
+
+  booking_batch:
+    errors:
+      locked: "Tài khoản của bạn tạm thời không thể đặt sân online đến %{until} vì đã huỷ nhiều lần trong một ngày."
+      limit_reached:
+        other: "Bạn đang có %{count} lượt đặt sắp tới, là số tối đa. Vui lòng chơi xong hoặc huỷ bớt trước khi đặt thêm."
+      too_many:
+        other: "Mỗi tài khoản giữ tối đa %{count} lượt đặt sắp tới; bạn chỉ còn đặt thêm được %{remaining} sân."
 
   booking_mailer:
     confirmed:
@@ -350,6 +364,8 @@ vi:
         paid: "Thanh toán lúc %{time}"
         cancelled: "Huỷ lúc %{time} bởi %{by}"
         back: Về lịch ngày
+        locked: "Khách đang bị khoá đặt online đến %{until} (huỷ nhiều lần trong ngày)."
+        unlock: Mở khoá
       new:
         title: Đặt sân / khoá sân
         kind: Loại
@@ -420,5 +436,11 @@ vi:
         opening_hours: Giờ mở cửa
         opening_hours_hint: Bỏ chọn ngày nghỉ. Thay đổi không ảnh hưởng tới các lượt đã đặt.
         submit: Lưu cài đặt
+        cancellation_lock: Khoá khi huỷ nhiều
+        cancellation_lock_hint:
+          other: "Khách tự huỷ %{count} lần trong cùng một ngày sẽ không thể đặt online trong %{days} ngày. Bạn có thể mở khoá sớm trong trang chi tiết lượt đặt."
       update:
         success: Đã lưu cài đặt.
+    users:
+      unlock_booking:
+        success: Đã mở khoá đặt online cho khách.

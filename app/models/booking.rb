@@ -96,6 +96,7 @@ class Booking < ApplicationRecord
     end
 
     update!(status: :cancelled, cancelled_at: now, cancelled_by: by, cancellation_reason: reason)
+    user.lock_booking_if_cancelling_too_often(court.venue, now) if user && by == user
   end
 
   def check_in!(now: Time.current)

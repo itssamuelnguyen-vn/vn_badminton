@@ -5,7 +5,8 @@
 #   settings.update(name: "...", opening_hours: { "1" => { open: "1", opens_minute: "300", closes_minute: "1320" }, "0" => { open: "0" } })
 module Admin
   class VenueSettings
-    VENUE_FIELDS = %i[name address phone min_booking_minutes max_booking_minutes cancellation_cutoff_hours booking_horizon_days].freeze
+    VENUE_FIELDS = %i[name address phone min_booking_minutes max_booking_minutes cancellation_cutoff_hours booking_horizon_days
+                      max_upcoming_bookings cancellation_lock_threshold cancellation_lock_days].freeze
     # Monday first, as on Vietnamese calendars.
     WEEK = [ 1, 2, 3, 4, 5, 6, 0 ].freeze
     DEFAULT_HOURS = { opens_minute: 300, closes_minute: 1320 }.freeze

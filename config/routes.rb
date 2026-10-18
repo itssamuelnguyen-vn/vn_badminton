@@ -19,6 +19,9 @@ Rails.application.routes.draw do
         end
       end
       resources :price_rules, except: :show
+      resources :users, only: [] do
+        patch :unlock_booking, on: :member
+      end
       resource :settings, only: %i[edit update]
     end
 

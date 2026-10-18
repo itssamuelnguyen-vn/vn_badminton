@@ -9,6 +9,8 @@ div class="card mx-auto max-w-lg"
     - if @batch.errors?
       div#error_explanation role="alert" class="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-200"
         ul class="list-disc space-y-1 pl-5"
+          - @batch.errors.each do |message|
+            li = message
           - bookings.each do |booking|
             - booking.errors.full_messages.each do |message|
               li = several ? "#{booking.court.display_name}: #{message}" : message

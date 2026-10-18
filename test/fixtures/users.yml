@@ -6,6 +6,13 @@ an:
   role: customer
   encrypted_password: <%= Devise::Encryptor.digest(User, "password123") %>
 
+chi:
+  email: chi@example.com
+  full_name: Lê Chi
+  phone: "+84933000111"
+  role: customer
+  encrypted_password: <%= Devise::Encryptor.digest(User, "password123") %>
+
 owner:
   email: owner@example.com
   full_name: Chủ Sân
