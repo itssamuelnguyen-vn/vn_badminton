@@ -3,10 +3,16 @@
 #
 #   batch = BookingBatch.new(user: current_user, slots: [{ court_id: 1, starts_at: "...", ends_at: "..." }], note: "...")
 #   batch.reserve  # => true when every booking was saved
+#
+# Besides each booking's own checks, the customer must not be locked out for cancelling too often,
+# and may hold at most Venue#max_upcoming_bookings upcoming bookings.
 class BookingBatch
-  attr_reader :bookings
+  attr_reader :bookings, :errors, :venue
 
   def initialize(user:, slots:, note: nil, venue: Venue.main)
+    @user = user
+    @venue = venue
+    @errors = []
     courts = venue.courts.active.where(id: slots.map { |slot| slot[:court_id] }).index_by(&:id)
 
     @bookings = slots.map do |slot|
@@ -17,13 +23,18 @@ class BookingBatch
 
   # Validates every booking (not just up to the first failure) so all problems can be shown.
   def valid?
-    bookings.map(&:validate).all?
+    [ customer_allowed?, *bookings.map(&:validate) ].all?
   end
 
   def reserve
     return false if bookings.empty?
 
     Booking.transaction do
+      # Locking the customer's row makes two bookings sent at the same time wait for each other,
+      # so they cannot both get past the upcoming-bookings limit.
+      @user.lock!
+      raise ActiveRecord::Rollback unless customer_allowed?
+
       results = bookings.map(&:reserve)
       raise ActiveRecord::Rollback unless results.all?
     end
@@ -31,10 +42,28 @@ class BookingBatch
   end
 
   def errors?
-    bookings.any? { |booking| booking.errors.any? }
+    errors.any? || bookings.any? { |booking| booking.errors.any? }
   end
 
   def total_amount_vnd
     bookings.sum(&:total_amount_vnd)
+  end
+
+  private
+
+  def customer_allowed?(now = Time.current)
+    @errors = []
+    if @user.booking_locked?(now)
+      @errors << I18n.t("booking_batch.errors.locked", until: I18n.l(@user.booking_locked_until.in_time_zone(venue.zone), format: :slot))
+    else
+      limit = venue.max_upcoming_bookings
+      remaining = limit - @user.upcoming_bookings(now).count
+      if remaining <= 0
+        @errors << I18n.t("booking_batch.errors.limit_reached", count: limit)
+      elsif bookings.size > remaining
+        @errors << I18n.t("booking_batch.errors.too_many", count: limit, remaining: remaining)
+      end
+    end
+    @errors.empty?
   end
 end

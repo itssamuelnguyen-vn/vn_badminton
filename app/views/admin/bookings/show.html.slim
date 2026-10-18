@@ -38,6 +38,11 @@ div class="card mx-auto max-w-lg"
         dt class="text-slate-500" = t("bookings.details.time")
         dd class="font-medium tabular-nums" = "#{time_range(@booking.starts_at, @booking.ends_at)} (#{format_duration(@booking.duration_minutes)})"
 
+  - if @booking.user&.booking_locked?
+    div class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-200"
+      p = t(".locked", until: l(@booking.user.booking_locked_until, format: :slot))
+      = button_to t(".unlock"), unlock_booking_admin_user_path(@booking.user), method: :patch, class: "btn-secondary px-3 py-1.5 text-xs"
+
   - if @booking.note.present?
     p class="mt-4 rounded-lg bg-slate-50 p-3 text-sm text-slate-700" = @booking.note
 

@@ -26,6 +26,7 @@ en:
         password: Password
         password_confirmation: Confirm password
         current_password: Current password
+        privacy_consent: Privacy consent
       venue:
         name: Name
         slug: Slug
@@ -37,6 +38,9 @@ en:
         cancellation_cutoff_hours: Cancellation cutoff (hours)
         booking_horizon_days: Booking horizon (days)
         status: Status
+        max_upcoming_bookings: Maximum upcoming bookings per customer
+        cancellation_lock_threshold: Cancellations in a day before the lock
+        cancellation_lock_days: Online booking lock (days)
       opening_hour:
         day_of_week: Day of week
         opens_minute: Opening time
@@ -71,9 +75,11 @@ en:
     errors:
       models:
         user:
+          privacy_consent_required: "You need to agree to the privacy policy to sign up"
           attributes:
             password_confirmation:
               confirmation: "doesn't match the password"
+
         venue:
           not_multiple_of_30: "must be a multiple of 30"
           less_than_min: "must be greater than or equal to the minimum duration"
@@ -113,6 +119,11 @@ en:
         admin: Manage
       locale_switcher:
         label: Language
+      footer:
+        privacy: Privacy policy
+      unverified_notice:
+        message: "Please open the verification email sent to %{email} to start booking."
+        resend: Resend email
     admin:
       nav:
         label: Management
@@ -141,6 +152,8 @@ en:
         submit: Sign up
         have_account: Already have an account?
         sign_in: Sign in
+        privacy_consent_html: "I agree to provide my name, phone number and email to book courts, as described in the %{link}."
+        privacy_policy: privacy policy
       edit:
         title: Account settings
         change_password: Change password
@@ -148,6 +161,7 @@ en:
         password_hint: Leave blank to keep your current password
         current_password_hint: Required to save any changes
         submit: Save changes
+        pending_reconfirmation: "Waiting for verification of your new email: %{email}. Your current email is used until you open the verification link."
     passwords:
       new:
         title: Forgot your password?
@@ -170,12 +184,28 @@ en:
         action: Change my password
         ignore: "If you didn't request this, please ignore this email."
         unchanged: "Your password won't change until you open the link above and create a new one."
+      confirmation_instructions:
+        greeting: "Hello %{name},"
+        instruction: Thank you for signing up at VN Badminton. Please verify your email to start booking.
+        reconfirm_instruction: "You changed your account email to %{email}. Please verify the new address."
+        action: Verify my email
+        expires:
+          one: "The link is valid for %{count} day."
+          other: "The link is valid for %{count} days."
+        ignore: If you did not sign up, you can ignore this email.
+    confirmations:
+      new:
+        title: Resend the verification email
+        description: Enter your email and we will send the verification link again.
+        submit: Resend
 
   date:
     formats:
       month_year: "%B %Y"
       full: "%A, %d/%m/%Y"
       day_month_year: "%d/%m/%Y"
+  rate_limited: Too many attempts. Please try again in a few minutes.
+
   helpers:
     vnd: "%{amount} VND"
     every_day: Every day
@@ -268,12 +298,27 @@ en:
       cancel: Cancel booking
       cancel_confirm: Are you sure you want to cancel this booking?
       cancel_cutoff: "Online cancellation closes %{hours} hours before the start time. Please call the venue."
+      lock_warning:
+        one: "Note: cancelling now locks online booking for %{days} days."
+        other: "Note: this will be cancellation %{count} of the day, which locks online booking for %{days} days."
     index:
       title: My bookings
       new: Book a court
       upcoming: Upcoming
       no_upcoming: You have no upcoming bookings.
       past: Past and cancelled
+    lock_notice: "Your account cannot book online until %{until} because of several cancellations in one day. Please call the venue if you need help."
+    unverified: Please verify your email before booking. We sent a verification link to your email.
+
+  booking_batch:
+    errors:
+      locked: "Your account cannot book online until %{until} because of several cancellations in one day."
+      limit_reached:
+        one: "You already have %{count} upcoming booking, the maximum. Play or cancel it before booking again."
+        other: "You already have %{count} upcoming bookings, the maximum. Play or cancel one before booking again."
+      too_many:
+        one: "Each account can hold %{count} upcoming booking; you can book %{remaining} more court."
+        other: "Each account can hold %{count} upcoming bookings; you can only book %{remaining} more court(s)."
 
   booking_mailer:
     confirmed:
@@ -358,6 +403,8 @@ en:
         paid: "Paid at %{time}"
         cancelled: "Cancelled at %{time} by %{by}"
         back: Back to the day board
+        locked: "This customer cannot book online until %{until} (too many cancellations in a day)."
+        unlock: Unlock
       new:
         title: Book or block a court
         kind: Type
@@ -428,5 +475,12 @@ en:
         opening_hours: Opening hours
         opening_hours_hint: Untick closed days. Changes do not affect existing bookings.
         submit: Save settings
+        cancellation_lock: Lock after cancellations
+        cancellation_lock_hint:
+          one: "A customer who cancels once in a day cannot book online for %{days} days. You can unlock them early from the booking page."
+          other: "A customer who cancels %{count} times in one day cannot book online for %{days} days. You can unlock them early from the booking page."
       update:
         success: Settings saved.
+    users:
+      unlock_booking:
+        success: The customer can book online again.

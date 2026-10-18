@@ -26,6 +26,7 @@ vi:
         password: Mật khẩu
         password_confirmation: Xác nhận mật khẩu
         current_password: Mật khẩu hiện tại
+        privacy_consent: Đồng ý chính sách bảo mật
       venue:
         name: Tên
         slug: Đường dẫn
@@ -37,6 +38,9 @@ vi:
         cancellation_cutoff_hours: Hạn hủy (giờ)
         booking_horizon_days: Số ngày được đặt trước
         status: Trạng thái
+        max_upcoming_bookings: Số lượt đặt sắp tới tối đa mỗi khách
+        cancellation_lock_threshold: Số lần huỷ trong ngày thì bị khoá
+        cancellation_lock_days: Số ngày khoá đặt online
       opening_hour:
         day_of_week: Ngày trong tuần
         opens_minute: Giờ mở cửa
@@ -71,9 +75,11 @@ vi:
     errors:
       models:
         user:
+          privacy_consent_required: "Bạn cần đồng ý với chính sách bảo mật để đăng ký"
           attributes:
             password_confirmation:
               confirmation: "không khớp với mật khẩu"
+
         venue:
           not_multiple_of_30: "phải là bội số của 30"
           less_than_min: "phải lớn hơn hoặc bằng thời lượng tối thiểu"
@@ -112,6 +118,11 @@ vi:
         admin: Quản lý
       locale_switcher:
         label: Ngôn ngữ
+      footer:
+        privacy: Chính sách bảo mật
+      unverified_notice:
+        message: "Vui lòng mở email xác minh đã gửi tới %{email} để có thể đặt sân."
+        resend: Gửi lại email
     admin:
       nav:
         label: Quản lý
@@ -139,6 +150,8 @@ vi:
         submit: Đăng ký
         have_account: Đã có tài khoản?
         sign_in: Đăng nhập
+        privacy_consent_html: "Tôi đồng ý cung cấp họ tên, số điện thoại và email để đặt sân, theo %{link}."
+        privacy_policy: chính sách bảo mật
       edit:
         title: Cài đặt tài khoản
         change_password: Đổi mật khẩu
@@ -146,6 +159,7 @@ vi:
         password_hint: Để trống nếu không muốn đổi mật khẩu
         current_password_hint: Cần nhập để lưu thay đổi
         submit: Lưu thay đổi
+        pending_reconfirmation: "Đang chờ xác minh email mới: %{email}. Email cũ vẫn được dùng cho tới khi bạn mở đường dẫn xác minh."
     passwords:
       new:
         title: Quên mật khẩu?
@@ -167,12 +181,27 @@ vi:
         action: Đổi mật khẩu
         ignore: "Nếu bạn không yêu cầu, hãy bỏ qua email này."
         unchanged: "Mật khẩu của bạn sẽ không thay đổi cho tới khi bạn mở đường dẫn trên và tạo mật khẩu mới."
+      confirmation_instructions:
+        greeting: "Xin chào %{name},"
+        instruction: Cảm ơn bạn đã đăng ký tại VN Badminton. Vui lòng xác minh email để bắt đầu đặt sân.
+        reconfirm_instruction: "Bạn vừa đổi email tài khoản thành %{email}. Vui lòng xác minh địa chỉ mới."
+        action: Xác minh email
+        expires:
+          other: "Đường dẫn có hiệu lực trong %{count} ngày."
+        ignore: Nếu bạn không đăng ký, hãy bỏ qua email này.
+    confirmations:
+      new:
+        title: Gửi lại email xác minh
+        description: Nhập email của bạn, chúng tôi sẽ gửi lại đường dẫn xác minh.
+        submit: Gửi lại
 
   date:
     formats:
       month_year: "Tháng %-m, %Y"
       full: "%A, %d/%m/%Y"
       day_month_year: "%d/%m/%Y"
+  rate_limited: Bạn thao tác quá nhiều lần. Vui lòng thử lại sau ít phút.
+
   helpers:
     vnd: "%{amount}đ"
     every_day: Hằng ngày
@@ -262,12 +291,24 @@ vi:
       cancel: Huỷ đặt sân
       cancel_confirm: Bạn chắc chắn muốn huỷ lượt đặt sân này?
       cancel_cutoff: "Đã quá hạn huỷ online (trước giờ chơi %{hours} giờ). Vui lòng gọi cho sân."
+      lock_warning:
+        other: "Lưu ý: đây sẽ là lần huỷ thứ %{count} trong hôm nay. Tài khoản sẽ không thể đặt sân online trong %{days} ngày."
     index:
       title: Lượt đặt của tôi
       new: Đặt sân
       upcoming: Sắp tới
       no_upcoming: Bạn chưa có lượt đặt nào sắp tới.
       past: Đã qua và đã huỷ
+    lock_notice: "Tài khoản của bạn tạm thời không thể đặt sân online đến %{until} vì đã huỷ nhiều lần trong một ngày. Vui lòng gọi cho sân nếu cần hỗ trợ."
+    unverified: Vui lòng xác minh email trước khi đặt sân. Chúng tôi đã gửi đường dẫn xác minh tới email của bạn.
+
+  booking_batch:
+    errors:
+      locked: "Tài khoản của bạn tạm thời không thể đặt sân online đến %{until} vì đã huỷ nhiều lần trong một ngày."
+      limit_reached:
+        other: "Bạn đang có %{count} lượt đặt sắp tới, là số tối đa. Vui lòng chơi xong hoặc huỷ bớt trước khi đặt thêm."
+      too_many:
+        other: "Mỗi tài khoản giữ tối đa %{count} lượt đặt sắp tới; bạn chỉ còn đặt thêm được %{remaining} sân."
 
   booking_mailer:
     confirmed:
@@ -350,6 +391,8 @@ vi:
         paid: "Thanh toán lúc %{time}"
         cancelled: "Huỷ lúc %{time} bởi %{by}"
         back: Về lịch ngày
+        locked: "Khách đang bị khoá đặt online đến %{until} (huỷ nhiều lần trong ngày)."
+        unlock: Mở khoá
       new:
         title: Đặt sân / khoá sân
         kind: Loại
@@ -420,5 +463,11 @@ vi:
         opening_hours: Giờ mở cửa
         opening_hours_hint: Bỏ chọn ngày nghỉ. Thay đổi không ảnh hưởng tới các lượt đã đặt.
         submit: Lưu cài đặt
+        cancellation_lock: Khoá khi huỷ nhiều
+        cancellation_lock_hint:
+          other: "Khách tự huỷ %{count} lần trong cùng một ngày sẽ không thể đặt online trong %{days} ngày. Bạn có thể mở khoá sớm trong trang chi tiết lượt đặt."
       update:
         success: Đã lưu cài đặt.
+    users:
+      unlock_booking:
+        success: Đã mở khoá đặt online cho khách.

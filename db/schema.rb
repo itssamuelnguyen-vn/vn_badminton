@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_18_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_19_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "citext"
@@ -131,6 +131,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_18_000003) do
     t.datetime "created_at", precision: 0, null: false
     t.datetime "updated_at", precision: 0, null: false
     t.string "locale", default: "vi", null: false
+    t.datetime "booking_locked_until", precision: 0
+    t.datetime "privacy_accepted_at", precision: 0
+    t.string "confirmation_token"
+    t.datetime "confirmed_at", precision: 0
+    t.datetime "confirmation_sent_at", precision: 0
+    t.string "unconfirmed_email"
+    t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["phone"], name: "index_users_on_phone", unique: true, where: "(phone IS NOT NULL)"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
@@ -148,18 +155,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_18_000003) do
     t.string "phone"
     t.string "time_zone", default: "Asia/Ho_Chi_Minh", null: false
     t.integer "min_booking_minutes", default: 60, null: false
-    t.integer "max_booking_minutes", default: 180, null: false
+    t.integer "max_booking_minutes", default: 240, null: false
     t.integer "cancellation_cutoff_hours", default: 2, null: false
     t.integer "booking_horizon_days", default: 14, null: false
     t.string "status", default: "active", null: false
     t.datetime "created_at", precision: 0, null: false
     t.datetime "updated_at", precision: 0, null: false
+    t.integer "max_upcoming_bookings", default: 2, null: false
+    t.integer "cancellation_lock_threshold", default: 3, null: false
+    t.integer "cancellation_lock_days", default: 7, null: false
     t.index ["slug"], name: "index_venues_on_slug", unique: true
     t.check_constraint "booking_horizon_days >= 1 AND booking_horizon_days <= 365", name: "venues_booking_horizon_valid"
     t.check_constraint "cancellation_cutoff_hours >= 0 AND cancellation_cutoff_hours <= 168", name: "venues_cancellation_cutoff_valid"
+    t.check_constraint "cancellation_lock_days >= 1 AND cancellation_lock_days <= 90", name: "venues_cancellation_lock_days_valid"
+    t.check_constraint "cancellation_lock_threshold >= 1 AND cancellation_lock_threshold <= 20", name: "venues_cancellation_lock_threshold_valid"
     t.check_constraint "length(btrim(address::text)) > 0", name: "venues_address_present"
     t.check_constraint "length(btrim(name::text)) > 0", name: "venues_name_present"
     t.check_constraint "max_booking_minutes >= min_booking_minutes AND max_booking_minutes <= 720 AND (max_booking_minutes % 30) = 0", name: "venues_max_booking_minutes_valid"
+    t.check_constraint "max_upcoming_bookings >= 1 AND max_upcoming_bookings <= 50", name: "venues_max_upcoming_bookings_valid"
     t.check_constraint "min_booking_minutes >= 30 AND (min_booking_minutes % 30) = 0", name: "venues_min_booking_minutes_valid"
     t.check_constraint "phone::text ~ '^\\+84[0-9]{9}$'::text", name: "venues_phone_format"
     t.check_constraint "slug::text ~ '^[a-z0-9]+(-[a-z0-9]+)*$'::text", name: "venues_slug_format"

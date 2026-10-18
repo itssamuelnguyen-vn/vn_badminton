@@ -18,6 +18,9 @@ class Venue < ApplicationRecord
   validates :max_booking_minutes, numericality: { only_integer: true, less_than_or_equal_to: 720 }
   validates :cancellation_cutoff_hours, numericality: { only_integer: true, in: 0..168 }
   validates :booking_horizon_days, numericality: { only_integer: true, in: 1..365 }
+  validates :max_upcoming_bookings, numericality: { only_integer: true, in: 1..50 }
+  validates :cancellation_lock_threshold, numericality: { only_integer: true, in: 1..20 }
+  validates :cancellation_lock_days, numericality: { only_integer: true, in: 1..90 }
   validate :booking_minutes_on_slot_grid
 
   # The app serves a single venue; customer pages always use it.

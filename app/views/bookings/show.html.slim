@@ -15,6 +15,12 @@ div class="card mx-auto max-w-lg"
   - if @booking.payment_unpaid? && !@booking.cancelled?
     p class="mt-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200" = t("bookings.new.pay_at_venue")
 
+  / Warn before the cancellation that would lock online booking (Venue#cancellation_lock_threshold).
+  - venue = @booking.court.venue
+  - if @booking.cancellable_by_customer? && current_user.cancellations_today(venue) + 1 >= venue.cancellation_lock_threshold
+    p class="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-200" role="note"
+      = t(".lock_warning", count: venue.cancellation_lock_threshold, days: venue.cancellation_lock_days)
+
   div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between"
     = link_to t(".all_bookings"), bookings_path, class: "btn-secondary"
     - if @booking.cancellable_by_customer?

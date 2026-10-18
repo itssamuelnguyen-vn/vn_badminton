@@ -10,7 +10,8 @@ module ActiveSupport
     # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
     fixtures :all
 
-    # Add more helper methods to be used by all tests here...
+    # Rate limit counts would otherwise carry over from one test to the next.
+    setup { ApplicationController::RATE_LIMIT_STORE.clear }
   end
 end
 

@@ -13,7 +13,7 @@ class BookingBatchTest < ActiveSupport::TestCase
   end
 
   test "books nothing when one court is already taken" do
-    courts(:court_two).bookings.create!(user: users(:an), starts_at: at("19:00"), ends_at: at("20:00"))
+    courts(:court_two).bookings.create!(user: users(:chi), starts_at: at("19:00"), ends_at: at("20:00"))
     batch = batch_for([ courts(:court_one), "18:00", "19:30" ], [ courts(:court_two), "19:30", "21:00" ])
 
     assert_no_difference "Booking.count" do
@@ -25,7 +25,7 @@ class BookingBatchTest < ActiveSupport::TestCase
 
   test "rolls back the earlier bookings when a later one hits the exclusion constraint" do
     batch = batch_for([ courts(:court_one), "18:00", "19:00" ], [ courts(:court_two), "18:00", "19:00" ])
-    courts(:court_two).bookings.create!(user: users(:an), starts_at: at("18:00"), ends_at: at("19:00"))
+    courts(:court_two).bookings.create!(user: users(:chi), starts_at: at("18:00"), ends_at: at("19:00"))
     batch.bookings.last.define_singleton_method(:slot_free) { } # simulate a request that passed the soft check
 
     assert_no_difference "Booking.count" do
@@ -39,7 +39,7 @@ class BookingBatchTest < ActiveSupport::TestCase
 
     assert_not batch.valid?
     assert batch.bookings.first.errors.added?(:base, :outside_opening_hours)
-    assert batch.bookings.last.errors.added?(:base, :duration_out_of_range, min: 60, max: 180)
+    assert batch.bookings.last.errors.added?(:base, :duration_out_of_range, min: 60, max: 240)
   end
 
   test "rejects an unknown or inactive court" do

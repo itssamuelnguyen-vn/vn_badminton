@@ -1,7 +1,9 @@
 Rails.application.routes.draw do
   # Vietnamese (the default locale) has no prefix; English pages live under /en.
   scope "(:locale)", locale: /en/ do
-    devise_for :users
+    # The custom controllers only add rate limits; the views stay in app/views/devise.
+    devise_for :users, controllers: { sessions: "users/sessions", registrations: "users/registrations",
+                                      passwords: "users/passwords", confirmations: "users/confirmations" }
 
     resources :bookings, only: %i[index show new create], param: :code do
       patch :cancel, on: :member
@@ -19,8 +21,13 @@ Rails.application.routes.draw do
         end
       end
       resources :price_rules, except: :show
+      resources :users, only: [] do
+        patch :unlock_booking, on: :member
+      end
       resource :settings, only: %i[edit update]
     end
+
+    get "privacy", to: "pages#privacy"
 
     # The home page is the booking schedule; ?date=YYYY-MM-DD picks the day.
     root "schedules#show"

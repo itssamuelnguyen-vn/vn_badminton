@@ -18,7 +18,7 @@ vi:
       unconfirmed: "Bạn cần xác nhận địa chỉ email trước khi tiếp tục."
     mailer:
       confirmation_instructions:
-        subject: "Hướng dẫn xác nhận email"
+        subject: "Xác minh email tài khoản VN Badminton"
       reset_password_instructions:
         subject: "Hướng dẫn đặt lại mật khẩu"
       unlock_instructions:
@@ -38,7 +38,7 @@ vi:
       updated_not_active: "Mật khẩu của bạn đã được thay đổi thành công."
     registrations:
       destroyed: "Tạm biệt! Tài khoản của bạn đã được xóa thành công. Hy vọng sớm gặp lại bạn."
-      signed_up: "Chào mừng! Bạn đã đăng ký thành công."
+      signed_up: "Chào mừng! Bạn đã đăng ký thành công. Vui lòng mở email xác minh chúng tôi vừa gửi để có thể đặt sân."
       signed_up_but_inactive: "Bạn đã đăng ký thành công. Tuy nhiên, chưa thể đăng nhập vì tài khoản của bạn chưa được kích hoạt."
       signed_up_but_locked: "Bạn đã đăng ký thành công. Tuy nhiên, chưa thể đăng nhập vì tài khoản của bạn đang bị khóa."
       signed_up_but_unconfirmed: "Chúng tôi đã gửi một đường dẫn xác nhận tới email của bạn. Vui lòng mở đường dẫn đó để kích hoạt tài khoản."

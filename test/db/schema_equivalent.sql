@@ -14,6 +14,12 @@ CREATE TABLE users (
   phone varchar,
   role varchar NOT NULL DEFAULT 'customer',
   locale varchar NOT NULL DEFAULT 'vi',
+  booking_locked_until timestamptz,
+  privacy_accepted_at timestamptz,
+  confirmation_token varchar,
+  confirmed_at timestamptz,
+  confirmation_sent_at timestamptz,
+  unconfirmed_email varchar,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT users_role_valid CHECK (role IN ('customer', 'admin')),
@@ -25,6 +31,7 @@ CREATE TABLE users (
 CREATE UNIQUE INDEX index_users_on_email ON users (email);
 CREATE UNIQUE INDEX index_users_on_phone ON users (phone) WHERE phone IS NOT NULL;
 CREATE UNIQUE INDEX index_users_on_reset_password_token ON users (reset_password_token);
+CREATE UNIQUE INDEX index_users_on_confirmation_token ON users (confirmation_token);
 
 CREATE TABLE venues (
   id bigserial PRIMARY KEY,
@@ -34,9 +41,12 @@ CREATE TABLE venues (
   phone varchar,
   time_zone varchar NOT NULL DEFAULT 'Asia/Ho_Chi_Minh',
   min_booking_minutes integer NOT NULL DEFAULT 60,
-  max_booking_minutes integer NOT NULL DEFAULT 180,
+  max_booking_minutes integer NOT NULL DEFAULT 240,
   cancellation_cutoff_hours integer NOT NULL DEFAULT 2,
   booking_horizon_days integer NOT NULL DEFAULT 14,
+  max_upcoming_bookings integer NOT NULL DEFAULT 2,
+  cancellation_lock_threshold integer NOT NULL DEFAULT 3,
+  cancellation_lock_days integer NOT NULL DEFAULT 7,
   status varchar NOT NULL DEFAULT 'active',
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
@@ -48,7 +58,10 @@ CREATE TABLE venues (
   CONSTRAINT venues_min_booking_minutes_valid CHECK (min_booking_minutes >= 30 AND min_booking_minutes % 30 = 0),
   CONSTRAINT venues_max_booking_minutes_valid CHECK (max_booking_minutes >= min_booking_minutes AND max_booking_minutes <= 720 AND max_booking_minutes % 30 = 0),
   CONSTRAINT venues_cancellation_cutoff_valid CHECK (cancellation_cutoff_hours BETWEEN 0 AND 168),
-  CONSTRAINT venues_booking_horizon_valid CHECK (booking_horizon_days BETWEEN 1 AND 365)
+  CONSTRAINT venues_booking_horizon_valid CHECK (booking_horizon_days BETWEEN 1 AND 365),
+  CONSTRAINT venues_max_upcoming_bookings_valid CHECK (max_upcoming_bookings BETWEEN 1 AND 50),
+  CONSTRAINT venues_cancellation_lock_threshold_valid CHECK (cancellation_lock_threshold BETWEEN 1 AND 20),
+  CONSTRAINT venues_cancellation_lock_days_valid CHECK (cancellation_lock_days BETWEEN 1 AND 90)
 );
 CREATE UNIQUE INDEX index_venues_on_slug ON venues (slug);
 

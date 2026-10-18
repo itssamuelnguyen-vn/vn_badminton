@@ -5,9 +5,19 @@ an:
   phone: "+84901234567"
   role: customer
   encrypted_password: <%= Devise::Encryptor.digest(User, "password123") %>
+  confirmed_at: 2026-10-01 00:00:00
+
+chi:
+  email: chi@example.com
+  full_name: Lê Chi
+  phone: "+84933000111"
+  role: customer
+  encrypted_password: <%= Devise::Encryptor.digest(User, "password123") %>
+  confirmed_at: 2026-10-01 00:00:00
 
 owner:
   email: owner@example.com
   full_name: Chủ Sân
   role: admin
   encrypted_password: <%= Devise::Encryptor.digest(User, "password123") %>
+  confirmed_at: 2026-10-01 00:00:00

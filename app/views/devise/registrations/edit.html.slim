@@ -17,6 +17,8 @@ div class="card mx-auto max-w-md"
     div
       = f.label :email, class: "form-label"
       = f.email_field :email, required: true, autocomplete: "email", class: "form-input"
+      - if resource.pending_reconfirmation?
+        p class="form-hint text-amber-700" = t(".pending_reconfirmation", email: resource.unconfirmed_email)
 
     fieldset class="space-y-5 border-t border-slate-200 pt-5"
       legend.sr-only = t(".change_password")

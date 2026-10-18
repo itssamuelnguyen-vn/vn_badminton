@@ -1,8 +1,12 @@
 class User < ApplicationRecord
-  devise :database_authenticatable, :registerable, :recoverable, :rememberable, :validatable
+  # :confirmable lets unverified accounts sign in (config.allow_unconfirmed_access_for = nil);
+  # they only cannot book online until the email is verified (BookingsController).
+  devise :database_authenticatable, :registerable, :recoverable, :rememberable, :validatable, :confirmable
 
   # Sign-in field that accepts either an email or a phone number.
   attr_writer :login
+  # The "I agree to the privacy policy" box of the sign-up form.
+  attr_accessor :privacy_consent
 
   enum :role, { customer: "customer", admin: "admin" }, default: :customer, validate: true
 
@@ -11,6 +15,8 @@ class User < ApplicationRecord
                               inverse_of: :created_by, dependent: :restrict_with_error
   has_many :cancelled_bookings, class_name: "Booking", foreign_key: :cancelled_by_id,
                                 inverse_of: :cancelled_by, dependent: :restrict_with_error
+
+  before_create { self.privacy_accepted_at = Time.current if privacy_consent == "1" }
 
   normalizes :email, with: ->(email) { email.strip.downcase }
   normalizes :phone, with: ->(phone) { PhoneNumber.normalize(phone) }
@@ -21,6 +27,8 @@ class User < ApplicationRecord
   # Online bookings copy the customer's phone, so customers must have one.
   validates :phone, presence: true, if: :customer?
   validates :full_name, presence: true, length: { maximum: 100 }
+  # Only checked when the box is sent (the sign-up form); accounts made by seeds or the console have no box.
+  validate :privacy_consent_given, on: :create
   # The language of emails sent outside of a request (reminders, cancellations by the owner).
   validates :locale, inclusion: { in: -> { I18n.available_locales.map(&:to_s) } }
 
@@ -38,6 +46,32 @@ class User < ApplicationRecord
     end
   end
 
+  # Bookings that count towards Venue#max_upcoming_bookings: not finished yet and not cancelled.
+  def upcoming_bookings(now = Time.current)
+    bookings.kind_reservation.where(status: %w[pending confirmed checked_in]).where("ends_at > ?", now)
+  end
+
+  # Customers who cancel too often in one day cannot book online for a while (Venue#cancellation_lock_days).
+  def booking_locked?(now = Time.current)
+    booking_locked_until.present? && booking_locked_until > now
+  end
+
+  # Cancellations the customer made themselves on the venue's current day.
+  def cancellations_today(venue, now = Time.current)
+    bookings.where(cancelled_by: self, cancelled_at: now.in_time_zone(venue.zone).all_day).count
+  end
+
+  # Called after the customer cancels a booking.
+  def lock_booking_if_cancelling_too_often(venue, now = Time.current)
+    return if manager? || cancellations_today(venue, now) < venue.cancellation_lock_threshold
+
+    update_column(:booking_locked_until, now + venue.cancellation_lock_days.days)
+  end
+
+  def unlock_booking
+    update_column(:booking_locked_until, nil)
+  end
+
   # Keeps the language the customer last used, so later emails are in that language.
   def remember_locale(locale)
     locale = locale.to_s
@@ -46,6 +80,16 @@ class User < ApplicationRecord
 
   def login
     @login || email
+  end
+
+  # A base error, so the message reads as a sentence instead of starting with the field name.
+  def privacy_consent_given
+    errors.add(:base, :privacy_consent_required) if !privacy_consent.nil? && privacy_consent != "1"
+  end
+
+  # Devise emails go through the job queue like the other emails (the job keeps the current locale).
+  def send_devise_notification(notification, *args)
+    devise_mailer.send(notification, self, *args).deliver_later
   end
 
   # Users who can manage the venue (currently only the owner).
