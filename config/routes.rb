@@ -48,7 +48,9 @@ Rails.application.routes.draw do
         end
       end
       get "reports", to: "reports#show", as: :reports
-      resources :bank_transactions, path: "transactions", only: %i[index update]
+      resources :bank_transactions, path: "transactions", only: %i[index update] do
+        patch :assign, on: :member
+      end
       resources :price_rules, except: :show
       resources :users, only: [] do
         patch :unlock_booking, on: :member

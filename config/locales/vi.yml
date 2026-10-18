@@ -381,6 +381,7 @@ vi:
       amount: Số tiền
       content: Nội dung
       exact: "Chuyển đúng %{amount} với nội dung %{code} để được xác nhận tự động."
+      underpaid: "Đã nhận %{received}, còn thiếu %{remaining}. Vui lòng chuyển thêm %{remaining} với nội dung %{code}."
       for: "Cho lượt đặt:"
       for_series: "Tiền sân tháng %{month} – %{name}"
       paid_title: Đã nhận được tiền
@@ -388,7 +389,7 @@ vi:
       paid_series: Tiền sân của tháng đã được ghi nhận. Cảm ơn bạn!
       view_bookings: Xem lượt đặt
       closed_title: Mã thanh toán đã hết hạn
-      closed_text: Không còn giữ sân cho mã này. Nếu bạn đã chuyển khoản, vui lòng liên hệ sân.
+      closed_text: Không còn giữ sân cho mã này. Nếu bạn vừa chuyển khoản, sân được xác nhận tự động khi giờ đó vẫn còn trống; nếu không, sân sẽ liên hệ để hoàn tiền.
       book_again: Đặt sân khác
 
   booking_mailer:
@@ -542,6 +543,7 @@ vi:
         success: Đã đổi giờ.
       confirm_payment:
         success: Đã xác nhận thanh toán.
+        slot_taken: Giờ này đã có người khác đặt hoặc đã qua; không thể xác nhận. Cần hoàn tiền cho khách.
       cancel_venue_fault:
         success: Đã huỷ do sự cố của sân. Khoản cần hoàn đã được ghi nhận.
       mark_refunded:
@@ -752,14 +754,21 @@ vi:
     bank_transactions:
       index:
         title: Giao dịch
-        explanation: Tiền chuyển vào tài khoản (qua SePay). Sân được xác nhận tự động khi khách chuyển đúng số tiền, đúng nội dung và đúng hạn; các trường hợp khác cần bạn xử lý.
+        explanation: Tiền chuyển vào tài khoản (qua SePay). Sân được xác nhận tự động khi khách chuyển đủ tiền với đúng nội dung (chuyển trễ thì chỉ khi giờ đó vẫn còn trống); các trường hợp khác cần bạn xử lý.
         needs_review:
           other: "Cần xử lý (%{count})"
         reasons:
           unknown_code: Không có mã thanh toán
-          wrong_amount: Sai số tiền
-          late: Chuyển quá hạn
+          underpaid: Chuyển thiếu
+          overpaid: Chuyển thừa
+          late: Chuyển quá hạn, sân không còn trống
           already_paid: Đã thanh toán trước đó
+          cancelled: Mã thanh toán đã huỷ
+        underpaid_hint: "Đã nhận %{received}, còn thiếu %{remaining}. Liên hệ khách để chuyển thêm (cùng nội dung) hoặc hoàn tiền."
+        overpaid_hint: "Đơn đã được xác nhận. Cần hoàn phần thừa %{excess} cho khách."
+        refund_hint: Đơn không được xác nhận bằng khoản này. Cần hoàn tiền cho khách.
+        code_placeholder: Mã thanh toán (VNB…) hoặc mã đặt sân
+        assign: Gán vào đơn
         payment: "Mã %{code} · %{amount} · %{status} ·"
         statuses:
           awaiting: đang chờ
@@ -778,3 +787,7 @@ vi:
         no_recent: Chưa có giao dịch nào.
       update:
         success: Đã đánh dấu đã xử lý.
+      assign:
+        not_found: "Không tìm thấy mã %{code}."
+        confirmed: Đã gán giao dịch và xác nhận đơn.
+        assigned: Đã gán giao dịch vào đơn; giao dịch vẫn cần xử lý.

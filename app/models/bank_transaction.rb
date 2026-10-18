@@ -1,6 +1,6 @@
 # A transfer reported by SePay, stored once per SePay id (the webhook can be delivered more than once).
-# matched: it paid an awaiting payment exactly. needs_review: anything else coming in (unknown code, wrong amount,
-# late, already paid), left for the owner. ignored: money going out. resolved: reviewed by the owner.
+# matched: it paid (or helped pay) a payment. needs_review: anything else coming in (unknown code, too little so far,
+# too much, late with the court gone, already paid, cancelled payment), left for the owner. ignored: money going out. resolved: reviewed by the owner.
 class BankTransaction < ApplicationRecord
   enum :status, { matched: "matched", needs_review: "needs_review", ignored: "ignored", resolved: "resolved" }, validate: true
   enum :direction, { in: "in", out: "out" }, prefix: :money, validate: true

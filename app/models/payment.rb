@@ -18,6 +18,8 @@ class Payment < ApplicationRecord
   belongs_to :series, class_name: "BookingSeries", optional: true
   belongs_to :bank_transaction, optional: true
   has_many :bookings, dependent: :nullify
+  # The transfers carrying this payment's code (or assigned to it by the owner).
+  has_many :transfers, class_name: "BankTransaction", dependent: :nullify
 
   before_validation :assign_code_and_token, on: :create
   # The payment page refreshes itself when the payment is paid, expires or is cancelled.
@@ -38,9 +40,19 @@ class Payment < ApplicationRecord
     awaiting? && (expires_at.nil? || now <= expires_at + GRACE)
   end
 
-  # The VietQR image of the venue's account with the amount and this payment's code.
-  def qr_url(venue)
-    query = { acc: venue.bank_account_number, bank: venue.bank_code, amount: amount_vnd, des: code,
+  # Transferred so far, not counting transfers the owner has handled (e.g. refunded).
+  def received_vnd
+    transfers.money_in.where(status: %w[matched needs_review]).sum(:amount_vnd)
+  end
+
+  # Still to transfer: the customer may pay the missing part with the same code.
+  def remaining_vnd
+    [ amount_vnd - received_vnd, 0 ].max
+  end
+
+  # The VietQR image of the venue's account with the amount still to pay and this payment's code.
+  def qr_url(venue, amount = remaining_vnd)
+    query = { acc: venue.bank_account_number, bank: venue.bank_code, amount: amount, des: code,
               template: "compact", holder: venue.bank_account_name }.compact.to_query
     "https://vietqr.app/img?#{query}"
   end

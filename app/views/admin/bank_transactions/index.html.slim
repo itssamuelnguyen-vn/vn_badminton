@@ -20,6 +20,17 @@ div class="space-y-8"
                 = t(".payment", code: payment.code, amount: format_vnd(payment.amount_vnd), status: t(".statuses.#{payment.status}"))
                 - payment.bookings.each do |booking|
                   =< link_to booking.code, admin_booking_path(booking), class: "link"
+              - case transaction.review_reason
+              - when "underpaid"
+                p class="text-xs font-medium text-amber-800" = t(".underpaid_hint", received: format_vnd(payment.received_vnd), remaining: format_vnd(payment.remaining_vnd))
+              - when "overpaid"
+                p class="text-xs font-medium text-amber-800" = t(".overpaid_hint", excess: format_vnd(payment.received_vnd - payment.amount_vnd))
+              - when "late", "already_paid", "cancelled"
+                p class="text-xs font-medium text-amber-800" = t(".refund_hint")
+            - else
+              = form_with url: assign_admin_bank_transaction_path(transaction), method: :patch, class: "flex flex-wrap gap-2" do |f|
+                = f.text_field :code, placeholder: t(".code_placeholder"), required: true, autocapitalize: "characters", class: "form-input min-w-0 flex-1 py-1.5", aria: { label: t(".code_placeholder") }
+                = f.submit t(".assign"), class: "btn-secondary"
             = form_with url: admin_bank_transaction_path(transaction), method: :patch, class: "flex flex-wrap gap-2" do |f|
               = f.text_field :resolution_note, placeholder: t(".note_placeholder"), required: true, class: "form-input min-w-0 flex-1 py-1.5", aria: { label: t(".note_placeholder") }
               = f.submit t(".resolve"), class: "btn-secondary"

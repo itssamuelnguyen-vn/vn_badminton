@@ -392,6 +392,7 @@ en:
       amount: Amount
       content: Content
       exact: "Transfer exactly %{amount} with the content %{code} to be confirmed automatically."
+      underpaid: "%{received} received, %{remaining} missing. Please transfer the remaining %{remaining} with the content %{code}."
       for: "For:"
       for_series: "Court fee for %{month} – %{name}"
       paid_title: Payment received
@@ -399,7 +400,7 @@ en:
       paid_series: The month's court fee is recorded. Thank you!
       view_bookings: View my bookings
       closed_title: This payment code has expired
-      closed_text: The court is no longer held for this code. If you already transferred, please contact the venue.
+      closed_text: This code no longer holds the court. If you just transferred, the booking is confirmed automatically while the slot is still free; otherwise the venue will contact you for a refund.
       book_again: Book another court
 
   booking_mailer:
@@ -555,6 +556,7 @@ en:
         success: Booking moved.
       confirm_payment:
         success: Payment confirmed.
+        slot_taken: This slot has been taken by someone else or has passed; it cannot be confirmed. Refund the customer.
       cancel_venue_fault:
         success: Cancelled because of the venue. The refund owed has been recorded.
       mark_refunded:
@@ -773,15 +775,22 @@ en:
     bank_transactions:
       index:
         title: Transactions
-        explanation: Money transferred to the account (through SePay). Bookings are confirmed automatically when the customer transfers the exact amount with the right content in time; anything else needs you.
+        explanation: Money transferred to the account (through SePay). Bookings are confirmed automatically when the customer transfers the full amount with the right content (when late, only while the slot is still free); anything else needs you.
         needs_review:
           one: "Needs review (%{count})"
           other: "Needs review (%{count})"
         reasons:
           unknown_code: No payment code
-          wrong_amount: Wrong amount
-          late: Late transfer
+          underpaid: Too little
+          overpaid: Too much
+          late: Late, slot no longer free
           already_paid: Already paid
+          cancelled: Payment code cancelled
+        underpaid_hint: "%{received} received, %{remaining} missing. Ask the customer to transfer the rest (same content) or refund them."
+        overpaid_hint: "The booking is confirmed. Refund the excess %{excess} to the customer."
+        refund_hint: This transfer did not confirm a booking. Refund the customer.
+        code_placeholder: Payment code (VNB…) or booking code
+        assign: Assign to booking
         payment: "Code %{code} · %{amount} · %{status} ·"
         statuses:
           awaiting: waiting
@@ -801,3 +810,7 @@ en:
         no_recent: No transactions yet.
       update:
         success: Marked as handled.
+      assign:
+        not_found: "No payment or booking with the code %{code}."
+        confirmed: Transfer assigned and booking confirmed.
+        assigned: Transfer assigned to the booking; it still needs review.

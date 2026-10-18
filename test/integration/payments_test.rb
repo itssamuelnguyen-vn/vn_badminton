@@ -56,7 +56,7 @@ class PaymentsTest < ActionDispatch::IntegrationTest
     assert_equal 1, BankTransaction.count
   end
 
-  test "a transfer within the grace period still confirms; a later one is left for review" do
+  test "a transfer within the grace period still confirms; a later one takes the court back while it is free" do
     sign_in users(:an)
     post bookings_path, params: { booking: { slots: @slots } }
     on_time = Payment.last
@@ -74,19 +74,86 @@ class PaymentsTest < ActionDispatch::IntegrationTest
     assert_equal Booking::PAYMENT_EXPIRED, late_booking.cancellation_reason
     assert late.reload.expired?
 
-    transfer(late)
-    assert_equal [ "needs_review", "late" ], BankTransaction.last.then { |t| [ t.status, t.review_reason ] }
-    assert late_booking.reload.cancelled?, "a late transfer does not take back the court"
+    assert_enqueued_emails(1) { transfer(late) }
+    assert BankTransaction.last.matched?
+    assert late.reload.paid?
+    late_booking.reload
+    assert late_booking.confirmed?
+    assert late_booking.payment_paid?
+    assert_nil late_booking.cancellation_reason
   end
 
-  test "wrong amounts, unknown codes, payments made twice and money going out are not confirmed" do
+  test "a late transfer is left for a refund when the court was taken meanwhile" do
+    sign_in users(:an)
+    post bookings_path, params: { booking: { slots: @slots } }
+    late = Payment.last
+    travel 18.minutes # not released yet: the next booking of the court releases it
+
+    sign_in users(:chi)
+    post bookings_path, params: { booking: { slots: @slots } }
+    assert_equal users(:chi), Booking.pending.sole.user
+
+    transfer(late)
+    assert_equal [ "needs_review", "late" ], BankTransaction.last.then { |t| [ t.status, t.review_reason ] }
+    assert late.reload.expired?
+    assert late.bookings.sole.cancelled?
+  end
+
+  test "a transfer short of the amount waits for the rest, with the same code" do
     sign_in users(:an)
     post bookings_path, params: { booking: { slots: @slots } }
     payment = Payment.last
 
     transfer(payment, amount: 100_000)
-    assert_equal "wrong_amount", BankTransaction.last.review_reason
+    assert_equal [ "needs_review", "underpaid" ], BankTransaction.last.then { |t| [ t.status, t.review_reason ] }
     assert Booking.last.pending?
+
+    get payment_path(payment)
+    assert_select "[role=status]", text: /Đã nhận 100.000đ, còn thiếu 80.000đ/
+    assert_select "img[src*='amount=80000']"
+
+    transfer(payment, amount: 80_000)
+    assert Booking.last.confirmed?
+    assert_equal %w[matched matched], payment.transfers.order(:id).pluck(:status)
+  end
+
+  test "a transfer above the amount confirms and leaves the excess to refund" do
+    sign_in users(:an)
+    post bookings_path, params: { booking: { slots: @slots } }
+    payment = Payment.last
+
+    transfer(payment, amount: 200_000)
+    assert Booking.last.confirmed?
+    assert_equal [ "needs_review", "overpaid" ], BankTransaction.last.then { |t| [ t.status, t.review_reason ] }
+
+    sign_in users(:owner)
+    get admin_bank_transactions_path
+    assert_select "span", text: "Chuyển thừa"
+    assert_select "p", text: /Cần hoàn phần thừa 20.000đ/
+  end
+
+  test "the owner assigns a transfer without a code to its booking" do
+    sign_in users(:an)
+    post bookings_path, params: { booking: { slots: @slots } }
+    booking = Booking.last
+    transfer(content: "chuyen tien san cau long")
+    transaction = BankTransaction.last
+    assert_equal "unknown_code", transaction.review_reason
+
+    sign_in users(:owner)
+    patch assign_admin_bank_transaction_path(transaction), params: { code: "NOPE1234" }
+    assert_equal "Không tìm thấy mã NOPE1234.", flash[:alert]
+
+    patch assign_admin_bank_transaction_path(transaction), params: { code: booking.code.downcase }
+    assert_equal "Đã gán giao dịch và xác nhận đơn.", flash[:notice]
+    assert transaction.reload.matched?
+    assert booking.reload.confirmed?
+  end
+
+  test "unknown codes, payments made twice, cancelled payments and money going out are not confirmed" do
+    sign_in users(:an)
+    post bookings_path, params: { booking: { slots: @slots } }
+    payment = Payment.last
 
     transfer(payment, content: "chuyen tien san cau long")
     assert_equal "unknown_code", BankTransaction.last.review_reason
@@ -94,6 +161,12 @@ class PaymentsTest < ActionDispatch::IntegrationTest
     transfer(payment)
     transfer(payment)
     assert_equal "already_paid", BankTransaction.last.review_reason
+
+    post bookings_path, params: { booking: { slots: { "0" => @slots["0"].merge(court_id: courts(:court_two).id) } } }
+    replaced = Payment.last
+    post bookings_path, params: { booking: { slots: { "0" => @slots["0"].merge(court_id: courts(:court_two).id) } } }
+    transfer(replaced)
+    assert_equal "cancelled", BankTransaction.last.review_reason
 
     post sepay_webhook_path, as: :json, headers: { "Authorization" => "Apikey #{ENV["SEPAY_WEBHOOK_API_KEY"]}" },
                              params: { id: 99, content: "rut tien", transferType: "out", transferAmount: 50_000 }
@@ -179,7 +252,7 @@ class PaymentsTest < ActionDispatch::IntegrationTest
 
     sign_in users(:owner)
     get admin_bank_transactions_path
-    assert_select "span", text: "Sai số tiền"
+    assert_select "span", text: "Chuyển thiếu"
     patch admin_bank_transaction_path(transaction), params: { resolution_note: "Đã hoàn 100.000đ cho khách" }
     assert transaction.reload.resolved?
     assert_equal users(:owner), transaction.resolved_by

@@ -39,8 +39,11 @@ module Admin
 
     # The transfer was seen by the owner/staff (e.g. in the bank app) before or without the webhook.
     def confirm_payment
-      Payments::Confirm.call(@booking.payment, by: current_user)
-      redirect_to admin_booking_path(@booking), notice: t(".success")
+      if Payments::Confirm.call(@booking.payment, by: current_user)
+        redirect_to admin_booking_path(@booking), notice: t(".success")
+      else
+        redirect_to admin_booking_path(@booking), alert: t(".slot_taken")
+      end
     rescue ArgumentError, NoMethodError
       redirect_to admin_booking_path(@booking), alert: t("admin.bookings.not_allowed")
     end
