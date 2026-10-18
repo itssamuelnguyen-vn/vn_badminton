@@ -220,6 +220,7 @@ vi:
       multiple: Đặt nhiều sân cùng lúc
       total: "Tổng cộng: %{amount}"
       no_slots_left: Ngày này đã hết giờ có thể đặt. Vui lòng chọn ngày khác.
+      taken_meanwhile: Một khung giờ bạn chọn vừa có người đặt hoặc giữ chỗ. Vui lòng chọn lại.
     date_picker:
       label: Chọn ngày
       today: hôm nay

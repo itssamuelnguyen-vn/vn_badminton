@@ -48,6 +48,8 @@ class Booking < ApplicationRecord
   normalizes :customer_phone, with: ->(phone) { PhoneNumber.normalize(phone) }
   normalizes :customer_name, with: ->(name) { name.squish.presence }
 
+  after_commit :refresh_live_schedules
+
   before_validation :assign_code, on: :create
   before_validation :assign_block_source, on: :create, if: :kind_block?
   before_validation :copy_customer_from_user, if: :kind_reservation?
@@ -82,7 +84,17 @@ class Booking < ApplicationRecord
   def self.release_expired_holds!(court_ids = nil, now: Time.current)
     scope = expired_holds(now)
     scope = scope.where(court_id: court_ids) if court_ids
-    scope.delete_all
+    delete_holds!(scope)
+  end
+
+  # delete_all skips callbacks, so the open schedules are refreshed here. Returns the number of deleted holds.
+  def self.delete_holds!(scope)
+    ranges = scope.pending.pluck(:court_id, :starts_at, :ends_at)
+    return 0 if ranges.empty?
+
+    deleted = scope.pending.delete_all
+    Schedule::Live.refresh(ranges)
+    deleted
   end
 
   # Use instead of #save when creating or rescheduling a booking.
@@ -149,6 +161,15 @@ class Booking < ApplicationRecord
   end
 
   private
+
+  # Any change shows on the schedules of the dates involved, including where the booking was before a move.
+  def refresh_live_schedules
+    ranges = [ [ court_id, starts_at, ends_at ] ]
+    if saved_change_to_court_id? || saved_change_to_starts_at? || saved_change_to_ends_at?
+      ranges << [ court_id_before_last_save, starts_at_before_last_save, ends_at_before_last_save ]
+    end
+    Schedule::Live.refresh(ranges.uniq)
+  end
 
   # A status change only counts when the booking starts holding the slot again (e.g. a cancelled
   # booking is restored), not when it moves between active statuses (check-in, no-show, ...).

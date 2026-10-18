@@ -43,7 +43,9 @@ class BookingBatch
       @bookings = current
       return true
     end
-    save_bookings(hold_until: now + Booking::HOLD_DURATION)
+    held = save_bookings(hold_until: now + Booking::HOLD_DURATION)
+    HoldExpiryJob.set(wait_until: held_until + 1.second).perform_later(bookings.map(&:court_id).uniq) if held
+    held
   end
 
   def held_until
@@ -68,7 +70,7 @@ class BookingBatch
       # so they cannot both get past the upcoming-bookings limit.
       @user.lock!
       Booking.lock_courts!(bookings.map(&:court_id))
-      @user.bookings.pending.delete_all # the customer's previous hold is replaced (or confirmed) by this one
+      Booking.delete_holds!(@user.bookings) # the customer's previous hold is replaced (or confirmed) by this one
       Booking.release_expired_holds!(bookings.map(&:court_id))
       raise ActiveRecord::Rollback unless customer_allowed?
 

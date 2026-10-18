@@ -5,6 +5,10 @@ import { Controller } from "@hotwired/stimulus"
 // click inside a range to start over from that slot, click a lone selected slot to clear it.
 // With the "several courts" box ticked, each court keeps its own range; otherwise picking
 // another court replaces the selection.
+//
+// The page refreshes live when others book (Turbo morph). Row indexes can change then (today's past rows
+// disappear), so the selection is also kept by start time and mapped back onto the new grid; a range that
+// is no longer free is dropped with a hint.
 export default class extends Controller {
   static targets = ["summary", "summaryList", "total", "hint", "continue", "multiple"]
   static values = {
@@ -15,13 +19,21 @@ export default class extends Controller {
     locale: String,    // number formatting locale, e.g. "vi-VN"
     tooShort: String,
     tooLong: String,
-    totalLabel: String // e.g. "Tổng cộng: %{amount}"
+    totalLabel: String, // e.g. "Tổng cộng: %{amount}"
+    taken: String       // shown when a refresh finds a picked slot taken
   }
 
   connect() {
     this.ranges = new Map() // court id -> { start, end } (row indexes, inclusive)
+    this.times = new Map()  // court id -> { from, to } (starts_at of the first and last picked slot)
     this.lastCourt = null
+    this.restore = () => this.restoreAfterRefresh()
+    document.addEventListener("turbo:morph", this.restore)
     this.render("")
+  }
+
+  disconnect() {
+    document.removeEventListener("turbo:morph", this.restore)
   }
 
   select(event) {
@@ -66,6 +78,25 @@ export default class extends Controller {
 
   // private
 
+  // After a live refresh: find the picked times again; drop the courts where a slot got taken.
+  restoreAfterRefresh() {
+    let hint = ""
+    this.ranges = new Map()
+    for (const [court, { from, to }] of this.times) {
+      const cells = [...this.element.querySelectorAll(`[data-court-id="${court}"][data-index]`)]
+      const first = cells.find((cell) => cell.dataset.startsAt === from)
+      const last = cells.find((cell) => cell.dataset.startsAt === to)
+      const start = first && Number(first.dataset.index)
+      const end = last && Number(last.dataset.index)
+      if (first && last && this.allFree(court, start, end)) {
+        this.ranges.set(court, { start, end })
+      } else {
+        hint = this.takenValue
+      }
+    }
+    this.render(hint)
+  }
+
   get multiple() {
     return this.hasMultipleTarget && this.multipleTarget.checked
   }
@@ -85,6 +116,11 @@ export default class extends Controller {
   }
 
   render(hint) {
+    this.times = new Map([...this.ranges.entries()].map(([court, range]) => {
+      const cells = this.cells(court, range.start, range.end)
+      return [court, { from: cells[0].dataset.startsAt, to: cells[cells.length - 1].dataset.startsAt }]
+    }))
+
     this.element.querySelectorAll('[data-available="true"]').forEach((cell) => {
       const range = this.ranges.get(cell.dataset.courtId)
       const index = Number(cell.dataset.index)
@@ -92,7 +128,11 @@ export default class extends Controller {
     })
 
     if (this.ranges.size === 0) {
-      this.summaryTarget.hidden = true
+      this.summaryTarget.hidden = !hint
+      this.summaryListTarget.replaceChildren()
+      this.totalTarget.textContent = ""
+      this.hintTarget.textContent = hint
+      this.continueTarget.setAttribute("aria-disabled", true)
       return
     }
 

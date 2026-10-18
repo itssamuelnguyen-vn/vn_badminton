@@ -46,7 +46,7 @@ class BookingsController < ApplicationController
 
   # "Pick another time" on the confirmation page: frees the held slots right away instead of after the timeout.
   def release_hold
-    current_user.bookings.pending.delete_all
+    Booking.delete_holds!(current_user.bookings)
     redirect_to root_path(date: params[:date].presence)
   end
 

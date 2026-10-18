@@ -224,6 +224,7 @@ en:
       multiple: Book several courts
       total: "Total: %{amount}"
       no_slots_left: There are no more bookable times on this day. Please choose another date.
+      taken_meanwhile: A slot you picked was just booked or held by someone else. Please pick again.
     date_picker:
       label: Choose a date
       today: today

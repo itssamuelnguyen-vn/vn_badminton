@@ -1,4 +1,7 @@
 - content_for :title, t(".title")
+/ Live: new bookings, holds and cancellations show without reloading (see Schedule::Live).
+- turbo_refreshes_with method: :morph, scroll: :preserve
+= turbo_stream_from Schedule::Live.stream(@board.venue, @date)
 - board = @board
 
 div class="mb-4 flex flex-wrap items-end justify-between gap-4"
