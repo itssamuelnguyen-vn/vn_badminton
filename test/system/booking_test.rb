@@ -88,8 +88,8 @@ class BookingTest < ApplicationSystemTestCase
 
   # The transfer reported by SePay, then the page reloaded (live updates need Action Cable, not used in tests).
   def pay(payment)
-    Payments::Webhook.process("id" => SecureRandom.random_number(10**9), "content" => "#{payment.code} ck", "transferType" => "in",
-                              "transferAmount" => payment.amount_vnd)
+    Payments::Webhook.process({ "id" => SecureRandom.random_number(10**9), "content" => "#{payment.code} ck", "transferType" => "in",
+                                "transferAmount" => payment.amount_vnd })
     visit current_path
   end
 
