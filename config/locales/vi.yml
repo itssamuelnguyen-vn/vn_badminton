@@ -308,7 +308,7 @@ vi:
       note_placeholder: "Ví dụ: cần thuê vợt"
       pay_at_venue: Thanh toán tại sân khi đến chơi.
       back: Chọn giờ khác
-      submit: Xác nhận đặt sân
+      submit: Xác nhận & chuyển khoản
       grand_total:
         other: "Tổng tiền (%{count} sân)"
       no_selection: Vui lòng chọn khung giờ trên lịch trước.

@@ -313,7 +313,7 @@ en:
       note_placeholder: "For example: need to rent rackets"
       pay_at_venue: Pay at the venue when you arrive.
       back: Choose another time
-      submit: Confirm booking
+      submit: Confirm & pay by transfer
       grand_total:
         one: "Total (%{count} court)"
         other: "Total (%{count} courts)"
