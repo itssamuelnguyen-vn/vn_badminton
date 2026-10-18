@@ -2,7 +2,11 @@
 # They are created all-or-nothing: if one court cannot be booked, none is.
 #
 #   batch = BookingBatch.new(user: current_user, slots: [{ court_id: 1, starts_at: "...", ends_at: "..." }], note: "...")
-#   batch.reserve  # => true when every booking was saved
+#   batch.hold     # => true when the slots are held for the customer for Booking::HOLD_DURATION (confirmation page)
+#   batch.reserve  # => true when every booking was saved as confirmed
+#
+# A customer has at most one held selection: holding or confirming replaces the previous one, so confirming
+# turns the held slots into bookings, and someone else's hold that expired no longer blocks anything.
 #
 # Besides each booking's own checks, the customer must not be locked out for cancelling too often,
 # and may hold at most Venue#max_upcoming_bookings upcoming bookings.
@@ -27,19 +31,23 @@ class BookingBatch
   end
 
   def reserve
+    save_bookings
+  end
+
+  # Opening the confirmation page again (reload, back button) keeps the same hold and expiry instead of
+  # extending it, so a slot cannot be held forever by reloading.
+  def hold(now = Time.current)
     return false if bookings.empty?
 
-    Booking.transaction do
-      # Locking the customer's row makes two bookings sent at the same time wait for each other,
-      # so they cannot both get past the upcoming-bookings limit.
-      @user.lock!
-      Booking.lock_courts!(bookings.map(&:court_id))
-      raise ActiveRecord::Rollback unless customer_allowed?
-
-      results = bookings.map(&:reserve)
-      raise ActiveRecord::Rollback unless results.all?
+    if (current = current_hold(now))
+      @bookings = current
+      return true
     end
-    bookings.all?(&:persisted?)
+    save_bookings(hold_until: now + Booking::HOLD_DURATION)
+  end
+
+  def held_until
+    bookings.map(&:expires_at).compact.min
   end
 
   def errors?
@@ -51,6 +59,34 @@ class BookingBatch
   end
 
   private
+
+  def save_bookings(hold_until: nil)
+    return false if bookings.empty?
+
+    Booking.transaction do
+      # Locking the customer's row makes two bookings sent at the same time wait for each other,
+      # so they cannot both get past the upcoming-bookings limit.
+      @user.lock!
+      Booking.lock_courts!(bookings.map(&:court_id))
+      @user.bookings.pending.delete_all # the customer's previous hold is replaced (or confirmed) by this one
+      Booking.release_expired_holds!(bookings.map(&:court_id))
+      raise ActiveRecord::Rollback unless customer_allowed?
+
+      bookings.each { |booking| booking.assign_attributes(status: :pending, expires_at: hold_until) } if hold_until
+      results = bookings.map(&:reserve)
+      raise ActiveRecord::Rollback unless results.all?
+    end
+    bookings.all?(&:persisted?)
+  end
+
+  # The customer's unexpired hold, when it is for exactly the picked slots.
+  def current_hold(now)
+    held = @user.bookings.pending.where(expires_at: now..).includes(:court).to_a
+    key = ->(b) { [ b.court_id, b.starts_at.to_i, b.ends_at.to_i ] }
+    return if held.empty? || held.map(&key).sort != bookings.map(&key).sort
+
+    held.sort_by { |booking| [ booking.court.position, booking.court.id, booking.starts_at.to_i ] }
+  end
 
   def customer_allowed?(now = Time.current)
     @errors = []

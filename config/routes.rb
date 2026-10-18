@@ -7,6 +7,7 @@ Rails.application.routes.draw do
 
     resources :bookings, only: %i[index show new create], param: :code do
       patch :cancel, on: :member
+      delete :release_hold, on: :collection
     end
 
     # The owner's area. /admin is the day board; ?date=YYYY-MM-DD picks the day.

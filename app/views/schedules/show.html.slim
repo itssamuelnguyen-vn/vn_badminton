@@ -28,7 +28,7 @@ div class="mb-6 flex flex-wrap items-end justify-between gap-4"
           ul class="font-semibold" data-slot-picker-target="summaryList"
           p class="text-sm font-semibold text-emerald-700" data-slot-picker-target="total"
           p class="text-xs text-red-700" data-slot-picker-target="hint"
-        = link_to t(".continue"), new_booking_path, class: "btn-primary aria-disabled:pointer-events-none aria-disabled:opacity-50", data: { slot_picker_target: "continue" }
+        = link_to t(".continue"), new_booking_path, class: "btn-primary aria-disabled:pointer-events-none aria-disabled:opacity-50", data: { slot_picker_target: "continue", turbo_prefetch: false }
 - else
   div class="card text-center text-slate-600" = t(".closed")
 

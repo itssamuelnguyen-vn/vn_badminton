@@ -4,7 +4,7 @@ module Schedule
   #
   #   day = Schedule::Day.new(venue: Venue.main, date: Date.new(2026, 10, 20), user: current_user)
   #   day.times                      # => slot start times from opening to closing
-  #   day.slot(court, time).state    # => :available, :booked, :mine, :blocked or :unavailable
+  #   day.slot(court, time).state    # => :available, :booked, :held, :mine, :blocked or :unavailable
   class Day
     SLOT = 30.minutes
 
@@ -56,6 +56,7 @@ module Schedule
 
       if booking
         return :blocked if booking.kind_block?
+        return :held if booking.pending? # another customer is on the confirmation page
 
         @user && booking.user_id == @user.id ? :mine : :booked
       elsif starts_at < @now || price.nil? # already started, or no price rule covers it
@@ -66,9 +67,11 @@ module Schedule
     end
 
     def bookings_by_court
-      @bookings_by_court ||= Booking.holding_slot
+      # The customer's own hold is left out: those slots stay selectable for them (picking again replaces it).
+      @bookings_by_court ||= Booking.holding_slot(@now)
                                     .where(court: courts)
                                     .on_local_date(date, venue.zone)
+                                    .reject { |b| b.pending? && @user && b.user_id == @user.id }
                                     .group_by(&:court_id)
     end
   end

@@ -21,7 +21,7 @@ div class="max-h-[70vh] overflow-auto rounded-xl bg-white ring-1 ring-slate-200"
         - else
           = tag.div title: label, data: cell_data,
               class: [ "flex h-9 items-center justify-center border-b border-l border-slate-100 text-[11px]",
-                       { "booked" => "bg-slate-200 text-slate-500", "mine" => "bg-sky-100 font-medium text-sky-800",
+                       { "booked" => "bg-slate-200 text-slate-500", "held" => "bg-violet-50 text-violet-700", "mine" => "bg-sky-100 font-medium text-sky-800",
                          "blocked" => "bg-amber-100 text-amber-800", "unavailable" => "slot-unavailable" }.fetch(slot.state.to_s) ] do
             - unless slot.state == :unavailable
               span = t(".states.#{slot.state}")

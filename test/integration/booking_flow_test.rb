@@ -60,7 +60,7 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     assert_select "dd", text: "180.000đ"
 
     assert_enqueued_emails 1 do
-      assert_difference "Booking.count", 1 do
+      assert_difference "Booking.confirmed.count", 1 do
         post bookings_path, params: { booking: { slots: { "0" => slot(:court_one, "18:00", "19:30") }, note: "Cần thuê vợt" } }
       end
     end
@@ -146,7 +146,7 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     assert_select "span", text: "420.000đ"
 
     assert_enqueued_emails 1 do
-      assert_difference "Booking.count", 2 do
+      assert_difference "Booking.confirmed.count", 2 do
         post bookings_path, params: { booking: { slots: slots, note: "Đi nhóm 8 người" } }
       end
     end
