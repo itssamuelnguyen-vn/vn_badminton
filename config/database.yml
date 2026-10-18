@@ -29,6 +29,12 @@ development:
     <<: *default
     database: vn_badminton_dev_queue
     migrations_paths: db/queue_migrate
+  # Solid Cable, as in production: live schedule refreshes are also sent from bin/jobs (e.g. HoldExpiryJob),
+  # which the in-process async adapter could not deliver to the web server.
+  cable:
+    <<: *default
+    database: vn_badminton_dev_cable
+    migrations_paths: db/cable_migrate
 
   # The specified database role being used to connect to PostgreSQL.
   # To create additional roles in PostgreSQL see `$ createuser --help`.

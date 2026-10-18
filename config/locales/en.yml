@@ -224,6 +224,7 @@ en:
       multiple: Book several courts
       total: "Total: %{amount}"
       no_slots_left: There are no more bookable times on this day. Please choose another date.
+      taken_meanwhile: A slot you picked was just booked or held by someone else. Please pick again.
     date_picker:
       label: Choose a date
       today: today
@@ -243,6 +244,7 @@ en:
       booked: Booked
       blocked: Maintenance
       unavailable: Unavailable
+      held: Being booked by someone
     grid:
       label: "Court schedule for %{date}"
       states:
@@ -251,6 +253,7 @@ en:
         mine: Yours
         blocked: Maintenance
         unavailable: Unavailable
+        held: Held
     price_list:
       title: Prices
       name: Rate
@@ -285,6 +288,8 @@ en:
         one: "Total (%{count} court)"
         other: "Total (%{count} courts)"
       no_selection: Please pick a time on the schedule first.
+      held_html: "These slots are held for you for %{time}. Please confirm before the time runs out."
+      hold_expired: The hold has expired. You can still confirm if nobody booked these slots meanwhile.
     create:
       success:
         one: Your court is booked! We've sent you a confirmation email.

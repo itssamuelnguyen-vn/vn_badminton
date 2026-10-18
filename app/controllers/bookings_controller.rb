@@ -1,12 +1,16 @@
 class BookingsController < ApplicationController
-  UPCOMING_STATUSES = %w[pending confirmed checked_in].freeze
+  # Held slots (pending) are not bookings yet, so they are not listed.
+  UPCOMING_STATUSES = %w[confirmed checked_in].freeze
 
   before_action :authenticate_user!
+  # Each opening of the confirmation page can hold slots; keep that from being used to block the schedule.
+  rate_limit to: 30, within: 10.minutes, only: :new, by: -> { current_user.id }, store: RATE_LIMIT_STORE,
+             with: -> { rate_limited(root_path) }
   before_action :require_verified_email, only: %i[new create]
   before_action :set_booking, only: %i[show cancel]
 
   def index
-    bookings = current_user.bookings.kind_reservation.includes(:court)
+    bookings = current_user.bookings.kind_reservation.where.not(status: :pending).includes(:court)
     @upcoming = bookings.where(status: UPCOMING_STATUSES).where(ends_at: Time.current..).order(:starts_at)
     @past = bookings.where.not(id: @upcoming).order(starts_at: :desc).limit(50)
   end
@@ -16,13 +20,14 @@ class BookingsController < ApplicationController
 
   # Confirmation page for the slots picked on the schedule (one range per court, possibly several courts):
   #   /bookings/new?slots[0][court_id]=1&slots[0][starts_at]=...&slots[0][ends_at]=...
-  # Validating here shows problems (slot just taken, too short, ...) before the customer confirms.
+  # Opening it holds the slots for Booking::HOLD_DURATION, so other customers see them as taken while this
+  # one confirms; problems (slot just taken, too short, ...) are shown instead when they cannot be held.
   def new
     slots = slots_from(params)
     return redirect_to(root_path, alert: t(".no_selection")) if slots.empty?
 
     @batch = BookingBatch.new(user: current_user, slots: slots)
-    @batch.valid?
+    @batch.hold
   end
 
   def create
@@ -37,6 +42,12 @@ class BookingsController < ApplicationController
     else
       render :new, status: :unprocessable_content
     end
+  end
+
+  # "Pick another time" on the confirmation page: frees the held slots right away instead of after the timeout.
+  def release_hold
+    Booking.delete_holds!(current_user.bookings)
+    redirect_to root_path(date: params[:date].presence)
   end
 
   def cancel

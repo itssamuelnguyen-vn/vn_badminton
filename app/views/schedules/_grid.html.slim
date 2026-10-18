@@ -6,7 +6,7 @@ div class="max-h-[70vh] overflow-auto rounded-xl bg-white ring-1 ring-slate-200"
     - day.courts.each do |court|
       div class="sticky top-0 z-10 border-b border-l border-slate-200 bg-white px-2 py-2 text-center font-semibold" role="columnheader" = court.display_name
 
-    - day.times.each_with_index do |time, index|
+    - day.upcoming_times.each_with_index do |time, index|
       div class="sticky left-0 z-10 border-b border-slate-100 bg-white px-2 py-2 text-right text-xs text-slate-500 tabular-nums" role="rowheader"
         = l(time, format: :hour_minute)
       - day.courts.each do |court|
@@ -21,7 +21,7 @@ div class="max-h-[70vh] overflow-auto rounded-xl bg-white ring-1 ring-slate-200"
         - else
           = tag.div title: label, data: cell_data,
               class: [ "flex h-9 items-center justify-center border-b border-l border-slate-100 text-[11px]",
-                       { "booked" => "bg-slate-200 text-slate-500", "mine" => "bg-sky-100 font-medium text-sky-800",
+                       { "booked" => "bg-slate-200 text-slate-500", "held" => "bg-violet-50 text-violet-700", "mine" => "bg-sky-100 font-medium text-sky-800",
                          "blocked" => "bg-amber-100 text-amber-800", "unavailable" => "slot-unavailable" }.fetch(slot.state.to_s) ] do
             - unless slot.state == :unavailable
               span = t(".states.#{slot.state}")

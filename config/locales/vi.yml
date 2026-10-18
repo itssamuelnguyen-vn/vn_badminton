@@ -220,6 +220,7 @@ vi:
       multiple: Đặt nhiều sân cùng lúc
       total: "Tổng cộng: %{amount}"
       no_slots_left: Ngày này đã hết giờ có thể đặt. Vui lòng chọn ngày khác.
+      taken_meanwhile: Một khung giờ bạn chọn vừa có người đặt hoặc giữ chỗ. Vui lòng chọn lại.
     date_picker:
       label: Chọn ngày
       today: hôm nay
@@ -238,6 +239,7 @@ vi:
       booked: Đã có người đặt
       blocked: Bảo trì
       unavailable: Không thể đặt
+      held: Đang có người giữ chỗ
     grid:
       label: "Lịch sân %{date}"
       states:
@@ -246,6 +248,7 @@ vi:
         mine: Của bạn
         blocked: Bảo trì
         unavailable: Không thể đặt
+        held: Đang giữ
     price_list:
       title: Bảng giá
       name: Khung giá
@@ -279,6 +282,8 @@ vi:
       grand_total:
         other: "Tổng tiền (%{count} sân)"
       no_selection: Vui lòng chọn khung giờ trên lịch trước.
+      held_html: "Khung giờ đang được giữ cho bạn trong %{time}. Vui lòng xác nhận trước khi hết giờ."
+      hold_expired: Đã hết thời gian giữ chỗ. Bạn vẫn có thể bấm Xác nhận nếu chưa ai đặt khung giờ này.
     create:
       success:
         other: Đặt sân thành công! Chúng tôi đã gửi email xác nhận cho bạn.

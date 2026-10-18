@@ -15,6 +15,18 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     assert_select "[role=dialog] [aria-current=date]", text: "20"
   end
 
+  test "today's schedule starts at the next slot instead of listing the ones that already started" do
+    get root_path(date: "2026-10-19") # it is 10:00
+
+    assert_select "[role=rowheader]", count: 24 # 10:00 to 21:30
+    assert_select "[role=rowheader]", text: "09:30", count: 0
+    assert_select "[role=rowheader]:first-of-type", text: "10:00"
+    assert_select "button[data-starts-label='10:00'][data-index='0']", 2
+
+    get root_path(date: "2026-10-20")
+    assert_select "[role=rowheader]", count: 34 # another day: every slot from opening time
+  end
+
   test "after closing time the schedule opens on tomorrow" do
     travel_to Time.zone.parse("2026-10-19 22:30") do
       get root_path
@@ -23,6 +35,7 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
       get root_path(date: "2026-10-19")
       assert_select "[role=status]", text: /hết giờ có thể đặt/
       assert_select "button[data-available=true]", count: 0
+      assert_select "[role=grid][aria-label^='Lịch sân']", count: 0
     end
   end
 
@@ -60,7 +73,7 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     assert_select "dd", text: "180.000đ"
 
     assert_enqueued_emails 1 do
-      assert_difference "Booking.count", 1 do
+      assert_difference "Booking.confirmed.count", 1 do
         post bookings_path, params: { booking: { slots: { "0" => slot(:court_one, "18:00", "19:30") }, note: "Cần thuê vợt" } }
       end
     end
@@ -146,7 +159,7 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     assert_select "span", text: "420.000đ"
 
     assert_enqueued_emails 1 do
-      assert_difference "Booking.count", 2 do
+      assert_difference "Booking.confirmed.count", 2 do
         post bookings_path, params: { booking: { slots: slots, note: "Đi nhóm 8 người" } }
       end
     end

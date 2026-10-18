@@ -1,4 +1,7 @@
 - content_for :title, t(".title")
+/ Live: bookings made, held or cancelled by others refresh this page in place (see Schedule::Live).
+- turbo_refreshes_with method: :morph, scroll: :preserve
+= turbo_stream_from Schedule::Live.stream(@venue, @date)
 
 div class="mb-6 flex flex-wrap items-end justify-between gap-4"
   div
@@ -9,15 +12,17 @@ div class="mb-6 flex flex-wrap items-end justify-between gap-4"
 
 = render "schedules/date_picker", calendar: @calendar
 
-- if @day.open?
-  - unless @day.bookable?
-    p class="mb-3 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200" role="status"
-      = t(".no_slots_left")
-  div data-controller="slot-picker" data-slot-picker-new-url-value=new_booking_path data-slot-picker-min-minutes-value=@venue.min_booking_minutes data-slot-picker-max-minutes-value=@venue.max_booking_minutes data-slot-picker-currency-value=t("helpers.vnd") data-slot-picker-locale-value=t(".number_locale") data-slot-picker-too-short-value=t(".too_short", minutes: @venue.min_booking_minutes) data-slot-picker-too-long-value=t(".too_long", minutes: @venue.max_booking_minutes) data-slot-picker-total-label-value=t(".total")
+- if @day.open? && !@day.bookable?
+  / Today after the last slot started: nothing left to pick, so no grid.
+  p class="mb-3 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200" role="status"
+    = t(".no_slots_left")
+- elsif @day.open?
+  div#slot-picker data-controller="slot-picker" data-slot-picker-new-url-value=new_booking_path data-slot-picker-min-minutes-value=@venue.min_booking_minutes data-slot-picker-max-minutes-value=@venue.max_booking_minutes data-slot-picker-currency-value=t("helpers.vnd") data-slot-picker-locale-value=t(".number_locale") data-slot-picker-too-short-value=t(".too_short", minutes: @venue.min_booking_minutes) data-slot-picker-too-long-value=t(".too_long", minutes: @venue.max_booking_minutes) data-slot-picker-total-label-value=t(".total") data-slot-picker-taken-value=t(".taken_meanwhile")
     div class="mb-3 flex flex-wrap items-center justify-between gap-3"
       = render "schedules/legend"
       label class="flex cursor-pointer items-center gap-2 rounded-lg bg-white px-3 py-2 text-sm font-medium ring-1 ring-slate-200 select-none"
-        input type="checkbox" class="size-4 accent-emerald-600" data-slot-picker-target="multiple" data-action="slot-picker#toggleMultiple"
+        / Permanent, so a live refresh does not untick it.
+        input#multiple-courts type="checkbox" class="size-4 accent-emerald-600" data-turbo-permanent=true data-slot-picker-target="multiple" data-action="slot-picker#toggleMultiple"
         = t(".multiple")
     = render "schedules/grid", day: @day
 
@@ -28,7 +33,7 @@ div class="mb-6 flex flex-wrap items-end justify-between gap-4"
           ul class="font-semibold" data-slot-picker-target="summaryList"
           p class="text-sm font-semibold text-emerald-700" data-slot-picker-target="total"
           p class="text-xs text-red-700" data-slot-picker-target="hint"
-        = link_to t(".continue"), new_booking_path, class: "btn-primary aria-disabled:pointer-events-none aria-disabled:opacity-50", data: { slot_picker_target: "continue" }
+        = link_to t(".continue"), new_booking_path, class: "btn-primary aria-disabled:pointer-events-none aria-disabled:opacity-50", data: { slot_picker_target: "continue", turbo_prefetch: false }
 - else
   div class="card text-center text-slate-600" = t(".closed")
 

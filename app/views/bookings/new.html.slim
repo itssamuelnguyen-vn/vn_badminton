@@ -5,6 +5,14 @@
 div class="card mx-auto max-w-lg"
   h1 class="mb-6 text-2xl font-bold" = t(".title")
 
+  - if (held_until = @batch.held_until) && !@batch.errors?
+    / Server time is the reference: the controller counts down from the seconds left when the page was rendered.
+    = tag.div class: "mb-6 rounded-lg bg-violet-50 px-4 py-3 text-sm text-violet-900 ring-1 ring-violet-200", role: "timer", aria: { live: "off" },
+        data: { controller: "hold-countdown", hold_countdown_seconds_value: [ (held_until - Time.current).ceil, 0 ].max } do
+      p data-hold-countdown-target="running"
+        = t(".held_html", time: tag.strong("--:--", class: "tabular-nums", data: { hold_countdown_target: "clock" }))
+      p hidden=true data-hold-countdown-target="expired" = t(".hold_expired")
+
   = form_with scope: :booking, url: bookings_path, class: "space-y-6" do |f|
     - if @batch.errors?
       div#error_explanation role="alert" class="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-200"
@@ -40,6 +48,8 @@ div class="card mx-auto max-w-lg"
     p class="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200" = t(".pay_at_venue")
 
     div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"
-      = link_to t(".back"), root_path(date: bookings.first&.starts_at&.to_date&.iso8601), class: "btn-secondary"
+      / A second submit button of this form that frees the held slots (a form cannot contain another form).
+      = button_tag t(".back"), type: "submit", name: "_method", value: "delete", formnovalidate: true, class: "btn-secondary",
+          formaction: release_hold_bookings_path(date: bookings.first&.starts_at&.in_time_zone(@batch.venue.zone)&.to_date&.iso8601)
       - unless @batch.errors?
         = f.submit t(".submit"), class: "btn-primary"

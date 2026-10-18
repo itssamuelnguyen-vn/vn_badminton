@@ -4,6 +4,8 @@ class Booking < ApplicationRecord
   ACTIVE_STATUSES = %w[pending confirmed checked_in completed no_show].freeze
   CUSTOMER_CANCELLABLE_STATUSES = %w[pending confirmed].freeze
   REMINDER_LEAD_TIME = 3.hours
+  # How long the confirmation page keeps the picked slots for the customer (status "pending").
+  HOLD_DURATION = 3.minutes
   CODE_CHARS = [ *"A".."Z", *"0".."9" ] - %w[O 0 I 1] # drop characters that are easy to confuse over the phone
   # First key of the Postgres advisory locks taken per court (the second key is the court id).
   COURT_LOCK_NAMESPACE = 1_001
@@ -24,7 +26,11 @@ class Booking < ApplicationRecord
   belongs_to :cancelled_by, class_name: "User", optional: true
   has_one :venue, through: :court
 
-  scope :holding_slot, -> { where(status: ACTIVE_STATUSES) }
+  # Expired holds no longer count, even before they are deleted (see release_expired_holds!).
+  scope :holding_slot, ->(now = Time.current) {
+    where(status: ACTIVE_STATUSES).where("bookings.status <> 'pending' OR bookings.expires_at > ?", now)
+  }
+  scope :expired_holds, ->(now = Time.current) { pending.where(expires_at: ..now) }
   scope :overlapping, ->(from, to) { where("starts_at < ? AND ends_at > ?", to, from) }
   scope :on_local_date, ->(date, zone) {
     day = date.in_time_zone(zone)
@@ -41,6 +47,8 @@ class Booking < ApplicationRecord
 
   normalizes :customer_phone, with: ->(phone) { PhoneNumber.normalize(phone) }
   normalizes :customer_name, with: ->(name) { name.squish.presence }
+
+  after_commit :refresh_live_schedules
 
   before_validation :assign_code, on: :create
   before_validation :assign_block_source, on: :create, if: :kind_block?
@@ -71,6 +79,24 @@ class Booking < ApplicationRecord
     end
   end
 
+  # Holds past their expiry still sit in the "bookings_no_overlap" exclusion constraint until deleted, so they
+  # are deleted while the courts are locked, before a new booking is inserted. A recurring job tidies up the rest.
+  def self.release_expired_holds!(court_ids = nil, now: Time.current)
+    scope = expired_holds(now)
+    scope = scope.where(court_id: court_ids) if court_ids
+    delete_holds!(scope)
+  end
+
+  # delete_all skips callbacks, so the open schedules are refreshed here. Returns the number of deleted holds.
+  def self.delete_holds!(scope)
+    ranges = scope.pending.pluck(:court_id, :starts_at, :ends_at)
+    return 0 if ranges.empty?
+
+    deleted = scope.pending.delete_all
+    Schedule::Live.refresh(ranges)
+    deleted
+  end
+
   # Use instead of #save when creating or rescheduling a booking.
   # The court lock makes the slot_free validation reliable; the exclusion constraint in the DB stays the
   # final guard (e.g. against code that skips the lock), and a deadlock is reported the same way.
@@ -78,6 +104,7 @@ class Booking < ApplicationRecord
   def reserve
     self.class.transaction(requires_new: true) do
       self.class.lock_courts!([ court_id ])
+      self.class.release_expired_holds!([ court_id ])
       save
     end
   rescue ActiveRecord::ExclusionViolation, ActiveRecord::Deadlocked
@@ -90,8 +117,8 @@ class Booking < ApplicationRecord
     code
   end
 
-  def holds_slot?
-    ACTIVE_STATUSES.include?(status)
+  def holds_slot?(now = Time.current)
+    ACTIVE_STATUSES.include?(status) && !(pending? && expires_at && expires_at <= now)
   end
 
   def duration_minutes
@@ -134,6 +161,15 @@ class Booking < ApplicationRecord
   end
 
   private
+
+  # Any change shows on the schedules of the dates involved, including where the booking was before a move.
+  def refresh_live_schedules
+    ranges = [ [ court_id, starts_at, ends_at ] ]
+    if saved_change_to_court_id? || saved_change_to_starts_at? || saved_change_to_ends_at?
+      ranges << [ court_id_before_last_save, starts_at_before_last_save, ends_at_before_last_save ]
+    end
+    Schedule::Live.refresh(ranges.uniq)
+  end
 
   # A status change only counts when the booking starts holding the slot again (e.g. a cancelled
   # booking is restored), not when it moves between active statuses (check-in, no-show, ...).
