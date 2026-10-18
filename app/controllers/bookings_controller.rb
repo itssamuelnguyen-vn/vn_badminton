@@ -2,6 +2,7 @@ class BookingsController < ApplicationController
   UPCOMING_STATUSES = %w[pending confirmed checked_in].freeze
 
   before_action :authenticate_user!
+  before_action :require_verified_email, only: %i[new create]
   before_action :set_booking, only: %i[show cancel]
 
   def index
@@ -48,6 +49,11 @@ class BookingsController < ApplicationController
   end
 
   private
+
+  # The banner under the header (layouts/application/_unverified_notice) has the button to resend the email.
+  def require_verified_email
+    redirect_to root_path, alert: t("bookings.unverified") unless current_user.confirmed?
+  end
 
   def set_booking
     @booking = current_user.bookings.find_by!(code: params[:code])

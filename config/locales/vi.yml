@@ -120,6 +120,9 @@ vi:
         label: Ngôn ngữ
       footer:
         privacy: Chính sách bảo mật
+      unverified_notice:
+        message: "Vui lòng mở email xác minh đã gửi tới %{email} để có thể đặt sân."
+        resend: Gửi lại email
     admin:
       nav:
         label: Quản lý
@@ -156,6 +159,7 @@ vi:
         password_hint: Để trống nếu không muốn đổi mật khẩu
         current_password_hint: Cần nhập để lưu thay đổi
         submit: Lưu thay đổi
+        pending_reconfirmation: "Đang chờ xác minh email mới: %{email}. Email cũ vẫn được dùng cho tới khi bạn mở đường dẫn xác minh."
     passwords:
       new:
         title: Quên mật khẩu?
@@ -177,6 +181,19 @@ vi:
         action: Đổi mật khẩu
         ignore: "Nếu bạn không yêu cầu, hãy bỏ qua email này."
         unchanged: "Mật khẩu của bạn sẽ không thay đổi cho tới khi bạn mở đường dẫn trên và tạo mật khẩu mới."
+      confirmation_instructions:
+        greeting: "Xin chào %{name},"
+        instruction: Cảm ơn bạn đã đăng ký tại VN Badminton. Vui lòng xác minh email để bắt đầu đặt sân.
+        reconfirm_instruction: "Bạn vừa đổi email tài khoản thành %{email}. Vui lòng xác minh địa chỉ mới."
+        action: Xác minh email
+        expires:
+          other: "Đường dẫn có hiệu lực trong %{days} ngày."
+        ignore: Nếu bạn không đăng ký, hãy bỏ qua email này.
+    confirmations:
+      new:
+        title: Gửi lại email xác minh
+        description: Nhập email của bạn, chúng tôi sẽ gửi lại đường dẫn xác minh.
+        submit: Gửi lại
 
   date:
     formats:
@@ -283,6 +300,7 @@ vi:
       no_upcoming: Bạn chưa có lượt đặt nào sắp tới.
       past: Đã qua và đã huỷ
     lock_notice: "Tài khoản của bạn tạm thời không thể đặt sân online đến %{until} vì đã huỷ nhiều lần trong một ngày. Vui lòng gọi cho sân nếu cần hỗ trợ."
+    unverified: Vui lòng xác minh email trước khi đặt sân. Chúng tôi đã gửi đường dẫn xác minh tới email của bạn.
 
   booking_batch:
     errors:

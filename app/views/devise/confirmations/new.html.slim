@@ -1,0 +1,19 @@
+- content_for :title, t(".title")
+
+div class="card mx-auto max-w-md"
+  h1 class="mb-2 text-2xl font-bold" = t(".title")
+  p class="mb-6 text-sm text-slate-600" = t(".description")
+
+  = form_with model: resource, scope: resource_name, url: confirmation_path(resource_name), method: :post, class: "space-y-5" do |f|
+    = render "devise/shared/error_messages", resource: resource
+
+    div
+      = f.label :email, class: "form-label"
+      = f.email_field :email, value: (resource.pending_reconfirmation? ? resource.unconfirmed_email : resource.email) || current_user&.email,
+          autofocus: true, required: true, autocomplete: "email", class: "form-input"
+
+    = f.submit t(".submit"), class: "btn-primary w-full"
+
+  - unless user_signed_in?
+    p class="mt-6 text-center text-sm"
+      = link_to t("devise.passwords.new.back_to_sign_in"), new_session_path(resource_name), class: "link"

@@ -36,6 +36,7 @@ if ENV["ADMIN_EMAIL"].present?
     user.full_name = ENV.fetch("ADMIN_NAME", "Chủ sân")
     user.password = ENV.fetch("ADMIN_PASSWORD")
     user.role = :admin
+    user.skip_confirmation!
   end
 end
 
@@ -45,6 +46,7 @@ if Rails.env.development? && Booking.none?
     user.full_name = "Khách Demo"
     user.phone = "0900 000 001"
     user.password = "password123"
+    user.skip_confirmation!
   end
   courts = venue.courts.to_a
   tomorrow = venue.today + 1

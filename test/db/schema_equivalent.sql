@@ -16,6 +16,10 @@ CREATE TABLE users (
   locale varchar NOT NULL DEFAULT 'vi',
   booking_locked_until timestamptz,
   privacy_accepted_at timestamptz,
+  confirmation_token varchar,
+  confirmed_at timestamptz,
+  confirmation_sent_at timestamptz,
+  unconfirmed_email varchar,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT users_role_valid CHECK (role IN ('customer', 'admin')),
@@ -27,6 +31,7 @@ CREATE TABLE users (
 CREATE UNIQUE INDEX index_users_on_email ON users (email);
 CREATE UNIQUE INDEX index_users_on_phone ON users (phone) WHERE phone IS NOT NULL;
 CREATE UNIQUE INDEX index_users_on_reset_password_token ON users (reset_password_token);
+CREATE UNIQUE INDEX index_users_on_confirmation_token ON users (confirmation_token);
 
 CREATE TABLE venues (
   id bigserial PRIMARY KEY,

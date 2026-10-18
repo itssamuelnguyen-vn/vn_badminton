@@ -14,7 +14,7 @@ class AuthenticationTest < ActionDispatch::IntegrationTest
     assert user.customer?
     assert_redirected_to root_path
     follow_redirect!
-    assert_select "[role=status]", "Chào mừng! Bạn đã đăng ký thành công."
+    assert_select "main [role=status]", "Chào mừng! Bạn đã đăng ký thành công. Vui lòng mở email xác minh chúng tôi vừa gửi để có thể đặt sân."
   end
 
   test "sign-up requires agreeing to the privacy policy and records when" do

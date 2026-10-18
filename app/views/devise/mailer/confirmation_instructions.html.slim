@@ -1,0 +1,9 @@
+p = t(".greeting", name: @resource.full_name)
+
+/ An email change (reconfirmable) is verified the same way as a new account.
+p = @resource.pending_reconfirmation? ? t(".reconfirm_instruction", email: @resource.unconfirmed_email) : t(".instruction")
+
+p = link_to t(".action"), confirmation_url(@resource, confirmation_token: @token, locale: (I18n.locale unless I18n.locale == I18n.default_locale))
+
+p = t(".expires", days: 3)
+p = t(".ignore")

@@ -1,5 +1,7 @@
 class User < ApplicationRecord
-  devise :database_authenticatable, :registerable, :recoverable, :rememberable, :validatable
+  # :confirmable lets unverified accounts sign in (config.allow_unconfirmed_access_for = nil);
+  # they only cannot book online until the email is verified (BookingsController).
+  devise :database_authenticatable, :registerable, :recoverable, :rememberable, :validatable, :confirmable
 
   # Sign-in field that accepts either an email or a phone number.
   attr_writer :login
@@ -83,6 +85,11 @@ class User < ApplicationRecord
   # A base error, so the message reads as a sentence instead of starting with the field name.
   def privacy_consent_given
     errors.add(:base, :privacy_consent_required) if !privacy_consent.nil? && privacy_consent != "1"
+  end
+
+  # Devise emails go through the job queue like the other emails (the job keeps the current locale).
+  def send_devise_notification(notification, *args)
+    devise_mailer.send(notification, self, *args).deliver_later
   end
 
   # Users who can manage the venue (currently only the owner).

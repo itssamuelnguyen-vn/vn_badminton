@@ -121,6 +121,9 @@ en:
         label: Language
       footer:
         privacy: Privacy policy
+      unverified_notice:
+        message: "Please open the verification email sent to %{email} to start booking."
+        resend: Resend email
     admin:
       nav:
         label: Management
@@ -158,6 +161,7 @@ en:
         password_hint: Leave blank to keep your current password
         current_password_hint: Required to save any changes
         submit: Save changes
+        pending_reconfirmation: "Waiting for verification of your new email: %{email}. Your current email is used until you open the verification link."
     passwords:
       new:
         title: Forgot your password?
@@ -180,6 +184,20 @@ en:
         action: Change my password
         ignore: "If you didn't request this, please ignore this email."
         unchanged: "Your password won't change until you open the link above and create a new one."
+      confirmation_instructions:
+        greeting: "Hello %{name},"
+        instruction: Thank you for signing up at VN Badminton. Please verify your email to start booking.
+        reconfirm_instruction: "You changed your account email to %{email}. Please verify the new address."
+        action: Verify my email
+        expires:
+          one: "The link is valid for %{days} day."
+          other: "The link is valid for %{days} days."
+        ignore: If you did not sign up, you can ignore this email.
+    confirmations:
+      new:
+        title: Resend the verification email
+        description: Enter your email and we will send the verification link again.
+        submit: Resend
 
   date:
     formats:
@@ -290,6 +308,7 @@ en:
       no_upcoming: You have no upcoming bookings.
       past: Past and cancelled
     lock_notice: "Your account cannot book online until %{until} because of several cancellations in one day. Please call the venue if you need help."
+    unverified: Please verify your email before booking. We sent a verification link to your email.
 
   booking_batch:
     errors:
