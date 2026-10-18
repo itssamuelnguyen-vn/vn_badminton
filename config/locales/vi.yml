@@ -277,6 +277,17 @@ vi:
         other: "Lượt đặt sân của bạn đã được xác nhận (%{count} sân):"
       view_bookings: Xem lượt đặt của tôi
       cancel_policy: "Bạn có thể huỷ online trước giờ chơi tối thiểu %{hours} giờ."
+    cancelled:
+      subject: "Đã huỷ lượt đặt sân %{code}"
+      intro_by_customer: "Lượt đặt sân của bạn đã được huỷ theo yêu cầu:"
+      intro_by_venue: "Sân đã huỷ lượt đặt sau của bạn:"
+      sorry: Xin lỗi vì sự bất tiện này.
+      contact: "Nếu cần hỗ trợ, vui lòng gọi %{phone}."
+      book_again: Đặt sân khác
+    reminder:
+      subject: "Nhắc lịch: %{court} lúc %{time}"
+      intro: "Bạn có lịch chơi lúc %{time} tại %{court}:"
+      cancel_policy: "Nếu không đến được, vui lòng huỷ online trước giờ chơi %{hours} giờ hoặc gọi cho sân."
 
   admin:
     not_authorized: Bạn không có quyền vào trang quản lý.

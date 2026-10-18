@@ -21,8 +21,14 @@ default: &default
 
 
 development:
-  <<: *default
-  database: vn_badminton_dev
+  primary:
+    <<: *default
+    database: vn_badminton_dev
+  # Solid Queue's tables, as in production, so bin/jobs (started by bin/dev) runs background and recurring jobs.
+  queue:
+    <<: *default
+    database: vn_badminton_dev_queue
+    migrations_paths: db/queue_migrate
 
   # The specified database role being used to connect to PostgreSQL.
   # To create additional roles in PostgreSQL see `$ createuser --help`.

@@ -21,6 +21,8 @@ class User < ApplicationRecord
   # Online bookings copy the customer's phone, so customers must have one.
   validates :phone, presence: true, if: :customer?
   validates :full_name, presence: true, length: { maximum: 100 }
+  # The language of emails sent outside of a request (reminders, cancellations by the owner).
+  validates :locale, inclusion: { in: -> { I18n.available_locales.map(&:to_s) } }
 
   # Called by Devise on sign-in. "@" means an email; anything else is treated as a phone number,
   # so "0901 234 567", "84901234567" and "+84901234567" all find the same user.
@@ -34,6 +36,12 @@ class User < ApplicationRecord
       phone = PhoneNumber.normalize(login)
       find_by(phone: phone) if phone.match?(PhoneNumber::FORMAT)
     end
+  end
+
+  # Keeps the language the customer last used, so later emails are in that language.
+  def remember_locale(locale)
+    locale = locale.to_s
+    update_column(:locale, locale) if locale != self.locale && I18n.available_locales.map(&:to_s).include?(locale)
   end
 
   def login

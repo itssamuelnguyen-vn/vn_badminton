@@ -5,6 +5,8 @@ div class="card mx-auto max-w-md"
 
   = form_with model: resource, scope: resource_name, url: registration_path(resource_name), class: "space-y-5" do |f|
     = render "devise/shared/error_messages", resource: resource
+    / Later emails (reminders, ...) are sent in the language used to sign up.
+    = f.hidden_field :locale, value: I18n.locale
 
     div
       = f.label :full_name, class: "form-label"

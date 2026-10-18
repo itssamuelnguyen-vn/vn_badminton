@@ -18,6 +18,7 @@ module Admin
       booking = @form.build(created_by: current_user)
 
       if booking.reserve
+        BookingMailer.with(bookings: [ booking ]).confirmed.deliver_later if booking.user
         redirect_to admin_root_path(date: @form.date&.iso8601), notice: t(".success.#{booking.kind}", court: booking.court.display_name)
       else
         @booking = booking
@@ -39,6 +40,7 @@ module Admin
 
     def cancel
       @booking.cancel!(by: current_user)
+      BookingMailer.with(booking: @booking).cancelled.deliver_later if @booking.user
       redirect_back_or_to admin_booking_path(@booking), notice: t(".success.#{@booking.kind}")
     rescue ArgumentError
       redirect_back_or_to admin_booking_path(@booking), alert: t("admin.bookings.not_allowed")

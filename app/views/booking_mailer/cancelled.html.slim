@@ -1,0 +1,15 @@
+- venue = @booking.court.venue
+
+p = t("booking_mailer.confirmed.greeting", name: @booking.customer_name)
+
+p = @by_customer ? t(".intro_by_customer") : t(".intro_by_venue")
+
+= render "booking_mailer/booking", booking: @booking
+
+- unless @by_customer
+  p
+    = t(".sorry")
+    - if venue.phone
+      =< t(".contact", phone: PhoneNumber.to_local(venue.phone))
+
+p = link_to t(".book_again"), root_url(locale: (I18n.locale unless I18n.locale == I18n.default_locale))

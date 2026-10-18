@@ -13,12 +13,14 @@ CREATE TABLE users (
   full_name varchar NOT NULL,
   phone varchar,
   role varchar NOT NULL DEFAULT 'customer',
+  locale varchar NOT NULL DEFAULT 'vi',
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT users_role_valid CHECK (role IN ('customer', 'admin')),
   CONSTRAINT users_full_name_length CHECK (length(btrim(full_name)) BETWEEN 1 AND 100),
   CONSTRAINT users_email_format CHECK (email ~ '^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$'),
-  CONSTRAINT users_phone_format CHECK (phone ~ '^\+84[0-9]{9}$')
+  CONSTRAINT users_phone_format CHECK (phone ~ '^\+84[0-9]{9}$'),
+  CONSTRAINT users_locale_valid CHECK (locale IN ('vi', 'en'))
 );
 CREATE UNIQUE INDEX index_users_on_email ON users (email);
 CREATE UNIQUE INDEX index_users_on_phone ON users (phone) WHERE phone IS NOT NULL;
@@ -126,6 +128,7 @@ CREATE TABLE bookings (
   paid_at timestamptz,
   checked_in_at timestamptz,
   cancelled_at timestamptz,
+  reminder_sent_at timestamptz,
   cancellation_reason varchar,
   note text,
   lock_version integer NOT NULL DEFAULT 0,
