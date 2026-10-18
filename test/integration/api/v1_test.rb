@@ -93,7 +93,7 @@ class Api::V1Test < ActionDispatch::IntegrationTest
     assert_response :forbidden
     delete api_v1_account_path, params: { password: "password123" }, headers: auth(token), as: :json
     assert_response :success
-    assert User.find_by(phone: nil, email: /deleted/).nil? || true
+    assert User.find_by!(full_name: Accounts::Deletion::ANONYMOUS_NAME).deleted_at, "nothing booked: deleted at once"
     get api_v1_account_path, headers: auth(token)
     assert_response :unauthorized, "the app is signed out with the account"
   end

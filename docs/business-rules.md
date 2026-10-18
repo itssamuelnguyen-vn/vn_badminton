@@ -174,6 +174,14 @@ Nguồn: `config/recurring.yml`.
 | TT-09 | **Chuyển trễ** (sau 15 phút + 2 phút ân hạn): nếu **giờ đó vẫn còn trống** và chưa bắt đầu → **tự xác nhận lại** lượt đặt; nếu đã có người đặt hoặc đã qua giờ → "Cần xử lý", **hoàn tiền**. Xác nhận tay (TT-06) theo cùng quy tắc.                                                                                         | `app/services/payments/confirm.rb`, `test/integration/payments_test.rb`          |
 | TT-10 | **Nội dung sai / thiếu mã** → "Cần xử lý"; chủ sân **gán giao dịch vào đơn** bằng mã thanh toán (VNB…) hoặc mã đặt sân, rồi giao dịch được xử lý như có mã đúng.                                                                                                                                                             | `app/controllers/admin/bank_transactions_controller.rb`, `test/integration/payments_test.rb` |
 
+## 14. Ứng dụng di động (API cho app Flutter, Android)
+
+| Mã    | Quy tắc | Nguồn |
+|-------|---------|-------|
+| AP-01 | App **chỉ dành cho khách**. API `/api/v1` **không có** thao tác quản lý nào: mọi việc của chủ sân/nhân viên **chỉ làm trên web**. | `config/routes.rb`, `test/integration/api/v1_test.rb` |
+| AP-02 | Đăng nhập bằng email/số điện thoại + mật khẩu → **token** (chỉ lưu mã băm). Token hết hạn sau **90 ngày không dùng**; bị xoá khi đăng xuất, **đổi mật khẩu**, yêu cầu **xoá tài khoản**. Giới hạn thử mật khẩu như web (BM-01). | `app/models/api_token.rb`, `app/controllers/api/v1/sessions_controller.rb` |
+| AP-03 | Mọi quy tắc đặt sân, thanh toán, huỷ, xoá tài khoản, tải dữ liệu **giống hệt web** (dùng chung model/service); thông báo theo `Accept-Language` (vi/en). Lịch và thông tin sân xem được khi chưa đăng nhập. | `app/controllers/api/v1/`, `docs/api.md` |
+
 ---
 
 ## Chưa làm / đã hoãn
