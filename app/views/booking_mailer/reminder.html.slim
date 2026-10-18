@@ -1,0 +1,14 @@
+- venue = @booking.court.venue
+
+p = t("booking_mailer.confirmed.greeting", name: @booking.customer_name)
+
+p = t(".intro", time: l(@booking.starts_at, format: :hour_minute), court: @booking.court.display_name)
+
+= render "booking_mailer/booking", booking: @booking
+
+p = "#{venue.name} · #{venue.address}"
+
+- if @booking.payment_unpaid?
+  p = t("bookings.new.pay_at_venue")
+
+p = t(".cancel_policy", hours: venue.cancellation_cutoff_hours)

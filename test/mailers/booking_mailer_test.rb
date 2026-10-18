@@ -34,6 +34,47 @@ class BookingMailerTest < ActionMailer::TestCase
     assert_includes mail.body.to_s, "420.000đ"
   end
 
+  test "cancellation email when the customer cancels" do
+    @booking.cancel!(by: users(:an))
+
+    mail = BookingMailer.with(booking: @booking).cancelled
+
+    assert_equal [ "an@example.com" ], mail.to
+    assert_equal "Đã huỷ lượt đặt sân #{@booking.code}", mail.subject
+    assert_includes mail.body.to_s, "đã được huỷ theo yêu cầu"
+    assert_not_includes mail.body.to_s, "Xin lỗi"
+  end
+
+  test "cancellation email when the owner cancels, in the customer's language" do
+    @booking.court.venue.update!(phone: "0283 123 456")
+    users(:an).update!(locale: "en")
+    @booking.cancel!(by: users(:owner))
+
+    mail = BookingMailer.with(booking: @booking).cancelled
+
+    assert_equal "Booking #{@booking.code} cancelled", mail.subject
+    assert_includes mail.body.to_s, "The venue has cancelled your booking"
+    assert_includes mail.body.to_s, "please call 0283 123 456"
+    assert_includes mail.body.to_s, "http://example.com/en/bookings/#{@booking.code}"
+  end
+
+  test "reminder email" do
+    mail = BookingMailer.with(booking: @booking).reminder
+
+    assert_equal "Nhắc lịch: Sân 1 lúc 18:00 ngày 20/10/2026", mail.subject
+    assert_includes mail.body.to_s, "Bạn có lịch chơi lúc 18:00 tại Sân 1"
+    assert_includes mail.body.to_s, "12 Phan Xích Long"
+    assert_includes mail.body.to_s, "Thanh toán tại sân"
+  end
+
+  test "confirmation email without a locale uses the customer's language" do
+    users(:an).update!(locale: "en")
+
+    mail = BookingMailer.with(bookings: [ @booking ]).confirmed
+
+    assert_equal "Booking confirmed: #{@booking.code}", mail.subject
+  end
+
   private
 
   def book(court, from, to)

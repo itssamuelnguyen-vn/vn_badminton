@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_18_000002) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_18_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "citext"
@@ -41,6 +41,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_18_000002) do
     t.integer "lock_version", default: 0, null: false
     t.datetime "created_at", precision: 0, null: false
     t.datetime "updated_at", precision: 0, null: false
+    t.datetime "reminder_sent_at", precision: 0
     t.index ["code"], name: "index_bookings_on_code", unique: true
     t.index ["court_id", "starts_at"], name: "index_bookings_on_court_id_and_starts_at"
     t.index ["created_by_id"], name: "index_bookings_on_created_by_id"
@@ -129,11 +130,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_18_000002) do
     t.string "role", default: "customer", null: false
     t.datetime "created_at", precision: 0, null: false
     t.datetime "updated_at", precision: 0, null: false
+    t.string "locale", default: "vi", null: false
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["phone"], name: "index_users_on_phone", unique: true, where: "(phone IS NOT NULL)"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
     t.check_constraint "email ~ '^[^@[:space:]]+@[^@[:space:]]+\\.[^@[:space:]]+$'::citext", name: "users_email_format"
     t.check_constraint "length(btrim(full_name::text)) >= 1 AND length(btrim(full_name::text)) <= 100", name: "users_full_name_length"
+    t.check_constraint "locale::text = ANY (ARRAY['vi'::character varying, 'en'::character varying]::text[])", name: "users_locale_valid"
     t.check_constraint "phone::text ~ '^\\+84[0-9]{9}$'::text", name: "users_phone_format"
     t.check_constraint "role::text = ANY (ARRAY['customer'::character varying, 'admin'::character varying]::text[])", name: "users_role_valid"
   end

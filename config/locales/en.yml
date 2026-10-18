@@ -284,6 +284,17 @@ en:
         other: "Your bookings for %{count} courts are confirmed:"
       view_bookings: View my bookings
       cancel_policy: "You can cancel online up to %{hours} hours before the start time."
+    cancelled:
+      subject: "Booking %{code} cancelled"
+      intro_by_customer: "Your booking has been cancelled as you asked:"
+      intro_by_venue: "The venue has cancelled your booking:"
+      sorry: We are sorry for the inconvenience.
+      contact: "If you need help, please call %{phone}."
+      book_again: Book another court
+    reminder:
+      subject: "Reminder: %{court} at %{time}"
+      intro: "You are playing at %{time} on %{court}:"
+      cancel_policy: "If you cannot come, please cancel online at least %{hours} hours before the start time or call the venue."
 
   admin:
     not_authorized: You are not allowed to open the management pages.

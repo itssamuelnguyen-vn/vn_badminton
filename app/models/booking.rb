@@ -3,6 +3,7 @@ class Booking < ApplicationRecord
   # Must match the WHERE clause of the "bookings_no_overlap" exclusion constraint.
   ACTIVE_STATUSES = %w[pending confirmed checked_in completed no_show].freeze
   CUSTOMER_CANCELLABLE_STATUSES = %w[pending confirmed].freeze
+  REMINDER_LEAD_TIME = 3.hours
   CODE_CHARS = [ *"A".."Z", *"0".."9" ] - %w[O 0 I 1] # drop characters that are easy to confuse over the phone
 
   enum :kind, { reservation: "reservation", block: "block" }, prefix: true, default: :reservation, validate: true
@@ -26,6 +27,14 @@ class Booking < ApplicationRecord
   scope :on_local_date, ->(date, zone) {
     day = date.in_time_zone(zone)
     overlapping(day.beginning_of_day, day.end_of_day)
+  }
+
+  # Confirmed bookings of customers with an account that start within REMINDER_LEAD_TIME and were not
+  # reminded yet. Bookings made less than REMINDER_LEAD_TIME ahead just got their confirmation, so they are skipped.
+  scope :due_for_reminder, ->(now = Time.current) {
+    kind_reservation.confirmed.where.not(user_id: nil).where(reminder_sent_at: nil)
+                    .where(starts_at: now..(now + REMINDER_LEAD_TIME))
+                    .where("bookings.created_at <= bookings.starts_at - make_interval(secs => ?)", REMINDER_LEAD_TIME.to_i)
   }
 
   normalizes :customer_phone, with: ->(phone) { PhoneNumber.normalize(phone) }

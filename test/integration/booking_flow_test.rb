@@ -103,9 +103,12 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     assert_select "a[href='/bookings/#{booking.code}']"
     assert_select "a[href='/bookings/#{other.code}']", count: 0
 
-    patch cancel_booking_path(booking)
-    assert_redirected_to bookings_path
+    assert_enqueued_email_with BookingMailer, :cancelled, params: { booking: booking } do
+      patch cancel_booking_path(booking, locale: :en)
+    end
+    assert_redirected_to bookings_path(locale: :en)
     assert booking.reload.cancelled?
+    assert_equal "en", users(:an).reload.locale # later emails follow the language last used
     assert_equal users(:an), booking.cancelled_by
   end
 

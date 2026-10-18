@@ -29,6 +29,7 @@ class BookingsController < ApplicationController
     @batch = BookingBatch.new(user: current_user, slots: slots_from(booking_params), note: booking_params[:note])
 
     if @batch.reserve
+      current_user.remember_locale(I18n.locale)
       BookingMailer.with(bookings: @batch.bookings, locale: I18n.locale).confirmed.deliver_later
       bookings = @batch.bookings
       redirect_to (bookings.one? ? booking_path(bookings.first) : bookings_path), notice: t(".success", count: bookings.size)
@@ -39,6 +40,8 @@ class BookingsController < ApplicationController
 
   def cancel
     @booking.cancel!(by: current_user)
+    current_user.remember_locale(I18n.locale)
+    BookingMailer.with(booking: @booking).cancelled.deliver_later
     redirect_to bookings_path, notice: t(".success")
   rescue ArgumentError
     redirect_to booking_path(@booking), alert: t(".not_allowed")

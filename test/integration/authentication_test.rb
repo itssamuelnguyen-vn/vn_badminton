@@ -17,6 +17,18 @@ class AuthenticationTest < ActionDispatch::IntegrationTest
     assert_select "[role=status]", "Chào mừng! Bạn đã đăng ký thành công."
   end
 
+  test "remembers the language used to sign up" do
+    get new_user_registration_path(locale: :en)
+    assert_select "input[type=hidden][name='user[locale]'][value=en]"
+
+    post user_registration_path(locale: :en), params: { user: {
+      full_name: "Lê Cường", phone: "0987 654 321", email: "cuong@example.com",
+      password: "password123", password_confirmation: "password123", locale: "en"
+    } }
+
+    assert_equal "en", User.find_by!(email: "cuong@example.com").locale
+  end
+
   test "sign-up cannot choose its own role" do
     post user_registration_path, params: { user: {
       full_name: "Hacker", phone: "0987654321", email: "hacker@example.com",

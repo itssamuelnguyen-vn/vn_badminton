@@ -4,11 +4,34 @@ class BookingMailer < ApplicationMailer
   # One email for the bookings made together (one per court):
   #   BookingMailer.with(bookings:, locale: I18n.locale).confirmed.deliver_later
   # The locale is passed in because the email is rendered later by a background job.
+  # Without it (bookings made by the owner), the customer's own language is used.
   def confirmed
     @bookings = params[:bookings]
+    user = @bookings.first.user
 
-    I18n.with_locale(params[:locale] || I18n.default_locale) do
-      mail to: @bookings.first.user.email, subject: t(".subject", codes: @bookings.map(&:code).join(", "))
+    I18n.with_locale(params[:locale] || user.locale) do
+      mail to: user.email, subject: t(".subject", codes: @bookings.map(&:code).join(", "))
+    end
+  end
+
+  # Sent when a booking is cancelled, by the customer or by the owner:
+  #   BookingMailer.with(booking:).cancelled.deliver_later
+  def cancelled
+    @booking = params[:booking]
+    @by_customer = @booking.cancelled_by == @booking.user
+
+    I18n.with_locale(@booking.user.locale) do
+      mail to: @booking.user.email, subject: t(".subject", code: @booking.code)
+    end
+  end
+
+  # Sent by BookingReminderJob a few hours before the booking starts.
+  def reminder
+    @booking = params[:booking]
+
+    I18n.with_locale(@booking.user.locale) do
+      mail to: @booking.user.email, subject: t(".subject", court: @booking.court.display_name,
+                                                          time: l(@booking.starts_at, format: :slot))
     end
   end
 end

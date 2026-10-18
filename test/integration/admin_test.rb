@@ -59,11 +59,13 @@ class AdminTest < ActionDispatch::IntegrationTest
   end
 
   test "books a court for a phone customer and links the booking to their account" do
-    assert_difference "Booking.count", 1 do
-      post admin_bookings_path, params: { booking: {
-        kind: "reservation", court_id: courts(:court_one).id, date: "2026-10-20", start_minute: 1080, end_minute: 1170,
-        source: "phone", customer_name: "Anh Bình", customer_phone: "0901 234 567", note: "Khách quen"
-      } }
+    assert_enqueued_emails 1 do
+      assert_difference "Booking.count", 1 do
+        post admin_bookings_path, params: { booking: {
+          kind: "reservation", court_id: courts(:court_one).id, date: "2026-10-20", start_minute: 1080, end_minute: 1170,
+          source: "phone", customer_name: "Anh Bình", customer_phone: "0901 234 567", note: "Khách quen"
+        } }
+      end
     end
 
     booking = Booking.last
@@ -76,10 +78,12 @@ class AdminTest < ActionDispatch::IntegrationTest
   end
 
   test "staff bookings skip the online policy but not the opening hours" do
-    post admin_bookings_path, params: { booking: {
-      kind: "reservation", court_id: courts(:court_one).id, date: "2026-12-01", start_minute: 300, end_minute: 600,
-      source: "walk_in", customer_name: "Khách lẻ", customer_phone: "0912 345 678"
-    } }
+    assert_no_enqueued_emails do # no account, so no email
+      post admin_bookings_path, params: { booking: {
+        kind: "reservation", court_id: courts(:court_one).id, date: "2026-12-01", start_minute: 300, end_minute: 600,
+        source: "walk_in", customer_name: "Khách lẻ", customer_phone: "0912 345 678"
+      } }
+    end
     assert_redirected_to admin_root_path(date: "2026-12-01")
     assert Booking.last.source_walk_in?
     assert_nil Booking.last.user
@@ -105,7 +109,7 @@ class AdminTest < ActionDispatch::IntegrationTest
     assert_nil block.customer_name
     assert_equal "Bảo trì", block.note
 
-    patch cancel_admin_booking_path(block)
+    assert_no_enqueued_emails { patch cancel_admin_booking_path(block) }
     assert block.reload.cancelled?
     assert_equal users(:owner), block.cancelled_by
   end
@@ -143,7 +147,9 @@ class AdminTest < ActionDispatch::IntegrationTest
     booking = courts(:court_one).bookings.create!(user: users(:an), starts_at: at("18:00", "2026-10-19"), ends_at: at("19:00", "2026-10-19"))
     travel_to Time.zone.parse("2026-10-19 17:30")
 
-    patch cancel_admin_booking_path(booking)
+    assert_enqueued_email_with BookingMailer, :cancelled, params: { booking: booking } do
+      patch cancel_admin_booking_path(booking)
+    end
 
     assert booking.reload.cancelled?
   end
