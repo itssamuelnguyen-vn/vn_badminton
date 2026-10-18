@@ -20,8 +20,8 @@ class BookingTest < ApplicationSystemTestCase
     fill_in "Ghi chú", with: "Cần thuê vợt"
     click_on "Xác nhận & chuyển khoản"
 
+    assert_selector "h1", text: "Chuyển khoản" # wait for the request before reading the database
     payment = Payment.last
-    assert_selector "h1", text: "Chuyển khoản"
     assert_selector "img[src*='des=#{payment.code}']"
     assert_text "180.000đ"
     booking = Booking.last
@@ -88,7 +88,7 @@ class BookingTest < ApplicationSystemTestCase
 
   # The transfer reported by SePay, then the page reloaded (live updates need Action Cable, not used in tests).
   def pay(payment)
-    Payments::Webhook.process("id" => rand(10**9), "content" => "#{payment.code} ck", "transferType" => "in",
+    Payments::Webhook.process("id" => SecureRandom.random_number(10**9), "content" => "#{payment.code} ck", "transferType" => "in",
                               "transferAmount" => payment.amount_vnd)
     visit current_path
   end
