@@ -1,0 +1,12 @@
+p = t("booking_mailer.confirmed.greeting", name: @booking.customer_name)
+
+p = t(".intro")
+
+p
+  => t(".before")
+  s = "#{@previous_court.display_name} · #{l(@previous_starts_at.to_date, format: :full)} · #{time_range(@previous_starts_at, @previous_ends_at)}"
+
+= render "booking_mailer/booking", booking: @booking
+
+- if @booking.payment_unpaid?
+  p = t("bookings.new.pay_at_venue")

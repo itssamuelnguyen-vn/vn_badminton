@@ -6,7 +6,12 @@ Rails.application.routes.draw do
                                       passwords: "users/passwords", confirmations: "users/confirmations" }
 
     resources :bookings, only: %i[index show new create], param: :code do
-      patch :cancel, on: :member
+      member do
+        patch :cancel
+        # Moving a booking: the schedule in reschedule mode sends the new slot here to confirm it.
+        get :reschedule, action: :review_reschedule
+        patch :reschedule
+      end
       delete :release_hold, on: :collection
     end
 
@@ -22,6 +27,8 @@ Rails.application.routes.draw do
           patch :undo_check_in
           patch :undo_no_show
           patch :undo_payment
+          get :edit_schedule
+          patch :reschedule
         end
       end
       resources :customers, only: %i[index show update], param: :phone

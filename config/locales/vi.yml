@@ -94,6 +94,7 @@ vi:
           before_valid_from: "phải sau ngày bắt đầu"
           other_venue: "không thuộc cơ sở này"
         booking:
+          not_reschedulable: "Không thể đổi giờ lượt đặt này nữa"
           slot_just_taken: "Khung giờ này vừa có người đặt, vui lòng chọn giờ khác"
           slot_taken: "Khung giờ này đã có người đặt"
           no_price: "Chưa có bảng giá cho khung %{time}"
@@ -224,6 +225,8 @@ vi:
       total: "Tổng cộng: %{amount}"
       no_slots_left: Ngày này đã hết giờ có thể đặt. Vui lòng chọn ngày khác.
       taken_meanwhile: Một khung giờ bạn chọn vừa có người đặt hoặc giữ chỗ. Vui lòng chọn lại.
+      rescheduling: "Đang đổi giờ cho lượt %{code} (%{court}, %{time}). Chọn khung giờ mới trên một sân."
+      stop_rescheduling: Thôi, không đổi
     date_picker:
       label: Chọn ngày
       today: hôm nay
@@ -301,6 +304,7 @@ vi:
       cancel_cutoff: "Đã quá hạn huỷ online (trước giờ chơi %{hours} giờ). Vui lòng gọi cho sân."
       lock_warning:
         other: "Lưu ý: đây sẽ là lần huỷ thứ %{count} trong hôm nay. Tài khoản sẽ không thể đặt sân online trong %{days} ngày."
+      reschedule: Đổi giờ
     index:
       title: Lượt đặt của tôi
       new: Đặt sân
@@ -310,6 +314,15 @@ vi:
     lock_notice: "Tài khoản của bạn tạm thời không thể đặt sân online đến %{until} vì đã huỷ nhiều lần trong một ngày. Vui lòng gọi cho sân nếu cần hỗ trợ."
     unverified: Vui lòng xác minh email trước khi đặt sân. Chúng tôi đã gửi đường dẫn xác minh tới email của bạn.
     changed_meanwhile: Lượt đặt vừa được cập nhật ở nơi khác. Vui lòng xem lại trạng thái rồi thử lại.
+    reschedule:
+      not_allowed: Không thể đổi giờ lượt đặt này nữa (đã quá hạn, đã thanh toán hoặc không còn hiệu lực). Vui lòng gọi cho sân.
+      success: Đã đổi giờ. Chúng tôi đã gửi email xác nhận cho bạn.
+    review_reschedule:
+      title: "Đổi giờ lượt %{code}"
+      before: Trước
+      after: Sau khi đổi
+      back: Chọn giờ khác
+      submit: Xác nhận đổi giờ
 
   booking_batch:
     errors:
@@ -339,6 +352,10 @@ vi:
       subject: "Nhắc lịch: %{court} lúc %{time}"
       intro: "Bạn có lịch chơi lúc %{time} tại %{court}:"
       cancel_policy: "Nếu không đến được, vui lòng huỷ online trước giờ chơi %{hours} giờ hoặc gọi cho sân."
+    rescheduled:
+      subject: "Đã đổi giờ lượt đặt sân %{code}"
+      intro: "Lượt đặt sân của bạn đã được đổi sang giờ mới:"
+      before: "Trước đây:"
 
   admin:
     not_authorized: Bạn không có quyền vào trang quản lý.
@@ -409,6 +426,7 @@ vi:
         back: Về lịch ngày
         locked: "Khách đang bị khoá đặt online đến %{until} (huỷ nhiều lần trong ngày)."
         unlock: Mở khoá
+        reschedule: Đổi giờ
       new:
         title: Đặt sân / khoá sân
         kind: Loại
@@ -443,6 +461,12 @@ vi:
         success:
           reservation: Đã huỷ lượt đặt.
           block: Đã gỡ khoá sân.
+      edit_schedule:
+        title: "Đổi giờ lượt %{code}"
+        hint: Giá được tính lại theo bảng giá. Quy định đặt online không áp dụng; giờ mở cửa vẫn áp dụng cho lượt đặt. Khách có tài khoản sẽ nhận email.
+        submit: Lưu giờ mới
+      reschedule:
+        success: Đã đổi giờ.
     price_rules:
       index:
         title: Bảng giá

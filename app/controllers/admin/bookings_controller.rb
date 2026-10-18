@@ -2,7 +2,7 @@ module Admin
   # Bookings taken by the owner (phone calls, walk-ins) and maintenance blocks, plus the day-to-day
   # actions on any booking: check-in, no-show, payment and cancellation.
   class BookingsController < BaseController
-    before_action :set_booking, only: %i[show check_in no_show mark_paid cancel undo_check_in undo_no_show undo_payment]
+    before_action :set_booking, only: %i[show check_in no_show mark_paid cancel undo_check_in undo_no_show undo_payment edit_schedule reschedule]
 
     def show
     end
@@ -36,6 +36,24 @@ module Admin
 
     def mark_paid
       transition(:mark_paid!)
+    end
+
+    # Moving a booking or a block to another court, date or time. The online booking rules do not apply,
+    # the opening hours do (for reservations); the price is recalculated.
+    def edit_schedule
+      @form = BookingForm.from_booking(@booking)
+    end
+
+    def reschedule
+      previous = @booking.attributes.slice("court_id", "starts_at", "ends_at")
+      @form = BookingForm.new(venue: venue, attributes: params.require(:booking).permit(:court_id, :date, :start_minute, :end_minute).to_h)
+
+      if @booking.reschedule(court: venue.courts.find_by(id: @form.court_id), starts_at: @form.starts_at, ends_at: @form.ends_at, by: current_user)
+        BookingMailer.with(booking: @booking, previous: previous).rescheduled.deliver_later if @booking.user
+        redirect_to admin_booking_path(@booking), notice: t(".success")
+      else
+        render :edit_schedule, status: :unprocessable_content
+      end
     end
 
     def undo_check_in

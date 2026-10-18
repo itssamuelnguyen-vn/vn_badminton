@@ -94,6 +94,7 @@ en:
           before_valid_from: "must be after the start date"
           other_venue: "does not belong to this venue"
         booking:
+          not_reschedulable: "This booking can no longer be moved"
           slot_just_taken: "This slot was just booked by someone else, please choose another time"
           slot_taken: "This slot is already booked"
           no_price: "No price is set for the slot at %{time}"
@@ -228,6 +229,8 @@ en:
       total: "Total: %{amount}"
       no_slots_left: There are no more bookable times on this day. Please choose another date.
       taken_meanwhile: A slot you picked was just booked or held by someone else. Please pick again.
+      rescheduling: "Moving booking %{code} (%{court}, %{time}). Pick the new time on one court."
+      stop_rescheduling: Keep it as it is
     date_picker:
       label: Choose a date
       today: today
@@ -309,6 +312,7 @@ en:
       lock_warning:
         one: "Note: cancelling now locks online booking for %{days} days."
         other: "Note: this will be cancellation %{count} of the day, which locks online booking for %{days} days."
+      reschedule: Change time
     index:
       title: My bookings
       new: Book a court
@@ -318,6 +322,15 @@ en:
     lock_notice: "Your account cannot book online until %{until} because of several cancellations in one day. Please call the venue if you need help."
     unverified: Please verify your email before booking. We sent a verification link to your email.
     changed_meanwhile: This booking was just updated elsewhere. Please check its status and try again.
+    reschedule:
+      not_allowed: This booking can no longer be moved (past the cutoff, already paid or no longer active). Please call the venue.
+      success: Booking moved. We sent you a confirmation email.
+    review_reschedule:
+      title: "Move booking %{code}"
+      before: Before
+      after: After the change
+      back: Pick another time
+      submit: Confirm the change
 
   booking_batch:
     errors:
@@ -350,6 +363,10 @@ en:
       subject: "Reminder: %{court} at %{time}"
       intro: "You are playing at %{time} on %{court}:"
       cancel_policy: "If you cannot come, please cancel online at least %{hours} hours before the start time or call the venue."
+    rescheduled:
+      subject: "Booking %{code} moved"
+      intro: "Your booking has been moved to a new time:"
+      before: "Before:"
 
   admin:
     not_authorized: You are not allowed to open the management pages.
@@ -421,6 +438,7 @@ en:
         back: Back to the day board
         locked: "This customer cannot book online until %{until} (too many cancellations in a day)."
         unlock: Unlock
+        reschedule: Change time
       new:
         title: Book or block a court
         kind: Type
@@ -455,6 +473,12 @@ en:
         success:
           reservation: Booking cancelled.
           block: Block removed.
+      edit_schedule:
+        title: "Move booking %{code}"
+        hint: The price is recalculated from the price rules. Online booking rules do not apply; opening hours still apply to bookings. Customers with an account get an email.
+        submit: Save the new time
+      reschedule:
+        success: Booking moved.
     price_rules:
       index:
         title: Price rules

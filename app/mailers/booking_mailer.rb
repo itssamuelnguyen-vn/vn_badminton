@@ -25,6 +25,19 @@ class BookingMailer < ApplicationMailer
     end
   end
 
+  # Sent when a booking moves (by the customer or the venue):
+  #   BookingMailer.with(booking:, previous: { "court_id" => .., "starts_at" => .., "ends_at" => .. }).rescheduled.deliver_later
+  def rescheduled
+    @booking = params[:booking]
+    @previous_court = Court.find(params[:previous]["court_id"])
+    @previous_starts_at = params[:previous]["starts_at"]
+    @previous_ends_at = params[:previous]["ends_at"]
+
+    I18n.with_locale(@booking.user.locale) do
+      mail to: @booking.user.email, subject: t(".subject", code: @booking.code)
+    end
+  end
+
   # Sent by BookingReminderJob a few hours before the booking starts.
   def reminder
     @booking = params[:booking]

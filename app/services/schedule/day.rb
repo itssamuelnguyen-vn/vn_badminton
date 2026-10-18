@@ -16,11 +16,13 @@ module Schedule
 
     attr_reader :venue, :date, :courts
 
-    def initialize(venue:, date:, user: nil, now: Time.current)
+    # ignore: a booking being moved (reschedule mode), whose own slots can be picked again.
+    def initialize(venue:, date:, user: nil, now: Time.current, ignore: nil)
       @venue = venue
       @date = date
       @user = user
       @now = now
+      @ignore = ignore
       @courts = venue.courts.active.to_a
       @rule_set = Pricing::RuleSet.new(venue)
     end
@@ -78,7 +80,7 @@ module Schedule
       @bookings_by_court ||= Booking.holding_slot(@now)
                                     .where(court: courts)
                                     .on_local_date(date, venue.zone)
-                                    .reject { |b| b.pending? && @user && b.user_id == @user.id }
+                                    .reject { |b| (b.pending? && @user && b.user_id == @user.id) || b.id == @ignore&.id }
                                     .group_by(&:court_id)
     end
   end
