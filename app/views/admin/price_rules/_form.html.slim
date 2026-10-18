@@ -8,6 +8,11 @@
     = f.text_field :name, maxlength: 50, required: true, placeholder: t("admin.price_rules.form.name_placeholder"), class: "form-input"
 
   div
+    = f.label :name_en, class: "form-label"
+    = f.text_field :name_en, maxlength: 50, placeholder: "Evening peak", class: "form-input"
+    p class="form-hint" = t("admin.price_rules.form.name_en_hint")
+
+  div
     = f.label :court_id, class: "form-label"
     = f.select :court_id, rule.venue.courts.map { |court| [ court.display_name, court.id ] }, { include_blank: t("admin.price_rules.index.all_courts") }, class: "form-input"
 

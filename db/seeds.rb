@@ -20,9 +20,9 @@ end
 end
 
 [
-  { name: "Giờ thường", days_of_week: (0..6).to_a, start_minute: "05:00", end_minute: "22:00", price_per_hour_vnd: 80_000, priority: 0 },
-  { name: "Cuối tuần", days_of_week: [ 0, 6 ], start_minute: "05:00", end_minute: "22:00", price_per_hour_vnd: 100_000, priority: 5 },
-  { name: "Cao điểm ngày thường", days_of_week: (1..5).to_a, start_minute: "17:00", end_minute: "21:00", price_per_hour_vnd: 120_000, priority: 10 }
+  { name: "Giờ thường", name_en: "Standard", days_of_week: (0..6).to_a, start_minute: "05:00", end_minute: "22:00", price_per_hour_vnd: 80_000, priority: 0 },
+  { name: "Cuối tuần", name_en: "Weekend", days_of_week: [ 0, 6 ], start_minute: "05:00", end_minute: "22:00", price_per_hour_vnd: 100_000, priority: 5 },
+  { name: "Cao điểm ngày thường", name_en: "Weekday peak", days_of_week: (1..5).to_a, start_minute: "17:00", end_minute: "21:00", price_per_hour_vnd: 120_000, priority: 10 }
 ].each do |rule|
   venue.price_rules.find_or_create_by!(name: rule[:name]) do |price_rule|
     price_rule.assign_attributes(rule.merge(start_minute: OpeningHour.parse_minute(rule[:start_minute]),

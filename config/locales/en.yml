@@ -46,7 +46,8 @@ en:
         position: Position
         status: Status
       price_rule:
-        name: Name
+        name: Name (Vietnamese)
+        name_en: English name
         court: Court
         days_of_week: Days of week
         start_minute: Start time
@@ -378,6 +379,7 @@ en:
       index:
         title: Price rules
         explanation: "Each 30-minute slot takes the price of the matching rule: court-specific rules win over venue-wide ones, then the rule with the higher priority. Existing bookings keep their price."
+        name: Name
         new: Add a price rule
         when: Applies
         all_courts: All courts
@@ -387,6 +389,7 @@ en:
       form:
         name_placeholder: "E.g. Evening peak"
         price_hint: A multiple of 1,000 VND.
+        name_en_hint: Optional. Shown on English pages; the Vietnamese name is used when empty.
         priority_hint: A higher number wins when rules overlap.
         validity_hint: Leave empty for no end date.
         active: Active

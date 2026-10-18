@@ -46,7 +46,7 @@ module Admin
     end
 
     def price_rule_params
-      permitted = params.require(:price_rule).permit(:name, :court_id, :start_minute, :end_minute, :price_per_hour_vnd,
+      permitted = params.require(:price_rule).permit(:name, :name_en, :court_id, :start_minute, :end_minute, :price_per_hour_vnd,
                                                      :priority, :valid_from, :valid_until, :active, days_of_week: [])
       # The check boxes send an empty value so that unticking every day still submits the field.
       permitted[:days_of_week] = permitted[:days_of_week].compact_blank if permitted.key?(:days_of_week)

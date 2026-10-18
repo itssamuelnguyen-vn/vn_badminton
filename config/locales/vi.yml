@@ -46,7 +46,8 @@ vi:
         position: Thứ tự
         status: Trạng thái
       price_rule:
-        name: Tên
+        name: Tên (tiếng Việt)
+        name_en: Tên tiếng Anh
         court: Sân
         days_of_week: Ngày áp dụng
         start_minute: Giờ bắt đầu
@@ -370,6 +371,7 @@ vi:
       index:
         title: Bảng giá
         explanation: "Mỗi khung 30 phút lấy giá của khung giá phù hợp: giá riêng cho từng sân được ưu tiên hơn giá chung, sau đó đến khung có độ ưu tiên cao hơn. Lượt đã đặt giữ nguyên giá cũ."
+        name: Tên
         new: Thêm khung giá
         when: Áp dụng
         all_courts: Tất cả sân
@@ -379,6 +381,7 @@ vi:
       form:
         name_placeholder: "Ví dụ: Cao điểm tối"
         price_hint: Bội số của 1.000đ.
+        name_en_hint: Không bắt buộc. Hiện trên trang tiếng Anh; để trống thì dùng tên tiếng Việt.
         priority_hint: Số lớn hơn được ưu tiên khi các khung chồng lên nhau.
         validity_hint: Để trống nếu áp dụng lâu dài.
         active: Đang áp dụng

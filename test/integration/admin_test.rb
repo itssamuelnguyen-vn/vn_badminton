@@ -174,6 +174,18 @@ class AdminTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "price rules show their English name on English pages" do
+    price_rules(:weekday_peak).update!(name_en: "Peak", court: courts(:court_two))
+
+    get admin_price_rules_path(locale: :en)
+    assert_select "td", text: "Peak"
+    assert_select "td", text: "Court 2"
+    assert_select "td", text: "Giờ thường" # no English name: the Vietnamese one is shown
+
+    get admin_price_rules_path
+    assert_select "td", text: "Cao điểm"
+  end
+
   test "updates the venue settings and opening hours" do
     venue = venues(:phu_nhuan)
     hours = (0..6).to_h { |day| [ day.to_s, { open: "1", opens_minute: "300", closes_minute: "1320" } ] }

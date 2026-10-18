@@ -11,7 +11,7 @@ div class="mb-4 flex flex-wrap items-end justify-between gap-4"
     table class="w-full text-left text-sm"
       thead class="bg-slate-50 text-xs text-slate-500 uppercase"
         tr
-          th class="px-4 py-2 font-medium" = PriceRule.human_attribute_name(:name)
+          th class="px-4 py-2 font-medium" = t(".name")
           th class="px-4 py-2 font-medium" = t(".when")
           th class="px-4 py-2 font-medium" = PriceRule.human_attribute_name(:court)
           th class="px-4 py-2 text-right font-medium" = PriceRule.human_attribute_name(:priority)
@@ -21,7 +21,7 @@ div class="mb-4 flex flex-wrap items-end justify-between gap-4"
         - @price_rules.each do |rule|
           tr class=("text-slate-400" unless rule.active)
             td class="px-4 py-2 font-medium"
-              = rule.name
+              = rule.display_name
               - unless rule.active
                 span class="ml-2 text-xs font-normal" = "(#{t(".inactive")})"
             td class="px-4 py-2"
@@ -29,7 +29,7 @@ div class="mb-4 flex flex-wrap items-end justify-between gap-4"
               - if rule.valid_from || rule.valid_until
                 p class="text-xs text-slate-500"
                   = [ rule.valid_from && l(rule.valid_from, format: :day_month_year), rule.valid_until && l(rule.valid_until, format: :day_month_year) ].map { |d| d || "…" }.join(" – ")
-            td class="px-4 py-2" = rule.court&.name || t(".all_courts")
+            td class="px-4 py-2" = rule.court&.display_name || t(".all_courts")
             td class="px-4 py-2 text-right tabular-nums" = rule.priority
             td class="px-4 py-2 text-right whitespace-nowrap tabular-nums" = format_vnd(rule.price_per_hour_vnd)
             td class="px-4 py-2 text-right whitespace-nowrap"

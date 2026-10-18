@@ -10,7 +10,7 @@ section class="mt-10" aria-labelledby="price-list-title"
       tbody class="divide-y divide-slate-100"
         - venue.price_rules.active.where(court_id: nil).order(:priority, :start_minute).each do |rule|
           tr
-            td class="px-4 py-2 font-medium" = rule.name
+            td class="px-4 py-2 font-medium" = rule.display_name
             td class="px-4 py-2 text-slate-600"
               = "#{format_days(rule.days_of_week)} · #{OpeningHour.format_minute(rule.start_minute)} – #{OpeningHour.format_minute(rule.end_minute)}"
             td class="px-4 py-2 text-right whitespace-nowrap tabular-nums" = t(".per_hour", price: format_vnd(rule.price_per_hour_vnd))
