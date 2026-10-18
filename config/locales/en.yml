@@ -142,7 +142,6 @@ en:
         title: Sign in
         login: Email or phone number
         login_hint: "For example: an@example.com or 0901 234 567"
-        remember_me: Remember me
         forgot_password: Forgot your password?
         submit: Sign in
         no_account: Don't have an account?

@@ -8,6 +8,7 @@ class ApplicationController < ActionController::Base
   # Changes to the importmap will invalidate the etag for HTML responses
   stale_when_importmap_changes
 
+  prepend_before_action :ignore_background_refresh
   around_action :switch_locale
   before_action :configure_permitted_parameters, if: :devise_controller?
 
@@ -17,6 +18,13 @@ class ApplicationController < ActionController::Base
   end
 
   private
+
+  # Live schedule refreshes (Turbo stream "refresh", marked by app/javascript/application.js) happen without
+  # the user doing anything, so they must not keep the session alive: the timeout is still checked, but the
+  # last activity time is left as it was.
+  def ignore_background_refresh
+    request.env["devise.skip_trackable"] = true if request.headers["X-Background-Refresh"] == "1"
+  end
 
   # Answer to a request over a rate limit: back to the form with a message, instead of a bare 429.
   def rate_limited(path)

@@ -13,10 +13,8 @@ div class="card mx-auto max-w-md"
       = f.label :password, class: "form-label"
       = f.password_field :password, required: true, autocomplete: "current-password", class: "form-input"
 
-    div class="flex items-center justify-between"
-      label class="flex items-center gap-2 text-sm text-slate-700"
-        = f.check_box :remember_me, class: "size-4 rounded border-slate-300 accent-emerald-600"
-        = t(".remember_me")
+    / No "remember me": everyone signs in again after 30 minutes without activity (Devise :timeoutable).
+    div class="flex justify-end"
       = link_to t(".forgot_password"), new_password_path(resource_name), class: "link text-sm"
 
     = f.submit t(".submit"), class: "btn-primary w-full"

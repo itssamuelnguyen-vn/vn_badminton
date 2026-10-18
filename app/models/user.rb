@@ -1,7 +1,9 @@
 class User < ApplicationRecord
   # :confirmable lets unverified accounts sign in (config.allow_unconfirmed_access_for = nil);
   # they only cannot book online until the email is verified (BookingsController).
-  devise :database_authenticatable, :registerable, :recoverable, :rememberable, :validatable, :confirmable
+  # :timeoutable signs everyone out after config.timeout_in without activity. There is no :rememberable:
+  # a "remember me" cookie would keep the session alive past the timeout.
+  devise :database_authenticatable, :registerable, :recoverable, :validatable, :confirmable, :timeoutable
 
   # Sign-in field that accepts either an email or a phone number.
   attr_writer :login
