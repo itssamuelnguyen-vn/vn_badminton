@@ -112,7 +112,7 @@ module Admin
     def cancel_sessions(from:, to:, reason:)
       zone = venue.zone
       range = zone.local(from.year, from.month, from.day)...zone.local(to.year, to.month, to.day) + 1.day
-      sessions = @series.bookings.where(starts_at: range).where(status: %w[confirmed pending])
+      sessions = @series.bookings.where(starts_at: range).where(status: %w[confirmed pending]).where("ends_at > ?", Time.current) # not those played
       sessions.each { |booking| booking.cancel!(by: current_user, reason: reason) }.size
     end
   end

@@ -14,6 +14,7 @@ section aria-labelledby="day-list-title"
           div class="flex flex-wrap items-center gap-2"
             - if booking.kind_reservation?
               = booking_status_badge(booking)
+              = unrecorded_badge(booking)
               = payment_status_badge(booking)
             = render "admin/bookings/actions", booking: booking, compact: true
   - else

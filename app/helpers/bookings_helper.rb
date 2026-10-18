@@ -36,4 +36,11 @@ module BookingsHelper
     }.fetch(booking.status)
     tag.span t("bookings.statuses.#{booking.status}"), class: "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 #{classes}"
   end
+
+  # For the owner and staff: the session is over and neither check-in nor no-show was recorded.
+  def unrecorded_badge(booking)
+    return unless booking.unrecorded?
+
+    tag.span t("bookings.unrecorded"), class: "inline-flex rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-800 ring-1 ring-amber-300"
+  end
 end

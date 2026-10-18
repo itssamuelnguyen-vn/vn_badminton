@@ -135,7 +135,7 @@ class Booking < ApplicationRecord
   # (old and new courts) and a new price. Customers: see #reschedulable_by_customer?. Returns true when saved.
   #   booking.reschedule(court: court, starts_at: from, ends_at: to, by: current_user)
   def reschedule(court:, starts_at:, ends_at:, by:)
-    unless by.manager? ? (confirmed? || kind_block?) && holds_slot? : reschedulable_by_customer?
+    unless by.manager? ? movable_by_staff? : reschedulable_by_customer?
       errors.add(:base, :not_reschedulable)
       return false
     end
@@ -160,6 +160,11 @@ class Booking < ApplicationRecord
   # (a paid booking's price could change) and unless they are blacklisted.
   # Sessions of a regular customer's series are moved by the venue. A paid booking can be moved to a slot
   # that does not cost more (see #reschedule: no refund of the difference).
+  # The owner and staff move confirmed reservations until they end, and blocks at any time.
+  def movable_by_staff?(now = Time.current)
+    holds_slot? && (kind_block? || (confirmed? && !ended?(now)))
+  end
+
   def reschedulable_by_customer?(now = Time.current)
     series_id.nil? && confirmed? && cancellable_by_customer?(now) && !payment_refunded? && !CustomerProfile.blocked?(customer_phone)
   end
@@ -189,12 +194,29 @@ class Booking < ApplicationRecord
       now <= starts_at - court.venue.cancellation_cutoff_hours.hours
   end
 
-  # by: the user cancelling. Customers must cancel before the cutoff; managers can cancel at any time.
+  # Over: played or missed, which check-in and no-show record. It can no longer be cancelled or moved.
+  def ended?(now = Time.current)
+    ends_at <= now
+  end
+
+  # Over without check-in or no-show: the owner and staff are reminded to record which.
+  def unrecorded?(now = Time.current)
+    kind_reservation? && confirmed? && ended?(now)
+  end
+
+  # A venue fault (power cut, broken court...) is known the same day, possibly after the session.
+  def venue_fault_cancellable?(now = Time.current)
+    kind_reservation? && payment_paid? && holds_slot? && now < starts_at.in_time_zone(court.venue.zone).end_of_day
+  end
+
+  # by: the user cancelling. Customers must cancel before the cutoff; managers can cancel until the booking
+  # ends (a block at any time), and for a venue fault until the end of its day (#cancel_for_venue_fault!).
   def cancel!(by:, reason: nil, now: Time.current)
     raise ArgumentError, "Booking is already cancelled" if cancelled?
     if !by.manager? && !cancellable_by_customer?(now)
       raise ArgumentError, "Cancellation cutoff has passed"
     end
+    raise ArgumentError, "Booking has ended" if kind_reservation? && ended?(now) && reason != VENUE_FAULT
 
     # Only a customer cancelling a confirmed booking counts towards the lock: not skipping a regular session
     # (agreed with the venue), nor giving up a booking still waiting for its transfer.
@@ -208,6 +230,8 @@ class Booking < ApplicationRecord
   # The venue could not provide the court (power cut, broken court...). A paid booking is owed back in full;
   # the owner transfers it and marks it refunded (#mark_refunded!).
   def cancel_for_venue_fault!(by:, now: Time.current)
+    raise ArgumentError, "Too late for a venue fault" unless venue_fault_cancellable?(now)
+
     transaction do
       paid = payment_paid?
       cancel!(by: by, reason: VENUE_FAULT, now: now)

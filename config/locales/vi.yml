@@ -288,6 +288,7 @@ vi:
       note: Giá tính theo từng khung 30 phút. Thanh toán tại sân.
 
   bookings:
+    unrecorded: Đã qua giờ – chưa ghi nhận
     statuses:
       pending: Chờ xác nhận
       confirmed: Đã xác nhận

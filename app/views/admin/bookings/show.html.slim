@@ -12,6 +12,7 @@ div class="card mx-auto max-w-lg"
           = booking_status_badge(@booking)
       - else
         = booking_status_badge(@booking)
+        = unrecorded_badge(@booking)
         = payment_status_badge(@booking)
 
   - if @booking.kind_reservation?
@@ -85,6 +86,6 @@ div class="card mx-auto max-w-lg"
   div class="mt-6 flex flex-wrap items-center justify-between gap-3"
     = link_to t(".back"), admin_root_path(date: @booking.starts_at.in_time_zone(@booking.court.venue.zone).to_date.iso8601), class: "btn-secondary"
     div class="flex flex-wrap gap-2"
-      - if (@booking.confirmed? || @booking.kind_block?) && @booking.holds_slot?
+      - if @booking.movable_by_staff?
         = link_to t(".reschedule"), edit_schedule_admin_booking_path(@booking), class: "btn-secondary"
       = render "admin/bookings/actions", booking: @booking
