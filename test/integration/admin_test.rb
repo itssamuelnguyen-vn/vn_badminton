@@ -202,6 +202,55 @@ class AdminTest < ActionDispatch::IntegrationTest
     assert booking.reload.cancelled?
   end
 
+  test "once a booking is over it can be checked in or marked no-show, but no longer cancelled or moved" do
+    booking = courts(:court_one).bookings.create!(user: users(:an), starts_at: at("18:30", "2026-10-19"), ends_at: at("19:30", "2026-10-19"),
+                                                  payment_status: :paid, paid_at: Time.current)
+    other = courts(:court_two).bookings.create!(user: users(:an), starts_at: at("18:30", "2026-10-19"), ends_at: at("19:30", "2026-10-19"))
+    travel_to Time.zone.parse("2026-10-19 19:37")
+
+    get admin_root_path(date: "2026-10-19")
+    assert_select "span", text: "Đã qua giờ – chưa ghi nhận", count: 2
+    assert_select "button", text: "Nhận sân", count: 2
+    assert_select "button", text: "Không đến", count: 2
+    assert_select "button", text: "Huỷ do sự cố của sân", count: 1
+    assert_select "button", text: "Huỷ", count: 0
+    get admin_booking_path(booking)
+    assert_select "a", text: "Đổi giờ", count: 0
+
+    patch cancel_admin_booking_path(other)
+    assert_equal "Không thể thực hiện thao tác này với lượt đặt hiện tại.", flash[:alert]
+    assert other.reload.confirmed?
+    patch reschedule_admin_booking_path(other), params: { booking: { court_id: courts(:court_two).id, date: "2026-10-20", start_minute: 1110, end_minute: 1170 } }
+    assert_response :unprocessable_content
+    assert_equal at("18:30", "2026-10-19"), other.reload.starts_at
+
+    patch no_show_admin_booking_path(other)
+    assert other.reload.no_show?
+    get admin_root_path(date: "2026-10-19")
+    assert_select "span", text: "Đã qua giờ – chưa ghi nhận", count: 1
+  end
+
+  test "a venue fault can be recorded until the end of the booking's day" do
+    late = courts(:court_one).bookings.create!(user: users(:an), starts_at: at("18:30", "2026-10-19"), ends_at: at("19:30", "2026-10-19"),
+                                               payment_status: :paid, paid_at: Time.current)
+    yesterday = courts(:court_two).bookings.create!(user: users(:an), starts_at: at("18:30", "2026-10-19"), ends_at: at("19:30", "2026-10-19"),
+                                                    payment_status: :paid, paid_at: Time.current)
+    travel_to Time.zone.parse("2026-10-19 21:00")
+    patch cancel_venue_fault_admin_booking_path(late)
+    assert late.reload.cancelled?
+    assert_equal late.total_amount_vnd, late.refund_vnd
+
+    travel_to Time.zone.parse("2026-10-20 00:01")
+    reset! # a fresh browser session: the previous one timed out
+    sign_in users(:owner)
+    get admin_booking_path(yesterday)
+    assert_response :success
+    assert_select "button", text: "Huỷ do sự cố của sân", count: 0
+    patch cancel_venue_fault_admin_booking_path(yesterday)
+    assert_equal "Không thể thực hiện thao tác này với lượt đặt hiện tại.", flash[:alert]
+    assert yesterday.reload.confirmed?
+  end
+
   test "manages price rules" do
     get admin_price_rules_path
     assert_select "td", text: "Cao điểm"
