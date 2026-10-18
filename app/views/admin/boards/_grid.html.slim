@@ -1,0 +1,31 @@
+/ Rows are 30-minute slots, columns are courts. Each booking is one card spanning its rows;
+/ an empty cell opens the booking form for that court and time.
+- rows = board.times.size
+
+div class="mb-8 max-h-[75vh] overflow-auto rounded-xl bg-white ring-1 ring-slate-200"
+  div class="grid text-sm" style="grid-template-columns: 4rem repeat(#{board.courts.size}, minmax(7rem, 1fr)); grid-template-rows: auto repeat(#{rows}, 2.25rem)" aria-label=t(".label", date: l(board.date, format: :full))
+    div class="sticky top-0 left-0 z-30 border-b border-slate-200 bg-white" style="grid-area: 1 / 1"
+    - board.courts.each_with_index do |court, column|
+      div class="sticky top-0 z-20 border-b border-l border-slate-200 bg-white px-2 py-2 text-center font-semibold" style="grid-area: 1 / #{column + 2}" = court.display_name
+
+    - board.times.each_with_index do |time, row|
+      div class="sticky left-0 z-20 border-b border-slate-100 bg-white px-2 py-2 text-right text-xs text-slate-500 tabular-nums" style="grid-area: #{row + 2} / 1"
+        = l(time, format: :hour_minute)
+      - board.courts.each_with_index do |court, column|
+        - next unless board.free?(court, time)
+        - minute = ((time - board.day_start) / 60).to_i
+        = link_to "", new_admin_booking_path(court_id: court.id, date: board.date.iso8601, start_minute: minute),
+            class: "border-b border-l border-slate-100 transition hover:bg-emerald-50", style: "grid-area: #{row + 2} / #{column + 2}",
+            aria: { label: t(".book_slot", court: court.display_name, time: l(time, format: :hour_minute)) }
+
+    - board.placements.each do |placement|
+      - booking = placement.booking
+      = link_to admin_booking_path(booking), style: "grid-area: #{placement.first_row + 2} / #{placement.column + 2} / #{placement.last_row + 2} / #{placement.column + 3}",
+          class: "z-10 m-0.5 flex flex-col overflow-hidden rounded-md px-2 py-1 text-xs ring-1 hover:shadow-md #{board_booking_classes(booking)}" do
+        span class="truncate font-semibold" = booking_title(booking)
+        span class="tabular-nums opacity-80" = time_range(booking.starts_at, booking.ends_at)
+        - if booking.kind_reservation?
+          span class="truncate opacity-80"
+            = t("bookings.statuses.#{booking.status}")
+            - if booking.payment_paid?
+              = " · #{t("admin.payment_statuses.paid")}"

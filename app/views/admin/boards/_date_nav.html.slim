@@ -1,0 +1,11 @@
+/ ‹ [date] [Xem] › Hôm nay. Unlike the customer schedule, any day can be opened.
+- nav_class = "btn-secondary px-3"
+
+div class="mb-6 flex flex-wrap items-center gap-2"
+  = link_to "‹", admin_root_path(date: (date - 1).iso8601), class: nav_class, aria: { label: t(".previous_day") }
+  = form_with url: admin_root_path, method: :get, class: "flex items-center gap-2" do |f|
+    = f.date_field :date, value: date.iso8601, class: "form-input w-auto py-1.5", aria: { label: t(".label") }
+    = f.submit t(".go"), name: nil, class: "btn-secondary"
+  = link_to "›", admin_root_path(date: (date + 1).iso8601), class: nav_class, aria: { label: t(".next_day") }
+  - unless date == today
+    = link_to t(".today"), admin_root_path, class: "link ml-2 text-sm"

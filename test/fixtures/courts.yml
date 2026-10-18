@@ -1,9 +1,9 @@
 court_one:
   venue: phu_nhuan
-  name: Sân 1
+  name: "1"
   position: 1
 
 court_two:
   venue: phu_nhuan
-  name: Sân 2
+  name: "2"
   position: 2

@@ -60,7 +60,7 @@ class BookingTest < ApplicationSystemTestCase
 
     assert_text "Đặt sân thành công!"
     assert_equal [ [ "Sân 1", "18:00", "19:30" ], [ "Sân 2", "19:00", "21:00" ] ],
-                 Booking.order(:starts_at).map { |b| [ b.court.name, b.starts_at.strftime("%H:%M"), b.ends_at.strftime("%H:%M") ] }
+                 Booking.order(:starts_at).map { |b| [ b.court.display_name, b.starts_at.strftime("%H:%M"), b.ends_at.strftime("%H:%M") ] }
   end
 
   test "unticking the box keeps only the court picked last" do

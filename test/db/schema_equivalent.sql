@@ -1,4 +1,4 @@
--- SQL equivalent to what the 7 migrations generate on PostgreSQL.
+-- SQL equivalent to what the migrations generate on PostgreSQL.
 -- Used to test the constraints without Rails: psql -f schema_equivalent.sql
 CREATE EXTENSION IF NOT EXISTS citext;
 CREATE EXTENSION IF NOT EXISTS btree_gist;
@@ -83,6 +83,7 @@ CREATE TABLE price_rules (
   venue_id bigint NOT NULL REFERENCES venues(id),
   court_id bigint,
   name varchar NOT NULL,
+  name_en varchar,
   days_of_week smallint[] NOT NULL,
   start_minute integer NOT NULL,
   end_minute integer NOT NULL,
@@ -95,6 +96,7 @@ CREATE TABLE price_rules (
   updated_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT fk_price_rules_court_venue FOREIGN KEY (court_id, venue_id) REFERENCES courts (id, venue_id),
   CONSTRAINT price_rules_name_present CHECK (length(btrim(name)) > 0),
+  CONSTRAINT price_rules_name_en_present CHECK (name_en IS NULL OR length(btrim(name_en)) > 0),
   CONSTRAINT price_rules_days_valid CHECK (cardinality(days_of_week) BETWEEN 1 AND 7 AND days_of_week <@ ARRAY[0,1,2,3,4,5,6]::smallint[]),
   CONSTRAINT price_rules_time_range_valid CHECK (start_minute >= 0 AND end_minute <= 1440 AND end_minute > start_minute AND start_minute % 30 = 0 AND end_minute % 30 = 0),
   CONSTRAINT price_rules_price_valid CHECK (price_per_hour_vnd > 0 AND price_per_hour_vnd <= 100000000 AND price_per_hour_vnd % 1000 = 0),

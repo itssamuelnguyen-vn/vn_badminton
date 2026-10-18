@@ -2,9 +2,12 @@ class PriceRule < ApplicationRecord
   belongs_to :venue
   belongs_to :court, optional: true # nil = applies to every court
 
+  normalizes :name_en, with: ->(name) { name.squish.presence }
+
   scope :active, -> { where(active: true) }
 
   validates :name, presence: true
+  validates :name_en, length: { maximum: 50 }
   validates :days_of_week, presence: true
   validates :start_minute, numericality: { only_integer: true, in: 0..1410 }
   validates :end_minute, numericality: { only_integer: true, in: 30..1440 }
@@ -22,6 +25,11 @@ class PriceRule < ApplicationRecord
       minute >= start_minute && minute + 30 <= end_minute &&
       (valid_from.nil? || date >= valid_from) &&
       (valid_until.nil? || date <= valid_until)
+  end
+
+  # The English name on English pages when there is one, the Vietnamese name otherwise.
+  def display_name
+    (name_en if I18n.locale == :en) || name
   end
 
   def price_per_slot_vnd

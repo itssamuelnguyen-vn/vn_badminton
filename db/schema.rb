@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_17_000008) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_18_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "citext"
@@ -107,10 +107,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_000008) do
     t.boolean "active", default: true, null: false
     t.datetime "created_at", precision: 0, null: false
     t.datetime "updated_at", precision: 0, null: false
+    t.string "name_en"
     t.index ["court_id"], name: "index_price_rules_on_court_id"
     t.index ["venue_id"], name: "index_price_rules_on_venue_id"
     t.check_constraint "cardinality(days_of_week) >= 1 AND cardinality(days_of_week) <= 7 AND days_of_week <@ ARRAY[0::smallint, 1::smallint, 2::smallint, 3::smallint, 4::smallint, 5::smallint, 6::smallint]", name: "price_rules_days_valid"
     t.check_constraint "length(btrim(name::text)) > 0", name: "price_rules_name_present"
+    t.check_constraint "name_en IS NULL OR length(btrim(name_en::text)) > 0", name: "price_rules_name_en_present"
     t.check_constraint "price_per_hour_vnd > 0 AND price_per_hour_vnd <= 100000000 AND (price_per_hour_vnd % 1000::bigint) = 0", name: "price_rules_price_valid"
     t.check_constraint "start_minute >= 0 AND end_minute <= 1440 AND end_minute > start_minute AND (start_minute % 30) = 0 AND (end_minute % 30) = 0", name: "price_rules_time_range_valid"
     t.check_constraint "valid_from IS NULL OR valid_until IS NULL OR valid_until >= valid_from", name: "price_rules_validity_range"

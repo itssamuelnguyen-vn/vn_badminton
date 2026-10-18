@@ -46,7 +46,8 @@ vi:
         position: Thứ tự
         status: Trạng thái
       price_rule:
-        name: Tên
+        name: Tên (tiếng Việt)
+        name_en: Tên tiếng Anh
         court: Sân
         days_of_week: Ngày áp dụng
         start_minute: Giờ bắt đầu
@@ -108,8 +109,15 @@ vi:
         sign_in: Đăng nhập
         sign_up: Đăng ký
         sign_out: Đăng xuất
+        admin: Quản lý
       locale_switcher:
         label: Ngôn ngữ
+    admin:
+      nav:
+        label: Quản lý
+        board: Lịch trong ngày
+        price_rules: Bảng giá
+        settings: Cài đặt
 
 
   devise:
@@ -168,6 +176,9 @@ vi:
   helpers:
     vnd: "%{amount}đ"
     every_day: Hằng ngày
+
+  courts:
+    numbered: "Sân %{number}"
 
   schedules:
     show:
@@ -266,3 +277,137 @@ vi:
         other: "Lượt đặt sân của bạn đã được xác nhận (%{count} sân):"
       view_bookings: Xem lượt đặt của tôi
       cancel_policy: "Bạn có thể huỷ online trước giờ chơi tối thiểu %{hours} giờ."
+
+  admin:
+    not_authorized: Bạn không có quyền vào trang quản lý.
+    block: Khoá sân
+    payment_statuses:
+      unpaid: Chưa thanh toán
+      paid: Đã thanh toán
+      refunded: Đã hoàn tiền
+    sources:
+      online: Đặt online
+      phone: Qua điện thoại
+      walk_in: Khách đến trực tiếp
+      staff: Chủ sân
+    boards:
+      show:
+        title: Lịch trong ngày
+        new_booking: Đặt sân hộ khách
+        new_block: Khoá sân
+        closed: Cơ sở nghỉ vào ngày này và chưa có lượt đặt nào.
+        closed_with_bookings: Cơ sở nghỉ vào ngày này nhưng vẫn có lượt đặt hoặc khoá sân.
+        stats:
+          bookings: Lượt đặt
+          checked_in: Đã nhận sân
+          expected: Doanh thu dự kiến
+          collected: Đã thu
+      date_nav:
+        label: Chọn ngày
+        previous_day: Ngày trước
+        next_day: Ngày sau
+        go: Xem
+        today: Hôm nay
+      grid:
+        label: "Lịch sân %{date}"
+        book_slot: "Đặt %{court} lúc %{time}"
+      list:
+        title: Danh sách trong ngày
+        empty: Chưa có lượt đặt nào trong ngày này.
+        cancelled:
+          other: "%{count} lượt đã huỷ"
+    bookings:
+      not_allowed: Không thể thực hiện thao tác này với lượt đặt hiện tại.
+      actions:
+        check_in: Nhận sân
+        no_show: Không đến
+        no_show_confirm: Đánh dấu khách không đến?
+        mark_paid: "Đã thu %{amount}"
+        mark_paid_confirm: "Xác nhận đã thu %{amount}?"
+        cancel:
+          reservation: Huỷ
+          block: Gỡ khoá
+        cancel_confirm:
+          reservation: Huỷ lượt đặt này? Khách sẽ không được thông báo tự động.
+          block: Gỡ khoá sân này?
+      show:
+        title: "Lượt đặt %{code}"
+        customer: Khách
+        source: Hình thức
+        created: "Tạo lúc %{time} bởi %{by}"
+        checked_in: "Nhận sân lúc %{time}"
+        paid: "Thanh toán lúc %{time}"
+        cancelled: "Huỷ lúc %{time} bởi %{by}"
+        back: Về lịch ngày
+      new:
+        title: Đặt sân / khoá sân
+        kind: Loại
+        kinds:
+          reservation: Đặt sân cho khách
+          block: Khoá sân
+        source: Khách đặt qua
+        phone_hint: Nếu số này trùng với tài khoản của khách, lượt đặt sẽ hiện trong tài khoản đó.
+        note_placeholder:
+          reservation: "Ví dụ: khách quen, cần thuê vợt"
+          block: "Ví dụ: bảo trì mặt sân, giải đấu"
+        price_hint: Giá được tính tự động theo bảng giá. Đặt hộ không bị giới hạn thời lượng hay số ngày đặt trước.
+        back: Quay lại
+        submit: Lưu
+      create:
+        success:
+          reservation: "Đã đặt %{court} cho khách."
+          block: "Đã khoá %{court}."
+      check_in:
+        success: Đã nhận sân.
+      no_show:
+        success: Đã đánh dấu khách không đến.
+      mark_paid:
+        success: Đã ghi nhận thanh toán.
+      cancel:
+        success:
+          reservation: Đã huỷ lượt đặt.
+          block: Đã gỡ khoá sân.
+    price_rules:
+      index:
+        title: Bảng giá
+        explanation: "Mỗi khung 30 phút lấy giá của khung giá phù hợp: giá riêng cho từng sân được ưu tiên hơn giá chung, sau đó đến khung có độ ưu tiên cao hơn. Lượt đã đặt giữ nguyên giá cũ."
+        name: Tên
+        new: Thêm khung giá
+        when: Áp dụng
+        all_courts: Tất cả sân
+        inactive: tạm ngừng
+        edit: Sửa
+        empty: Chưa có khung giá nào. Khách chỉ đặt được những giờ có giá.
+      form:
+        name_placeholder: "Ví dụ: Cao điểm tối"
+        price_hint: Bội số của 1.000đ.
+        name_en_hint: Không bắt buộc. Hiện trên trang tiếng Anh; để trống thì dùng tên tiếng Việt.
+        priority_hint: Số lớn hơn được ưu tiên khi các khung chồng lên nhau.
+        validity_hint: Để trống nếu áp dụng lâu dài.
+        active: Đang áp dụng
+        back: Quay lại
+        submit: Lưu
+      new:
+        title: Thêm khung giá
+      edit:
+        title: Sửa khung giá
+        destroy: Xoá khung giá
+        destroy_confirm: Xoá khung giá này?
+        destroy_hint: Lượt đã đặt giữ nguyên giá. Muốn ngừng tạm thời thì bỏ chọn "Đang áp dụng".
+      create:
+        success: Đã thêm khung giá.
+      update:
+        success: Đã lưu khung giá.
+      destroy:
+        success: Đã xoá khung giá.
+    settings:
+      edit:
+        title: Cài đặt
+        venue: Thông tin cơ sở
+        policy: Quy định đặt online
+        policy_hint: Chỉ áp dụng cho khách tự đặt online; chủ sân đặt hộ không bị giới hạn.
+        opening_hours: Giờ mở cửa
+        opening_hours_hint: Bỏ chọn ngày nghỉ. Thay đổi không ảnh hưởng tới các lượt đã đặt.
+        submit: Lưu cài đặt
+      update:
+        success: Đã lưu cài đặt.

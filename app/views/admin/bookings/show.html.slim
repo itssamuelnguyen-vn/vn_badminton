@@ -1,0 +1,56 @@
+- content_for :title, t(".title", code: @booking.code)
+
+div class="card mx-auto max-w-lg"
+  div class="mb-6 flex items-start justify-between gap-4"
+    div
+      p class="text-sm text-slate-500" = Booking.human_attribute_name(:code)
+      p class="font-mono text-2xl font-bold tracking-widest" = @booking.code
+    div class="flex flex-col items-end gap-1"
+      - if @booking.kind_block?
+        span class="inline-flex rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 ring-1 ring-amber-300" = t("admin.block")
+        - if @booking.cancelled?
+          = booking_status_badge(@booking)
+      - else
+        = booking_status_badge(@booking)
+        = payment_status_badge(@booking)
+
+  - if @booking.kind_reservation?
+    dl class="mb-2 divide-y divide-slate-100 text-sm"
+      div class="flex justify-between gap-4 py-2"
+        dt class="text-slate-500" = t(".customer")
+        dd class="font-medium" = @booking.customer_name
+      div class="flex justify-between gap-4 py-2"
+        dt class="text-slate-500" = Booking.human_attribute_name(:customer_phone)
+        dd = link_to PhoneNumber.to_local(@booking.customer_phone), "tel:#{@booking.customer_phone}", class: "link tabular-nums"
+      div class="flex justify-between gap-4 py-2"
+        dt class="text-slate-500" = t(".source")
+        dd = t("admin.sources.#{@booking.source}")
+    = render "bookings/details", booking: @booking
+  - else
+    dl class="divide-y divide-slate-100 text-sm"
+      div class="flex justify-between gap-4 py-2"
+        dt class="text-slate-500" = Booking.human_attribute_name(:court)
+        dd class="font-medium" = @booking.court.display_name
+      div class="flex justify-between gap-4 py-2"
+        dt class="text-slate-500" = t("bookings.details.date")
+        dd class="font-medium" = l(@booking.starts_at.to_date, format: :full)
+      div class="flex justify-between gap-4 py-2"
+        dt class="text-slate-500" = t("bookings.details.time")
+        dd class="font-medium tabular-nums" = "#{time_range(@booking.starts_at, @booking.ends_at)} (#{format_duration(@booking.duration_minutes)})"
+
+  - if @booking.note.present?
+    p class="mt-4 rounded-lg bg-slate-50 p-3 text-sm text-slate-700" = @booking.note
+
+  ul class="mt-4 space-y-1 text-xs text-slate-500"
+    li = t(".created", time: l(@booking.created_at, format: :slot), by: @booking.created_by&.full_name || @booking.customer_name)
+    - if @booking.checked_in_at
+      li = t(".checked_in", time: l(@booking.checked_in_at, format: :slot))
+    - if @booking.paid_at
+      li = t(".paid", time: l(@booking.paid_at, format: :slot))
+    - if @booking.cancelled_at
+      li = t(".cancelled", time: l(@booking.cancelled_at, format: :slot), by: @booking.cancelled_by&.full_name)
+
+  div class="mt-6 flex flex-wrap items-center justify-between gap-3"
+    = link_to t(".back"), admin_root_path(date: @booking.starts_at.in_time_zone(@booking.court.venue.zone).to_date.iso8601), class: "btn-secondary"
+    div class="flex flex-wrap gap-2"
+      = render "admin/bookings/actions", booking: @booking

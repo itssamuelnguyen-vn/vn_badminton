@@ -11,10 +11,13 @@ header class="border-b border-slate-200 bg-white"
     div class="sm:order-last"
       = render "layouts/application/locale_switcher"
 
-    div class="flex w-full items-center gap-4 overflow-x-auto text-sm whitespace-nowrap sm:w-auto sm:flex-1 sm:justify-end"
+    / -m-1 p-1: room inside the scroll area for the buttons' rings, which overflow-x-auto would clip.
+    div class="-m-1 flex w-full items-center gap-4 overflow-x-auto p-1 text-sm whitespace-nowrap sm:w-auto sm:flex-1 sm:justify-end"
       = link_to t(".schedule"), root_path, class: "font-medium text-slate-700 hover:text-emerald-700"
       - if user_signed_in?
         = link_to t(".my_bookings"), bookings_path, class: "font-medium text-slate-700 hover:text-emerald-700"
+        - if current_user.manager?
+          = link_to t(".admin"), admin_root_path, class: "font-medium text-slate-700 hover:text-emerald-700"
         / Phones show an account icon instead of the (possibly long) name.
         = link_to edit_user_registration_path, class: "font-medium text-slate-700 hover:text-emerald-700", aria: { label: current_user.full_name } do
           span class="hidden max-w-40 truncate sm:inline" = current_user.full_name

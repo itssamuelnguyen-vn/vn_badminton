@@ -1,0 +1,60 @@
+- rule = price_rule
+
+= form_with model: [ :admin, rule ], class: "space-y-5" do |f|
+  = render "devise/shared/error_messages", resource: rule
+
+  div
+    = f.label :name, class: "form-label"
+    = f.text_field :name, maxlength: 50, required: true, placeholder: t("admin.price_rules.form.name_placeholder"), class: "form-input"
+
+  div
+    = f.label :name_en, class: "form-label"
+    = f.text_field :name_en, maxlength: 50, placeholder: "Evening peak", class: "form-input"
+    p class="form-hint" = t("admin.price_rules.form.name_en_hint")
+
+  div
+    = f.label :court_id, class: "form-label"
+    = f.select :court_id, rule.venue.courts.map { |court| [ court.display_name, court.id ] }, { include_blank: t("admin.price_rules.index.all_courts") }, class: "form-input"
+
+  fieldset
+    legend class="form-label" = PriceRule.human_attribute_name(:days_of_week)
+    div class="flex flex-wrap gap-2"
+      = f.collection_check_boxes :days_of_week, Admin::VenueSettings::WEEK.map { |day| [ day, t("date.abbr_day_names")[day] ] }, :first, :last do |b|
+        = b.label class: "flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 has-checked:bg-emerald-50 has-checked:ring-emerald-500" do
+          = b.check_box class: "accent-emerald-600"
+          = b.text
+
+  div class="grid grid-cols-2 gap-3"
+    div
+      = f.label :start_minute, class: "form-label"
+      = f.select :start_minute, minute_options(0..1410), {}, class: "form-input"
+    div
+      = f.label :end_minute, class: "form-label"
+      = f.select :end_minute, minute_options(30..1440), {}, class: "form-input"
+
+  div class="grid grid-cols-2 gap-3"
+    div
+      = f.label :price_per_hour_vnd, class: "form-label"
+      = f.number_field :price_per_hour_vnd, min: 1000, step: 1000, required: true, class: "form-input"
+      p class="form-hint" = t("admin.price_rules.form.price_hint")
+    div
+      = f.label :priority, class: "form-label"
+      = f.number_field :priority, step: 1, class: "form-input"
+      p class="form-hint" = t("admin.price_rules.form.priority_hint")
+
+  div class="grid grid-cols-2 gap-3"
+    div
+      = f.label :valid_from, class: "form-label"
+      = f.date_field :valid_from, class: "form-input"
+    div
+      = f.label :valid_until, class: "form-label"
+      = f.date_field :valid_until, class: "form-input"
+  p class="form-hint -mt-3" = t("admin.price_rules.form.validity_hint")
+
+  label class="flex items-center gap-2 text-sm"
+    = f.check_box :active, class: "size-4 accent-emerald-600"
+    = t("admin.price_rules.form.active")
+
+  div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"
+    = link_to t("admin.price_rules.form.back"), admin_price_rules_path, class: "btn-secondary"
+    = f.submit t("admin.price_rules.form.submit"), class: "btn-primary"
