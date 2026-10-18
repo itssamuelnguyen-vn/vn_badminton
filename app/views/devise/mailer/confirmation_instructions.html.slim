@@ -5,5 +5,5 @@ p = @resource.pending_reconfirmation? ? t(".reconfirm_instruction", email: @reso
 
 p = link_to t(".action"), confirmation_url(@resource, confirmation_token: @token, locale: (I18n.locale unless I18n.locale == I18n.default_locale))
 
-p = t(".expires", days: 3)
+p = t(".expires", count: 3)
 p = t(".ignore")

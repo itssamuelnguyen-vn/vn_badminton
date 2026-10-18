@@ -190,8 +190,8 @@ en:
         reconfirm_instruction: "You changed your account email to %{email}. Please verify the new address."
         action: Verify my email
         expires:
-          one: "The link is valid for %{days} day."
-          other: "The link is valid for %{days} days."
+          one: "The link is valid for %{count} day."
+          other: "The link is valid for %{count} days."
         ignore: If you did not sign up, you can ignore this email.
     confirmations:
       new:

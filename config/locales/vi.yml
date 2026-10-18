@@ -187,7 +187,7 @@ vi:
         reconfirm_instruction: "Bạn vừa đổi email tài khoản thành %{email}. Vui lòng xác minh địa chỉ mới."
         action: Xác minh email
         expires:
-          other: "Đường dẫn có hiệu lực trong %{days} ngày."
+          other: "Đường dẫn có hiệu lực trong %{count} ngày."
         ignore: Nếu bạn không đăng ký, hãy bỏ qua email này.
     confirmations:
       new:

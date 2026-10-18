@@ -13,6 +13,8 @@ class EmailVerificationTest < ActionDispatch::IntegrationTest
     mail = ActionMailer::Base.deliveries.last
     assert_equal [ "cuong@example.com" ], mail.to
     assert_equal "Verify your VN Badminton email", mail.subject
+    assert_includes mail.body.to_s, "The link is valid for 3 days."
+    assert_no_match(/%\{|\{:?(one|other)/, mail.body.to_s, "no untranslated or unpluralized text")
     link = mail.body.to_s[%r{http://example.com/en/users/confirmation\?confirmation_token=[^"]+}]
     assert link
 
@@ -53,6 +55,19 @@ class EmailVerificationTest < ActionDispatch::IntegrationTest
     assert user.confirmed?, "the account itself stays verified"
     get edit_user_registration_path
     assert_select ".form-hint", text: /Đang chờ xác minh email mới: an.moi@example.com/
+  end
+
+  test "the verification email in Vietnamese" do
+    user = User.new(email: "cuong@example.com", full_name: "Lê Cường", phone: "0987 654 321", password: "password123")
+    user.skip_confirmation_notification!
+    user.save!
+
+    mail = Devise::Mailer.confirmation_instructions(user, "token")
+
+    assert_equal "Xác minh email tài khoản VN Badminton", mail.subject
+    assert_includes mail.body.to_s, "Xin chào Lê Cường,"
+    assert_includes mail.body.to_s, "Đường dẫn có hiệu lực trong 3 ngày."
+    assert_no_match(/%\{|\{:?(one|other)/, mail.body.to_s)
   end
 
   private
