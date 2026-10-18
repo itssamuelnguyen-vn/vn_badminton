@@ -20,6 +20,7 @@ Test là bản mô tả chính xác nhất: nếu tài liệu và test khác nha
 | CS-02 | **10 sân**, lưu tên là số (`1`…`10`), hiển thị "Sân N" / "Court N" theo ngôn ngữ; sân đặt tên khác (vd "VIP") hiển thị nguyên tên. Sân `inactive` không đặt được.  | `app/models/court.rb`, `test/models/court_test.rb`                                        |
 | CS-03 | **Giờ mở cửa theo từng ngày trong tuần** (mặc định 05:00–22:00 mọi ngày); ngày không có giờ mở cửa = ngày nghỉ. Đổi giờ mở cửa **không ảnh hưởng** lượt đã đặt. ⚙️ | `app/models/admin/venue_settings.rb`, `test/integration/admin_test.rb`                    |
 | CS-04 | Thời gian chia theo **khung 30 phút**; mọi giờ bắt đầu/kết thúc phải tròn :00 hoặc :30 (kiểm tra cả ở database).                                                   | `app/models/booking.rb` (`time_range_on_slot_grid`), ràng buộc `bookings_aligned_to_slot` |
+| CS-05 | Nút **"Liên hệ"** góc dưới bên phải các trang của khách (không có ở khu quản lý): **Chat Zalo** (`zalo.me/<số>`), **Chat Messenger** (`m.me/<fanpage>`), **Gọi** số điện thoại của sân. Chủ sân nhập số Zalo và Fanpage trong **Cài đặt**; kênh để trống thì không hiện. Chỉ là link, không nhúng script của Facebook/Zalo. | `app/views/layouts/application/_contact.html.slim`, `test/integration/admin_test.rb`, `test/models/venue_test.rb` |
 
 ## 2. Giá
 

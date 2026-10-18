@@ -33,6 +33,8 @@ vi:
         slug: Đường dẫn
         address: Địa chỉ
         phone: Số điện thoại
+        zalo_phone: Số Zalo
+        facebook_page: Fanpage Facebook
         time_zone: Múi giờ
         min_booking_minutes: Thời lượng đặt tối thiểu
         max_booking_minutes: Thời lượng đặt tối đa
@@ -144,6 +146,11 @@ vi:
         label: Ngôn ngữ
       footer:
         privacy: Chính sách bảo mật
+      contact:
+        label: Liên hệ
+        zalo: Chat Zalo
+        messenger: Chat Messenger
+        phone: "Gọi %{phone}"
       unverified_notice:
         message: "Vui lòng mở email xác minh đã gửi tới %{email} để có thể đặt sân."
         resend: Gửi lại email
@@ -681,6 +688,8 @@ vi:
           other: "Khách tự huỷ %{count} lần trong cùng một ngày sẽ không thể đặt online trong %{days} ngày. Bạn có thể mở khoá sớm trong trang chi tiết lượt đặt."
         bank: Tài khoản nhận tiền
         bank_hint: "Khách chuyển khoản vào tài khoản này (mã VietQR). Tài khoản phải được kết nối với SePay để sân được xác nhận tự động. Mã ngân hàng theo VietQR, ví dụ: MBBank, VCB, TCB, ACB."
+        contact: Kênh liên hệ
+        contact_hint: "Hiện ở nút “Liên hệ” góc dưới các trang của khách, cùng nút gọi theo số điện thoại ở trên. Kênh nào để trống thì không hiện."
       update:
         success: Đã lưu cài đặt.
     users:

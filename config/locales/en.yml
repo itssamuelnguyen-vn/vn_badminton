@@ -33,6 +33,8 @@ en:
         slug: Slug
         address: Address
         phone: Phone number
+        zalo_phone: Zalo number
+        facebook_page: Facebook page
         time_zone: Time zone
         min_booking_minutes: Minimum booking duration
         max_booking_minutes: Maximum booking duration
@@ -145,6 +147,11 @@ en:
         label: Language
       footer:
         privacy: Privacy policy
+      contact:
+        label: Contact
+        zalo: Chat on Zalo
+        messenger: Chat on Messenger
+        phone: "Call %{phone}"
       unverified_notice:
         message: "Please open the verification email sent to %{email} to start booking."
         resend: Resend email
@@ -695,6 +702,8 @@ en:
           other: "A customer who cancels %{count} times in one day cannot book online for %{days} days. You can unlock them early from the booking page."
         bank: Receiving account
         bank_hint: "Customers transfer to this account (VietQR code). It must be connected to SePay for bookings to be confirmed automatically. Bank code as in VietQR, e.g. MBBank, VCB, TCB, ACB."
+        contact: Contact channels
+        contact_hint: "Shown in the “Contact” button at the bottom of customer pages, with a call button for the phone number above. Channels left empty are not shown."
       update:
         success: Settings saved.
     users:

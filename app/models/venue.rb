@@ -6,12 +6,18 @@ class Venue < ApplicationRecord
   has_many :price_rules, dependent: :restrict_with_error
   has_many :bookings, through: :courts
 
-  normalizes :phone, with: ->(phone) { PhoneNumber.normalize(phone) }
+  normalizes :phone, :zalo_phone, with: ->(phone) { PhoneNumber.normalize(phone) }
+  # The page's username or id, also when its whole address is pasted (facebook.com/..., m.me/...).
+  normalizes :facebook_page, with: ->(page) {
+    page = page.strip.sub(%r{\A(https?://)?(www\.|m\.|web\.)?(facebook\.com|fb\.com|m\.me)/}i, "").delete_suffix("/")
+    (page[/\Aprofile\.php\?id=(\d+)/, 1] || page).presence
+  }
   normalizes :slug, with: ->(slug) { slug.strip.downcase }
 
   validates :name, :address, presence: true
   validates :slug, presence: true, uniqueness: true, format: { with: /\A[a-z0-9]+(-[a-z0-9]+)*\z/ }
-  validates :phone, format: { with: PhoneNumber::FORMAT }, allow_nil: true
+  validates :phone, :zalo_phone, format: { with: PhoneNumber::FORMAT }, allow_nil: true
+  validates :facebook_page, format: { with: /\A[A-Za-z0-9.\-]{2,100}\z/ }, allow_nil: true
   # Use the full IANA list: Rails' short list does not include "Asia/Ho_Chi_Minh".
   validates :time_zone, inclusion: { in: TZInfo::Timezone.all_identifiers }
   validates :min_booking_minutes, numericality: { only_integer: true, greater_than_or_equal_to: 30 }
@@ -34,6 +40,15 @@ class Venue < ApplicationRecord
   # Online payment by bank transfer needs the account customers transfer to.
   def payments_enabled?
     bank_code.present? && bank_account_number.present?
+  end
+
+  # Links of the "Liên hệ" button (layouts/application/_contact), for the channels the owner filled in.
+  def contact_links
+    {
+      zalo: ("https://zalo.me/#{PhoneNumber.local_digits(zalo_phone)}" if zalo_phone),
+      messenger: ("https://m.me/#{facebook_page}" if facebook_page),
+      phone: ("tel:#{phone}" if phone)
+    }.compact
   end
 
   def zone

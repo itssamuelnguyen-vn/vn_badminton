@@ -309,6 +309,28 @@ class AdminTest < ActionDispatch::IntegrationTest
     assert_equal 6, venue.opening_hours.count
   end
 
+  test "contact channels set in the settings show in the customer pages' Contact button, not in the admin area" do
+    get root_path
+    assert_select "details summary", text: "Liên hệ", count: 0
+
+    venue = venues(:phu_nhuan)
+    patch admin_settings_path, params: { settings: { name: venue.name, address: venue.address, phone: "0283 123 456",
+                                                     zalo_phone: "0901 234 567", facebook_page: "https://www.facebook.com/vnbadminton",
+                                                     min_booking_minutes: 60, max_booking_minutes: 240,
+                                                     cancellation_cutoff_hours: 2, booking_horizon_days: 14 } }
+    assert_redirected_to edit_admin_settings_path
+    assert_equal [ "+84901234567", "vnbadminton" ], venue.reload.then { |v| [ v.zalo_phone, v.facebook_page ] }
+
+    get root_path
+    assert_select "details summary", text: "Liên hệ"
+    assert_select "a[href='https://zalo.me/0901234567'][target=_blank]", text: /Chat Zalo/
+    assert_select "a[href='https://m.me/vnbadminton']", text: "Chat Messenger"
+    assert_select "a[href='tel:+84283123456']", text: "Gọi 0283 123 456"
+
+    get admin_root_path
+    assert_select "details summary", text: "Liên hệ", count: 0
+  end
+
   test "invalid settings change nothing" do
     hours = (0..6).to_h { |day| [ day.to_s, { open: "0" } ] }
     hours["1"] = { open: "1", opens_minute: "1200", closes_minute: "600" }

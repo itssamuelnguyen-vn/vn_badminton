@@ -321,6 +321,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000012) do
     t.string "bank_code"
     t.string "bank_account_number"
     t.string "bank_account_name"
+    t.string "zalo_phone"
+    t.string "facebook_page"
     t.index ["slug"], name: "index_venues_on_slug", unique: true
     t.check_constraint "booking_horizon_days >= 1 AND booking_horizon_days <= 365", name: "venues_booking_horizon_valid"
     t.check_constraint "cancellation_cutoff_hours >= 0 AND cancellation_cutoff_hours <= 168", name: "venues_cancellation_cutoff_valid"
