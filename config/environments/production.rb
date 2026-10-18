@@ -15,6 +15,11 @@ Rails.application.configure do
   # Turn on fragment caching in view templates.
   config.action_controller.perform_caching = true
 
+  # A production-mode run on a developer machine (the tunnel test) builds its assets under another prefix,
+  # e.g. ASSETS_PREFIX=/tunnel-assets: assets precompiled into public/assets would be used by development
+  # and test instead of the live files.
+  config.assets.prefix = ENV["ASSETS_PREFIX"] if ENV["ASSETS_PREFIX"].present?
+
   # Cache assets for far-future expiry since they are all digest stamped.
   config.public_file_server.headers = { "cache-control" => "public, max-age=#{1.year.to_i}" }
 
