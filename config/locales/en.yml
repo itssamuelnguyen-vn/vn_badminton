@@ -109,8 +109,15 @@ en:
         sign_in: Sign in
         sign_up: Sign up
         sign_out: Sign out
+        admin: Manage
       locale_switcher:
         label: Language
+    admin:
+      nav:
+        label: Management
+        board: Day board
+        price_rules: Price rules
+        settings: Settings
 
 
   devise:
@@ -273,3 +280,136 @@ en:
         other: "Your bookings for %{count} courts are confirmed:"
       view_bookings: View my bookings
       cancel_policy: "You can cancel online up to %{hours} hours before the start time."
+
+  admin:
+    not_authorized: You are not allowed to open the management pages.
+    block: Blocked
+    payment_statuses:
+      unpaid: Unpaid
+      paid: Paid
+      refunded: Refunded
+    sources:
+      online: Online
+      phone: By phone
+      walk_in: Walk-in
+      staff: Owner
+    boards:
+      show:
+        title: Day board
+        new_booking: Book for a customer
+        new_block: Block a court
+        closed: The venue is closed on this day and has no bookings.
+        closed_with_bookings: The venue is closed on this day but has bookings or blocks.
+        stats:
+          bookings: Bookings
+          checked_in: Checked in
+          expected: Expected revenue
+          collected: Collected
+      date_nav:
+        label: Pick a day
+        previous_day: Previous day
+        next_day: Next day
+        go: Show
+        today: Today
+      grid:
+        label: "Courts on %{date}"
+        book_slot: "Book %{court} at %{time}"
+      list:
+        title: Bookings of the day
+        empty: No bookings on this day yet.
+        cancelled:
+          one: "%{count} cancelled booking"
+          other: "%{count} cancelled bookings"
+    bookings:
+      not_allowed: This action is not possible for this booking.
+      actions:
+        check_in: Check in
+        no_show: No-show
+        no_show_confirm: Mark the customer as a no-show?
+        mark_paid: "Collected %{amount}"
+        mark_paid_confirm: "Confirm you collected %{amount}?"
+        cancel:
+          reservation: Cancel
+          block: Unblock
+        cancel_confirm:
+          reservation: Cancel this booking? The customer is not notified automatically.
+          block: Remove this block?
+      show:
+        title: "Booking %{code}"
+        customer: Customer
+        source: Booked
+        created: "Created at %{time} by %{by}"
+        checked_in: "Checked in at %{time}"
+        paid: "Paid at %{time}"
+        cancelled: "Cancelled at %{time} by %{by}"
+        back: Back to the day board
+      new:
+        title: Book or block a court
+        kind: Type
+        kinds:
+          reservation: Book for a customer
+          block: Block the court
+        source: Booked
+        phone_hint: If this number matches a customer account, the booking also shows in that account.
+        note_placeholder:
+          reservation: "E.g. regular customer, needs a racket"
+          block: "E.g. floor maintenance, tournament"
+        price_hint: The price comes from the price rules. Bookings made here have no duration or booking-horizon limits.
+        back: Back
+        submit: Save
+      create:
+        success:
+          reservation: "%{court} booked for the customer."
+          block: "%{court} blocked."
+      check_in:
+        success: Checked in.
+      no_show:
+        success: Marked as a no-show.
+      mark_paid:
+        success: Payment recorded.
+      cancel:
+        success:
+          reservation: Booking cancelled.
+          block: Block removed.
+    price_rules:
+      index:
+        title: Price rules
+        explanation: "Each 30-minute slot takes the price of the matching rule: court-specific rules win over venue-wide ones, then the rule with the higher priority. Existing bookings keep their price."
+        new: Add a price rule
+        when: Applies
+        all_courts: All courts
+        inactive: paused
+        edit: Edit
+        empty: No price rules yet. Customers can only book times that have a price.
+      form:
+        name_placeholder: "E.g. Evening peak"
+        price_hint: A multiple of 1,000 VND.
+        priority_hint: A higher number wins when rules overlap.
+        validity_hint: Leave empty for no end date.
+        active: Active
+        back: Back
+        submit: Save
+      new:
+        title: Add a price rule
+      edit:
+        title: Edit price rule
+        destroy: Delete price rule
+        destroy_confirm: Delete this price rule?
+        destroy_hint: Existing bookings keep their price. To pause the rule instead, untick "Active".
+      create:
+        success: Price rule added.
+      update:
+        success: Price rule saved.
+      destroy:
+        success: Price rule deleted.
+    settings:
+      edit:
+        title: Settings
+        venue: Venue details
+        policy: Online booking rules
+        policy_hint: These only apply to customers booking online; bookings made by the owner have no limits.
+        opening_hours: Opening hours
+        opening_hours_hint: Untick closed days. Changes do not affect existing bookings.
+        submit: Save settings
+      update:
+        success: Settings saved.

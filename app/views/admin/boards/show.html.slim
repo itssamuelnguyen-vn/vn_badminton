@@ -1,0 +1,33 @@
+- content_for :title, t(".title")
+- board = @board
+
+div class="mb-4 flex flex-wrap items-end justify-between gap-4"
+  div
+    h1 class="text-2xl font-bold sm:text-3xl" = t(".title")
+    p class="mt-1 text-sm text-slate-600"
+      = l(@date, format: :full)
+      - if @date == board.venue.today
+        span class="ml-1 font-medium text-emerald-700" = "(#{t("schedules.date_picker.today")})"
+  div class="flex flex-wrap gap-2"
+    = link_to t(".new_booking"), new_admin_booking_path(date: @date.iso8601), class: "btn-primary"
+    = link_to t(".new_block"), new_admin_booking_path(date: @date.iso8601, kind: "block"), class: "btn-secondary"
+
+= render "admin/boards/date_nav", date: @date, today: board.venue.today
+
+dl class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4"
+  - [ [ t(".stats.bookings"), board.reservations.size ],
+      [ t(".stats.checked_in"), board.reservations.count { |b| b.checked_in? || b.completed? } ],
+      [ t(".stats.expected"), format_vnd(board.expected_vnd) ],
+      [ t(".stats.collected"), format_vnd(board.collected_vnd) ] ].each do |label, value|
+    div class="rounded-xl bg-white px-4 py-3 ring-1 ring-slate-200"
+      dt class="text-xs text-slate-500" = label
+      dd class="mt-1 text-lg font-semibold tabular-nums" = value
+
+- if board.times.any?
+  - unless board.open?
+    p class="mb-3 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200" role="status" = t(".closed_with_bookings")
+  = render "admin/boards/grid", board: board
+- else
+  div class="card text-center text-slate-600" = t(".closed")
+
+= render "admin/boards/list", board: board

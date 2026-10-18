@@ -7,6 +7,21 @@ Rails.application.routes.draw do
       patch :cancel, on: :member
     end
 
+    # The owner's area. /admin is the day board; ?date=YYYY-MM-DD picks the day.
+    namespace :admin do
+      root "boards#show"
+      resources :bookings, only: %i[show new create], param: :code do
+        member do
+          patch :check_in
+          patch :no_show
+          patch :mark_paid
+          patch :cancel
+        end
+      end
+      resources :price_rules, except: :show
+      resource :settings, only: %i[edit update]
+    end
+
     # The home page is the booking schedule; ?date=YYYY-MM-DD picks the day.
     root "schedules#show"
   end

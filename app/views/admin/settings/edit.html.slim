@@ -1,0 +1,65 @@
+- content_for :title, t(".title")
+- venue = @settings.venue
+
+div class="card mx-auto max-w-2xl"
+  h1 class="mb-6 text-2xl font-bold" = t(".title")
+
+  = form_with scope: :settings, url: admin_settings_path, method: :patch, class: "space-y-8" do |f|
+    - if @settings.errors?
+      div#error_explanation role="alert" class="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-200"
+        ul class="list-disc space-y-1 pl-5"
+          - venue.errors.full_messages.each do |message|
+            li = message
+          - @settings.opening_hours.each do |opening_hour|
+            - opening_hour.errors.full_messages.each do |message|
+              li = "#{t("date.day_names")[opening_hour.day_of_week]}: #{message}"
+
+    section class="space-y-4"
+      h2 class="text-lg font-semibold" = t(".venue")
+      div
+        = f.label :name, Venue.human_attribute_name(:name), class: "form-label"
+        = f.text_field :name, value: venue.name, required: true, class: "form-input"
+      div
+        = f.label :address, Venue.human_attribute_name(:address), class: "form-label"
+        = f.text_field :address, value: venue.address, required: true, class: "form-input"
+      div
+        = f.label :phone, Venue.human_attribute_name(:phone), class: "form-label"
+        = f.telephone_field :phone, value: PhoneNumber.to_local(venue.phone), placeholder: "0901 234 567", class: "form-input"
+
+    section class="space-y-4"
+      h2 class="text-lg font-semibold" = t(".policy")
+      div class="grid gap-4 sm:grid-cols-2"
+        div
+          = f.label :min_booking_minutes, Venue.human_attribute_name(:min_booking_minutes), class: "form-label"
+          = f.select :min_booking_minutes, (30..720).step(30).map { |m| [ format_duration(m), m ] }, { selected: venue.min_booking_minutes }, class: "form-input"
+        div
+          = f.label :max_booking_minutes, Venue.human_attribute_name(:max_booking_minutes), class: "form-label"
+          = f.select :max_booking_minutes, (30..720).step(30).map { |m| [ format_duration(m), m ] }, { selected: venue.max_booking_minutes }, class: "form-input"
+        div
+          = f.label :cancellation_cutoff_hours, Venue.human_attribute_name(:cancellation_cutoff_hours), class: "form-label"
+          = f.number_field :cancellation_cutoff_hours, value: venue.cancellation_cutoff_hours, min: 0, max: 168, required: true, class: "form-input"
+        div
+          = f.label :booking_horizon_days, Venue.human_attribute_name(:booking_horizon_days), class: "form-label"
+          = f.number_field :booking_horizon_days, value: venue.booking_horizon_days, min: 1, max: 365, required: true, class: "form-input"
+      p class="form-hint" = t(".policy_hint")
+
+    section
+      h2 class="mb-1 text-lg font-semibold" = t(".opening_hours")
+      p class="form-hint mb-3" = t(".opening_hours_hint")
+      div class="divide-y divide-slate-100 rounded-lg ring-1 ring-slate-200"
+        - @settings.opening_hours.each do |opening_hour|
+          - day = opening_hour.day_of_week
+          - name = "settings[opening_hours][#{day}]"
+          div class="flex flex-wrap items-center gap-3 px-3 py-2"
+            label class="flex w-32 cursor-pointer items-center gap-2 text-sm font-medium"
+              = hidden_field_tag "#{name}[open]", "0", id: nil
+              = check_box_tag "#{name}[open]", "1", @settings.open?(day), class: "size-4 accent-emerald-600", id: "opening_hours_#{day}_open"
+              = t("date.day_names")[day]
+            = select_tag "#{name}[opens_minute]", options_for_select(minute_options(0..1410), opening_hour.opens_minute),
+                class: "form-input w-auto py-1.5", aria: { label: "#{t("date.day_names")[day]} – #{OpeningHour.human_attribute_name(:opens_minute)}" }
+            span class="text-slate-400" = "–"
+            = select_tag "#{name}[closes_minute]", options_for_select(minute_options(30..1440), opening_hour.closes_minute),
+                class: "form-input w-auto py-1.5", aria: { label: "#{t("date.day_names")[day]} – #{OpeningHour.human_attribute_name(:closes_minute)}" }
+
+    div class="flex justify-end"
+      = f.submit t(".submit"), class: "btn-primary"

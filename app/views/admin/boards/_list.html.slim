@@ -1,0 +1,28 @@
+section aria-labelledby="day-list-title"
+  h2#day-list-title class="mb-3 text-lg font-semibold" = t(".title")
+  - if board.active_bookings.any?
+    div class="divide-y divide-slate-100 rounded-xl bg-white ring-1 ring-slate-200"
+      - board.active_bookings.each do |booking|
+        div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
+          = link_to admin_booking_path(booking), class: "min-w-0 hover:text-emerald-700" do
+            p class="font-semibold"
+              = "#{time_range(booking.starts_at, booking.ends_at)} · #{booking.court.name}"
+            p class="truncate text-sm text-slate-600"
+              = booking_title(booking)
+              - if booking.kind_reservation?
+                = " · #{PhoneNumber.to_local(booking.customer_phone)} · #{format_vnd(booking.total_amount_vnd)}"
+          div class="flex flex-wrap items-center gap-2"
+            - if booking.kind_reservation?
+              = booking_status_badge(booking)
+              = payment_status_badge(booking)
+            = render "admin/bookings/actions", booking: booking, compact: true
+  - else
+    p class="card text-center text-sm text-slate-600" = t(".empty")
+
+  - if board.cancelled_bookings.any?
+    details class="mt-4 text-sm"
+      summary class="cursor-pointer text-slate-600" = t(".cancelled", count: board.cancelled_bookings.size)
+      ul class="mt-2 space-y-1 text-slate-500"
+        - board.cancelled_bookings.each do |booking|
+          li
+            = link_to "#{time_range(booking.starts_at, booking.ends_at)} · #{booking.court.name} · #{booking_title(booking)}", admin_booking_path(booking), class: "hover:text-emerald-700"

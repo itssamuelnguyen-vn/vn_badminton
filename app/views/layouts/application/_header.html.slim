@@ -15,6 +15,8 @@ header class="border-b border-slate-200 bg-white"
       = link_to t(".schedule"), root_path, class: "font-medium text-slate-700 hover:text-emerald-700"
       - if user_signed_in?
         = link_to t(".my_bookings"), bookings_path, class: "font-medium text-slate-700 hover:text-emerald-700"
+        - if current_user.manager?
+          = link_to t(".admin"), admin_root_path, class: "font-medium text-slate-700 hover:text-emerald-700"
         / Phones show an account icon instead of the (possibly long) name.
         = link_to edit_user_registration_path, class: "font-medium text-slate-700 hover:text-emerald-700", aria: { label: current_user.full_name } do
           span class="hidden max-w-40 truncate sm:inline" = current_user.full_name

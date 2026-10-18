@@ -1,0 +1,8 @@
+- tabs = [ [ t(".board"), admin_root_path, controller_name.in?(%w[boards bookings]) ],
+           [ t(".price_rules"), admin_price_rules_path, controller_name == "price_rules" ],
+           [ t(".settings"), edit_admin_settings_path, controller_name == "settings" ] ]
+
+nav class="mb-6 flex gap-1 overflow-x-auto border-b border-slate-200 text-sm whitespace-nowrap" aria-label=t(".label")
+  - tabs.each do |label, path, current|
+    = link_to label, path, aria: { current: ("page" if current) },
+        class: [ "-mb-px border-b-2 px-3 py-2 font-medium", current ? "border-emerald-600 text-emerald-700" : "border-transparent text-slate-600 hover:text-emerald-700" ]
