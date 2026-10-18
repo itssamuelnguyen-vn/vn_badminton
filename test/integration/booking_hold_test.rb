@@ -21,6 +21,27 @@ class BookingHoldTest < ActionDispatch::IntegrationTest
     assert_select "a[href='/bookings/#{hold.code}']", count: 0, message: "a hold is not a booking yet"
   end
 
+  test "the owner and staff see who is holding slots, with their phone number; customers do not" do
+    sign_in users(:an)
+    get new_booking_path(slots: @slots)
+    hold = Booking.pending.sole
+
+    sign_in users(:staffer)
+    get root_path(date: "2026-10-20")
+    assert_select "h2", text: "Khách đang giữ chỗ (1)"
+    assert_select "a[href='/admin/bookings/#{hold.code}']", text: "18:00 – 19:00 · Sân 1"
+    assert_select "a[href='tel:+84901234567']", text: "0901 234 567"
+    assert_select "p", text: "Đang xác nhận · giữ đến 10:03"
+
+    get root_path(date: "2026-10-21")
+    assert_select "h2", text: "Khách đang giữ chỗ (0)"
+
+    sign_in users(:chi)
+    get root_path(date: "2026-10-20")
+    assert_select "h2", text: /Khách đang giữ chỗ/, count: 0
+    assert_select "a[href^='tel:']", count: 0
+  end
+
   test "other customers see held slots as taken and cannot hold them" do
     sign_in users(:an)
     get new_booking_path(slots: @slots)

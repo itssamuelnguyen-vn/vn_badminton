@@ -5,9 +5,16 @@ class SchedulesController < ApplicationController
     @rescheduling = rescheduling
     @day = Schedule::Day.new(venue: @venue, date: @date, user: current_user, ignore: @rescheduling)
     @calendar = Schedule::Calendar.new(venue: @venue, selected: @date)
+    @holds = holds if current_user&.manager?
   end
 
   private
+
+  # The slots of the day held right now by customers who have not finished booking.
+  def holds
+    Booking.holding_slot.pending.kind_reservation.where(court: @venue.courts).on_local_date(@date, @venue.zone)
+           .includes(:court).order(:starts_at, :court_id)
+  end
 
   # ?reschedule=CODE: the customer is moving that booking (see BookingsController#review_reschedule).
   def rescheduling

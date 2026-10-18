@@ -279,6 +279,12 @@ vi:
         blocked: Bảo trì
         unavailable: Không thể đặt
         held: Đang giữ
+    holds:
+      title: "Khách đang giữ chỗ (%{count})"
+      staff_only: Chỉ chủ sân và nhân viên thấy mục này.
+      confirming: "Đang xác nhận · giữ đến %{time}"
+      awaiting_transfer: "Chờ chuyển khoản · giữ đến %{time}"
+      none: Không có ai đang giữ chỗ trong ngày này.
     price_list:
       title: Bảng giá
       name: Khung giá
