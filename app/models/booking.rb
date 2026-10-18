@@ -5,6 +5,8 @@ class Booking < ApplicationRecord
   CUSTOMER_CANCELLABLE_STATUSES = %w[pending confirmed].freeze
   REMINDER_LEAD_TIME = 3.hours
   CODE_CHARS = [ *"A".."Z", *"0".."9" ] - %w[O 0 I 1] # drop characters that are easy to confuse over the phone
+  # First key of the Postgres advisory locks taken per court (the second key is the court id).
+  COURT_LOCK_NAMESPACE = 1_001
 
   enum :kind, { reservation: "reservation", block: "block" }, prefix: true, default: :reservation, validate: true
   enum :status, {
@@ -58,13 +60,27 @@ class Booking < ApplicationRecord
   validate :within_customer_policy, if: -> { kind_reservation? && source_online? && schedule_changed? }
   validate :slot_free, if: -> { schedule_changed? && holds_slot? }
 
+  # Makes bookings on the same courts wait for each other until the end of the current transaction.
+  # Without it, two requests inserting the same slot at the same moment each wait for the other while
+  # checking the exclusion constraint, and Postgres aborts one with a deadlock. With it, the second
+  # request runs after the first commits and gets the friendly slot_taken error from slot_free.
+  # Courts are locked in id order so that bookings on several courts cannot deadlock each other.
+  def self.lock_courts!(court_ids)
+    court_ids.compact.map(&:to_i).uniq.sort.each do |court_id|
+      connection.execute("SELECT pg_advisory_xact_lock(#{COURT_LOCK_NAMESPACE}, #{court_id})")
+    end
+  end
+
   # Use instead of #save when creating or rescheduling a booking.
-  # The slot_free validation is only a "soft" check that produces a friendly error; when two
-  # requests arrive at the same time, the exclusion constraint in the DB is the final guard.
+  # The court lock makes the slot_free validation reliable; the exclusion constraint in the DB stays the
+  # final guard (e.g. against code that skips the lock), and a deadlock is reported the same way.
   # The savepoint (requires_new) keeps any outer transaction usable after the error.
   def reserve
-    self.class.transaction(requires_new: true) { save }
-  rescue ActiveRecord::ExclusionViolation
+    self.class.transaction(requires_new: true) do
+      self.class.lock_courts!([ court_id ])
+      save
+    end
+  rescue ActiveRecord::ExclusionViolation, ActiveRecord::Deadlocked
     errors.add(:base, :slot_just_taken)
     false
   end

@@ -309,6 +309,7 @@ en:
       past: Past and cancelled
     lock_notice: "Your account cannot book online until %{until} because of several cancellations in one day. Please call the venue if you need help."
     unverified: Please verify your email before booking. We sent a verification link to your email.
+    changed_meanwhile: This booking was just updated elsewhere. Please check its status and try again.
 
   booking_batch:
     errors:

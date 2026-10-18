@@ -46,6 +46,9 @@ class BookingsController < ApplicationController
     redirect_to bookings_path, notice: t(".success")
   rescue ArgumentError
     redirect_to booking_path(@booking), alert: t(".not_allowed")
+  # The venue changed the booking at the same moment (lock_version), e.g. checked it in.
+  rescue ActiveRecord::StaleObjectError
+    redirect_to booking_path(@booking), alert: t("bookings.changed_meanwhile")
   end
 
   private

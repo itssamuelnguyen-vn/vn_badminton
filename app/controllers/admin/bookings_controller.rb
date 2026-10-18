@@ -44,6 +44,8 @@ module Admin
       redirect_back_or_to admin_booking_path(@booking), notice: t(".success.#{@booking.kind}")
     rescue ArgumentError
       redirect_back_or_to admin_booking_path(@booking), alert: t("admin.bookings.not_allowed")
+    rescue ActiveRecord::StaleObjectError
+      redirect_back_or_to admin_booking_path(@booking), alert: t("bookings.changed_meanwhile")
     end
 
     private
@@ -57,6 +59,9 @@ module Admin
       redirect_back_or_to admin_booking_path(@booking), notice: t(".success")
     rescue ArgumentError, ActiveRecord::RecordInvalid
       redirect_back_or_to admin_booking_path(@booking), alert: t("admin.bookings.not_allowed")
+    # The booking changed since it was loaded (lock_version), e.g. the customer cancelled during the check-in.
+    rescue ActiveRecord::StaleObjectError
+      redirect_back_or_to admin_booking_path(@booking), alert: t("bookings.changed_meanwhile")
     end
   end
 end
