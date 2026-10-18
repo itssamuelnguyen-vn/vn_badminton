@@ -65,6 +65,7 @@ class BookingTest < ApplicationSystemTestCase
     click_on "Tiếp tục"
     click_on "Xác nhận & chuyển khoản"
 
+    assert_selector "h1", text: "Chuyển khoản" # wait for the payment page (420.000đ is also on the confirmation page)
     assert_text "420.000đ" # one transfer for both courts
     pay(Payment.last)
     assert_selector "h1", text: "Đã nhận được tiền"
