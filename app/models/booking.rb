@@ -24,6 +24,8 @@ class Booking < ApplicationRecord
   belongs_to :user, optional: true
   belongs_to :created_by, class_name: "User", optional: true
   belongs_to :cancelled_by, class_name: "User", optional: true
+  belongs_to :series, class_name: "BookingSeries", optional: true, inverse_of: :bookings
+  belongs_to :series_refund_period, class_name: "BookingSeriesPeriod", optional: true
   has_one :venue, through: :court
 
   # Expired holds no longer count, even before they are deleted (see release_expired_holds!).
@@ -139,13 +141,20 @@ class Booking < ApplicationRecord
 
   # Customers move their own booking online until the cancellation cutoff, while it is unpaid
   # (a paid booking's price could change) and unless they are blacklisted.
+  # Sessions of a regular customer's series are moved by the venue.
   def reschedulable_by_customer?(now = Time.current)
-    confirmed? && cancellable_by_customer?(now) && payment_unpaid? && !CustomerProfile.blocked?(customer_phone)
+    series_id.nil? && confirmed? && cancellable_by_customer?(now) && payment_unpaid? && !CustomerProfile.blocked?(customer_phone)
   end
 
   # URLs use the customer-facing code (/bookings/K7Q2M9XA) instead of the sequential id.
   def to_param
     code
+  end
+
+  # Recalculates the price (e.g. after a series' agreed price changed).
+  def reprice!
+    apply_price
+    save!
   end
 
   def holds_slot?(now = Time.current)
@@ -169,8 +178,10 @@ class Booking < ApplicationRecord
       raise ArgumentError, "Cancellation cutoff has passed"
     end
 
+    reason ||= BookingSeries::SKIPPED if series_id # a regular customer's session: "I won't come this time"
     update!(status: :cancelled, cancelled_at: now, cancelled_by: by, cancellation_reason: reason)
-    user.lock_booking_if_cancelling_too_often(court.venue, now) if user && by == user
+    # Skipping a regular session is agreed with the venue, so it does not count towards the lock.
+    user.lock_booking_if_cancelling_too_often(court.venue, now) if user && by == user && series_id.nil?
   end
 
   def check_in!(now: Time.current)
@@ -257,6 +268,13 @@ class Booking < ApplicationRecord
   def apply_price
     @missing_price_at = nil
     return unless ends_at > starts_at
+
+    if (rate = series&.price_per_hour_vnd) # a price agreed with the regular customer
+      self.total_amount_vnd = rate * duration_minutes / 60
+      self.price_breakdown = [ { "from" => starts_at.iso8601, "to" => ends_at.iso8601, "price_per_hour_vnd" => rate,
+                                 "amount_vnd" => total_amount_vnd, "series_id" => series.id } ]
+      return
+    end
 
     quote = Pricing::Quote.new(court: court, starts_at: starts_at, ends_at: ends_at).call
     self.total_amount_vnd = quote.total_vnd

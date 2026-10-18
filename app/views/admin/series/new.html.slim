@@ -1,0 +1,12 @@
+- content_for :title, t(".title")
+
+div class="card mx-auto max-w-2xl"
+  h1 class="mb-2 text-2xl font-bold" = t(".title")
+  p class="mb-6 text-sm text-slate-600" = t(".explanation")
+
+  = form_with model: @series, url: preview_admin_series_index_path, method: :post, class: "space-y-5" do |f|
+    = render "devise/shared/error_messages", resource: @series
+    = render "admin/series/form", f: f, series: @series
+    div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"
+      = link_to t("admin.bookings.new.back"), admin_series_index_path, class: "btn-secondary"
+      = f.submit t(".submit"), class: "btn-primary"

@@ -25,6 +25,10 @@ div class="card mx-auto max-w-lg"
       div class="flex justify-between gap-4 py-2"
         dt class="text-slate-500" = t(".source")
         dd = t("admin.sources.#{@booking.source}")
+      - if @booking.series
+        div class="flex justify-between gap-4 py-2"
+          dt class="text-slate-500" = t(".series")
+          dd = link_to t(".series_link"), admin_series_path(@booking.series), class: "link"
     = render "bookings/details", booking: @booking
   - else
     dl class="divide-y divide-slate-100 text-sm"

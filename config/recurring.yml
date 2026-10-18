@@ -15,16 +15,24 @@ booking_reminders: &booking_reminders
   schedule: every 10 minutes
 
 # Expired holds stop counting as soon as they expire; this only deletes the leftover rows.
+# Refunds of skipped regular sessions are decided once they are over.
+series_refunds: &series_refunds
+  class: SeriesRefundJob
+  queue: default
+  schedule: every 15 minutes
+
 release_expired_holds: &release_expired_holds
   command: "Booking.release_expired_holds!"
   schedule: every 15 minutes
 
 development:
   booking_reminders: *booking_reminders
+  series_refunds: *series_refunds
   release_expired_holds: *release_expired_holds
 
 production:
   booking_reminders: *booking_reminders
+  series_refunds: *series_refunds
   release_expired_holds: *release_expired_holds
   clear_solid_queue_finished_jobs:
     command: "SolidQueue::Job.clear_finished_in_batches(sleep_between_batches: 0.3)"

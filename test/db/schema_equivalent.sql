@@ -135,6 +135,49 @@ CREATE TABLE customer_profiles (
 CREATE UNIQUE INDEX index_customer_profiles_on_phone ON customer_profiles (phone);
 CREATE INDEX index_customer_profiles_on_blocked_by_id ON customer_profiles (blocked_by_id);
 
+CREATE TABLE booking_series (
+  id bigserial PRIMARY KEY,
+  customer_name varchar NOT NULL,
+  customer_phone varchar NOT NULL,
+  user_id bigint REFERENCES users(id),
+  created_by_id bigint NOT NULL REFERENCES users(id),
+  court_ids bigint[] NOT NULL,
+  days_of_week smallint[] NOT NULL,
+  start_minute integer NOT NULL,
+  end_minute integer NOT NULL,
+  starts_on date NOT NULL,
+  ends_on date NOT NULL,
+  price_per_hour_vnd bigint,
+  note text,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT booking_series_customer_name_present CHECK (length(btrim(customer_name)) > 0),
+  CONSTRAINT booking_series_customer_phone_format CHECK (customer_phone ~ '^\+84[0-9]{9}$'),
+  CONSTRAINT booking_series_courts_present CHECK (cardinality(court_ids) >= 1),
+  CONSTRAINT booking_series_days_valid CHECK (cardinality(days_of_week) BETWEEN 1 AND 7 AND days_of_week <@ ARRAY[0,1,2,3,4,5,6]::smallint[]),
+  CONSTRAINT booking_series_time_range_valid CHECK (start_minute >= 0 AND end_minute <= 1440 AND end_minute > start_minute AND start_minute % 30 = 0 AND end_minute % 30 = 0),
+  CONSTRAINT booking_series_date_range_valid CHECK (ends_on >= starts_on),
+  CONSTRAINT booking_series_price_valid CHECK (price_per_hour_vnd IS NULL OR (price_per_hour_vnd > 0 AND price_per_hour_vnd % 1000 = 0))
+);
+CREATE INDEX index_booking_series_on_user_id ON booking_series (user_id);
+CREATE INDEX index_booking_series_on_created_by_id ON booking_series (created_by_id);
+
+CREATE TABLE booking_series_periods (
+  id bigserial PRIMARY KEY,
+  series_id bigint NOT NULL REFERENCES booking_series(id),
+  month date NOT NULL,
+  amount_vnd bigint NOT NULL,
+  credit_vnd bigint NOT NULL DEFAULT 0,
+  paid_at timestamptz NOT NULL,
+  paid_by_id bigint NOT NULL REFERENCES users(id),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT booking_series_periods_month_start CHECK (extract(day from month) = 1),
+  CONSTRAINT booking_series_periods_amounts_valid CHECK (amount_vnd >= 0 AND credit_vnd >= 0 AND credit_vnd <= amount_vnd)
+);
+CREATE UNIQUE INDEX index_booking_series_periods_on_series_id_and_month ON booking_series_periods (series_id, month);
+CREATE INDEX index_booking_series_periods_on_paid_by_id ON booking_series_periods (paid_by_id);
+
 CREATE TABLE bookings (
   id bigserial PRIMARY KEY,
   court_id bigint NOT NULL REFERENCES courts(id),
@@ -157,6 +200,9 @@ CREATE TABLE bookings (
   checked_in_at timestamptz,
   cancelled_at timestamptz,
   reminder_sent_at timestamptz,
+  series_id bigint REFERENCES booking_series(id),
+  series_refund_vnd bigint,
+  series_refund_period_id bigint REFERENCES booking_series_periods(id),
   cancellation_reason varchar,
   note text,
   lock_version integer NOT NULL DEFAULT 0,
@@ -165,6 +211,8 @@ CREATE TABLE bookings (
   CONSTRAINT bookings_no_overlap EXCLUDE USING gist (court_id WITH =, tstzrange(starts_at, ends_at, '[)') WITH &&)
     WHERE (status IN ('pending', 'confirmed', 'checked_in', 'completed', 'no_show')),
   CONSTRAINT bookings_kind_valid CHECK (kind IN ('reservation', 'block')),
+  CONSTRAINT bookings_series_reservations_only CHECK (series_id IS NULL OR kind = 'reservation'),
+  CONSTRAINT bookings_series_refund_valid CHECK (series_refund_vnd IS NULL OR (series_refund_vnd >= 0 AND series_id IS NOT NULL)),
   CONSTRAINT bookings_status_valid CHECK (status IN ('pending', 'confirmed', 'checked_in', 'completed', 'cancelled', 'no_show')),
   CONSTRAINT bookings_source_valid CHECK (source IN ('online', 'phone', 'walk_in', 'staff')),
   CONSTRAINT bookings_payment_status_valid CHECK (payment_status IN ('unpaid', 'paid', 'refunded')),

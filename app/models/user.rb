@@ -50,8 +50,9 @@ class User < ApplicationRecord
   end
 
   # Bookings that count towards Venue#max_upcoming_bookings: not finished yet and not cancelled.
+  # A regular customer's series sessions (agreed with the venue) do not count.
   def upcoming_bookings(now = Time.current)
-    bookings.kind_reservation.where(status: %w[pending confirmed checked_in]).where("ends_at > ?", now)
+    bookings.kind_reservation.where(series_id: nil).where(status: %w[pending confirmed checked_in]).where("ends_at > ?", now)
   end
 
   # Customers who cancel too often in one day cannot book online for a while (Venue#cancellation_lock_days).

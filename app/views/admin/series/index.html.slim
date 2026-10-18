@@ -1,0 +1,20 @@
+- content_for :title, t(".title")
+
+div class="mb-4 flex flex-wrap items-end justify-between gap-4"
+  div
+    h1 class="text-2xl font-bold sm:text-3xl" = t(".title")
+    p class="mt-1 text-sm text-slate-600" = t(".explanation")
+  = link_to t(".new"), new_admin_series_path, class: "btn-primary"
+
+- if @series.any?
+  div class="divide-y divide-slate-100 rounded-xl bg-white ring-1 ring-slate-200"
+    - @series.each do |series|
+      = link_to admin_series_path(series), class: "flex flex-wrap items-center justify-between gap-3 px-4 py-3 hover:bg-slate-50" do
+        div
+          p class="font-semibold" = series.customer_name
+          p class="text-sm text-slate-600"
+            = "#{series.courts.map(&:display_name).join(", ")} · #{format_days(series.days_of_week)} #{OpeningHour.format_minute(series.start_minute)} – #{OpeningHour.format_minute(series.end_minute)}"
+        p class=[ "text-xs", series.ends_on < Venue.main.today ? "text-slate-400" : "text-slate-600" ]
+          = "#{l(series.starts_on, format: :day_month_year)} – #{l(series.ends_on, format: :day_month_year)}"
+- else
+  p class="card text-center text-sm text-slate-600" = t(".empty")

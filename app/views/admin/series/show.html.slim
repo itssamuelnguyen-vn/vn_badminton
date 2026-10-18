@@ -1,0 +1,67 @@
+- content_for :title, @series.customer_name
+- series = @series
+
+div class="mx-auto max-w-3xl space-y-6"
+  div class="flex flex-wrap items-start justify-between gap-4"
+    div
+      p class="text-sm text-slate-500" = t(".kicker")
+      h1 class="text-2xl font-bold" = series.customer_name
+      p class="mt-1 text-sm text-slate-600"
+        = link_to PhoneNumber.to_local(series.customer_phone), admin_customer_path(PhoneNumber.local_digits(series.customer_phone)), class: "link"
+        = " · #{series.courts.map(&:display_name).join(", ")} · #{format_days(series.days_of_week)} "
+        = "#{OpeningHour.format_minute(series.start_minute)} – #{OpeningHour.format_minute(series.end_minute)} · "
+        = "#{l(series.starts_on, format: :day_month_year)} – #{l(series.ends_on, format: :day_month_year)}"
+      p class="mt-1 text-sm text-slate-600"
+        = series.price_per_hour_vnd ? t(".agreed_price", price: format_vnd(series.price_per_hour_vnd)) : t(".price_rules")
+    = link_to t(".back"), admin_series_index_path, class: "btn-secondary"
+
+  - @months.each do |month|
+    - bill = series.billing(month)
+    section class="rounded-xl bg-white ring-1 ring-slate-200"
+      div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3"
+        div
+          h2 class="font-semibold" = l(month, format: :month_year)
+          p class="text-sm text-slate-600 tabular-nums"
+            = t(".bill", amount: format_vnd(bill.amount_vnd), credit: format_vnd(bill.credit_vnd), due: format_vnd(bill.due_vnd))
+        - if bill.paid?
+          span class="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200"
+            = t(".paid", date: l(bill.period.paid_at.to_date, format: :day_month_year))
+        - else
+          = button_to t(".mark_paid", amount: format_vnd(bill.due_vnd)), mark_paid_admin_series_path(series, month: month.iso8601),
+              class: "btn-primary px-3 py-1.5 text-xs", form: { data: { turbo_confirm: t(".mark_paid_confirm", amount: format_vnd(bill.due_vnd)) } }
+      ul class="divide-y divide-slate-100"
+        - bill.sessions.each do |booking|
+          li
+            = link_to admin_booking_path(booking), class: "flex flex-wrap items-center justify-between gap-2 px-4 py-2 text-sm hover:bg-slate-50" do
+              span class=("text-slate-400 line-through" if booking.cancelled?)
+                = "#{l(booking.starts_at.to_date, format: :full)} · #{booking.court.display_name} · #{format_vnd(booking.total_amount_vnd)}"
+              span class="flex flex-wrap items-center gap-2"
+                - if booking.cancelled?
+                  span class="text-xs text-slate-500" = t(".reasons.#{booking.cancellation_reason}", default: t("bookings.statuses.cancelled"))
+                  - if booking.series_refund_vnd
+                    span class="text-xs font-medium text-sky-700" = t(".refund", amount: format_vnd(booking.series_refund_vnd))
+                - else
+                  = booking_status_badge(booking)
+
+  section class="grid gap-4 sm:grid-cols-2"
+    = form_with url: extend_admin_series_path(series), method: :post, class: "card space-y-3" do |f|
+      h2 class="font-semibold" = t(".extend")
+      = f.date_field :ends_on, value: (series.ends_on.next_month.end_of_month).iso8601, required: true, class: "form-input", aria: { label: BookingSeries.human_attribute_name(:ends_on) }
+      = f.submit t(".extend_submit"), class: "btn-secondary"
+    = form_with url: update_price_admin_series_path(series), method: :patch, class: "card space-y-3" do |f|
+      h2 class="font-semibold" = t(".price")
+      = f.number_field :price_per_hour_vnd, value: series.price_per_hour_vnd, min: 1000, step: 1000, placeholder: t("admin.series.form.price_placeholder"), class: "form-input", aria: { label: t(".price") }
+      p class="form-hint" = t(".price_hint")
+      = f.submit t(".price_submit"), class: "btn-secondary"
+    = form_with url: close_range_admin_series_path(series), method: :post, class: "card space-y-3", data: { turbo_confirm: t(".close_confirm") } do |f|
+      h2 class="font-semibold" = t(".close")
+      div class="grid grid-cols-2 gap-2"
+        = f.date_field :from, required: true, class: "form-input", aria: { label: t(".from") }
+        = f.date_field :to, required: true, class: "form-input", aria: { label: t(".to") }
+      p class="form-hint" = t(".close_hint")
+      = f.submit t(".close_submit"), class: "btn-secondary"
+    = form_with url: end_from_admin_series_path(series), method: :post, class: "card space-y-3", data: { turbo_confirm: t(".end_confirm") } do |f|
+      h2 class="font-semibold" = t(".end")
+      = f.date_field :date, value: @today.iso8601, required: true, class: "form-input", aria: { label: t(".from") }
+      p class="form-hint" = t(".end_hint")
+      = f.submit t(".end_submit"), class: "btn bg-white text-red-700 ring-1 ring-red-200 hover:bg-red-50"

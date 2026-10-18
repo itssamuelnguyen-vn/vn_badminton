@@ -32,6 +32,17 @@ Rails.application.routes.draw do
         end
       end
       resources :customers, only: %i[index show update], param: :phone
+      # Regular customers' weekly bookings: new -> preview (every session checked) -> create.
+      resources :series, only: %i[index new create show] do
+        post :preview, on: :collection
+        member do
+          post :extend
+          post :end_from
+          post :close_range
+          post :mark_paid
+          patch :update_price
+        end
+      end
       get "reports", to: "reports#show", as: :reports
       resources :price_rules, except: :show
       resources :users, only: [] do
