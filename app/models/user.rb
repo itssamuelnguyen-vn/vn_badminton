@@ -3,6 +3,8 @@ class User < ApplicationRecord
 
   # Sign-in field that accepts either an email or a phone number.
   attr_writer :login
+  # The "I agree to the privacy policy" box of the sign-up form.
+  attr_accessor :privacy_consent
 
   enum :role, { customer: "customer", admin: "admin" }, default: :customer, validate: true
 
@@ -11,6 +13,8 @@ class User < ApplicationRecord
                               inverse_of: :created_by, dependent: :restrict_with_error
   has_many :cancelled_bookings, class_name: "Booking", foreign_key: :cancelled_by_id,
                                 inverse_of: :cancelled_by, dependent: :restrict_with_error
+
+  before_create { self.privacy_accepted_at = Time.current if privacy_consent == "1" }
 
   normalizes :email, with: ->(email) { email.strip.downcase }
   normalizes :phone, with: ->(phone) { PhoneNumber.normalize(phone) }
@@ -21,6 +25,8 @@ class User < ApplicationRecord
   # Online bookings copy the customer's phone, so customers must have one.
   validates :phone, presence: true, if: :customer?
   validates :full_name, presence: true, length: { maximum: 100 }
+  # Only checked when the box is sent (the sign-up form); accounts made by seeds or the console have no box.
+  validate :privacy_consent_given, on: :create
   # The language of emails sent outside of a request (reminders, cancellations by the owner).
   validates :locale, inclusion: { in: -> { I18n.available_locales.map(&:to_s) } }
 
@@ -72,6 +78,11 @@ class User < ApplicationRecord
 
   def login
     @login || email
+  end
+
+  # A base error, so the message reads as a sentence instead of starting with the field name.
+  def privacy_consent_given
+    errors.add(:base, :privacy_consent_required) if !privacy_consent.nil? && privacy_consent != "1"
   end
 
   # Users who can manage the venue (currently only the owner).

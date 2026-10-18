@@ -29,6 +29,10 @@ div class="card mx-auto max-w-md"
       = f.label :password_confirmation, class: "form-label"
       = f.password_field :password_confirmation, required: true, autocomplete: "new-password", class: "form-input"
 
+    label class="flex items-start gap-2 text-sm text-slate-700"
+      = f.check_box :privacy_consent, required: true, class: "mt-0.5 size-4 shrink-0 accent-emerald-600"
+      span = t(".privacy_consent_html", link: link_to(t(".privacy_policy"), privacy_path, class: "link", target: "_blank"))
+
     = f.submit t(".submit"), class: "btn-primary w-full"
 
   p class="mt-6 text-center text-sm text-slate-600"

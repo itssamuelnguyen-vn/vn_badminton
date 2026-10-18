@@ -1,0 +1,56 @@
+/ DRAFT: written as a starting point, to be reviewed by the owner (ideally with a lawyer) before launch.
+/ Keep it in sync with privacy.en.html.slim.
+- content_for :title, "Chính sách bảo mật"
+
+article class="card mx-auto max-w-3xl space-y-6 text-sm leading-relaxed text-slate-700 [&_h2]:text-base [&_h2]:font-semibold [&_h2]:text-slate-900 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5"
+  header
+    h1 class="text-2xl font-bold text-slate-900" Chính sách bảo mật
+    p class="mt-1 text-xs text-slate-500" Cập nhật lần cuối: 19/10/2026
+
+  p
+    | Chính sách này giải thích #{@venue.name} (địa chỉ #{@venue.address}) thu thập và sử dụng thông tin cá nhân của bạn
+      như thế nào khi bạn dùng website đặt sân, theo Nghị định 13/2023/NĐ-CP về bảo vệ dữ liệu cá nhân.
+
+  section class="space-y-2"
+    h2 1. Thông tin chúng tôi thu thập
+    ul
+      li Họ tên, số điện thoại và email bạn nhập khi đăng ký hoặc khi đặt sân qua điện thoại.
+      li Lịch sử đặt sân: sân, ngày giờ, số tiền, trạng thái thanh toán, ghi chú, các lần huỷ.
+      li Ngôn ngữ bạn dùng trên website, để gửi email đúng ngôn ngữ.
+      li Thông tin kỹ thuật như địa chỉ IP và cookie đăng nhập, chỉ để giữ phiên đăng nhập và chống truy cập trái phép.
+
+  section class="space-y-2"
+    h2 2. Mục đích sử dụng
+    ul
+      li Quản lý lượt đặt sân, xác nhận và nhận sân khi bạn đến.
+      li Gửi email xác minh tài khoản, xác nhận đặt sân, nhắc lịch, thông báo huỷ và đặt lại mật khẩu.
+      li Liên hệ với bạn khi có thay đổi về lượt đặt.
+      li Ngăn chặn việc giữ chỗ hoặc huỷ sân quá nhiều lần, chống spam và dò mật khẩu.
+    p Chúng tôi không dùng thông tin của bạn để quảng cáo và không bán cho bất kỳ ai.
+
+  section class="space-y-2"
+    h2 3. Chia sẻ thông tin
+    p
+      | Thông tin chỉ được chia sẻ với các nhà cung cấp dịch vụ cần thiết để website hoạt động (máy chủ lưu trữ, dịch vụ gửi email),
+        hoặc khi cơ quan nhà nước có thẩm quyền yêu cầu theo quy định pháp luật.
+
+  section class="space-y-2"
+    h2 4. Thời gian lưu trữ
+    p
+      | Thông tin tài khoản được lưu khi tài khoản còn hoạt động. Lịch sử đặt sân được lưu tối đa 2 năm kể từ lượt đặt cuối cùng,
+        sau đó được xoá hoặc ẩn danh.
+
+  section class="space-y-2"
+    h2 5. Quyền của bạn
+    ul
+      li Xem và sửa họ tên, số điện thoại, email trong trang cài đặt tài khoản.
+      li Yêu cầu cung cấp bản sao, xoá dữ liệu hoặc rút lại sự đồng ý bằng cách liên hệ với sân. Rút lại sự đồng ý đồng nghĩa với việc bạn không thể tiếp tục đặt sân online.
+      li Khiếu nại nếu cho rằng dữ liệu của bạn bị sử dụng sai mục đích.
+
+  section class="space-y-2"
+    h2 6. Liên hệ
+    p
+      = "#{@venue.name}, #{@venue.address}"
+      - if @venue.phone
+        = " · Điện thoại: "
+        = link_to PhoneNumber.to_local(@venue.phone), "tel:#{@venue.phone}", class: "link"

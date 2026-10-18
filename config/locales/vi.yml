@@ -26,6 +26,7 @@ vi:
         password: Mật khẩu
         password_confirmation: Xác nhận mật khẩu
         current_password: Mật khẩu hiện tại
+        privacy_consent: Đồng ý chính sách bảo mật
       venue:
         name: Tên
         slug: Đường dẫn
@@ -74,9 +75,11 @@ vi:
     errors:
       models:
         user:
+          privacy_consent_required: "Bạn cần đồng ý với chính sách bảo mật để đăng ký"
           attributes:
             password_confirmation:
               confirmation: "không khớp với mật khẩu"
+
         venue:
           not_multiple_of_30: "phải là bội số của 30"
           less_than_min: "phải lớn hơn hoặc bằng thời lượng tối thiểu"
@@ -115,6 +118,8 @@ vi:
         admin: Quản lý
       locale_switcher:
         label: Ngôn ngữ
+      footer:
+        privacy: Chính sách bảo mật
     admin:
       nav:
         label: Quản lý
@@ -142,6 +147,8 @@ vi:
         submit: Đăng ký
         have_account: Đã có tài khoản?
         sign_in: Đăng nhập
+        privacy_consent_html: "Tôi đồng ý cung cấp họ tên, số điện thoại và email để đặt sân, theo %{link}."
+        privacy_policy: chính sách bảo mật
       edit:
         title: Cài đặt tài khoản
         change_password: Đổi mật khẩu

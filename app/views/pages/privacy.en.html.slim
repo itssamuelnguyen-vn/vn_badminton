@@ -1,0 +1,56 @@
+/ DRAFT: written as a starting point, to be reviewed by the owner (ideally with a lawyer) before launch.
+/ Keep it in sync with privacy.vi.html.slim (the Vietnamese version prevails).
+- content_for :title, "Privacy policy"
+
+article class="card mx-auto max-w-3xl space-y-6 text-sm leading-relaxed text-slate-700 [&_h2]:text-base [&_h2]:font-semibold [&_h2]:text-slate-900 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5"
+  header
+    h1 class="text-2xl font-bold text-slate-900" Privacy policy
+    p class="mt-1 text-xs text-slate-500" Last updated: 19/10/2026
+
+  p
+    | This policy explains how #{@venue.name} (#{@venue.address}) collects and uses your personal data when you use the booking
+      website, in line with Vietnam's Decree 13/2023/ND-CP on personal data protection. If the two versions differ, the Vietnamese one prevails.
+
+  section class="space-y-2"
+    h2 1. Data we collect
+    ul
+      li Your name, phone number and email, entered when you sign up or when you book by phone.
+      li Your booking history: court, date and time, amount, payment status, notes and cancellations.
+      li The language you use on the website, so emails are sent in that language.
+      li Technical data such as your IP address and sign-in cookie, only to keep you signed in and to prevent unauthorized access.
+
+  section class="space-y-2"
+    h2 2. Why we use it
+    ul
+      li To manage your bookings and check you in when you arrive.
+      li To send account verification, booking confirmation, reminder, cancellation and password reset emails.
+      li To contact you when something changes about a booking.
+      li To prevent holding or cancelling too many courts, spam and password guessing.
+    p We do not use your data for advertising and never sell it.
+
+  section class="space-y-2"
+    h2 3. Sharing
+    p
+      | Your data is only shared with service providers the website needs to run (hosting, email delivery), or with authorities
+        when the law requires it.
+
+  section class="space-y-2"
+    h2 4. How long we keep it
+    p
+      | Account data is kept while your account is active. Booking history is kept for up to 2 years after your last booking,
+        then deleted or anonymized.
+
+  section class="space-y-2"
+    h2 5. Your rights
+    ul
+      li View and correct your name, phone number and email in your account settings.
+      li Ask for a copy of your data, its deletion, or withdraw your consent by contacting the venue. Without consent you can no longer book online.
+      li Complain if you believe your data is misused.
+
+  section class="space-y-2"
+    h2 6. Contact
+    p
+      = "#{@venue.name}, #{@venue.address}"
+      - if @venue.phone
+        = " · Phone: "
+        = link_to PhoneNumber.to_local(@venue.phone), "tel:#{@venue.phone}", class: "link"

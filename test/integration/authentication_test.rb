@@ -5,7 +5,7 @@ class AuthenticationTest < ActionDispatch::IntegrationTest
     assert_difference "User.count", 1 do
       post user_registration_path, params: { user: {
         full_name: "Lê Cường", phone: "0987 654 321", email: "cuong@example.com",
-        password: "password123", password_confirmation: "password123"
+        password: "password123", password_confirmation: "password123", privacy_consent: "1"
       } }
     end
 
@@ -17,13 +17,38 @@ class AuthenticationTest < ActionDispatch::IntegrationTest
     assert_select "[role=status]", "Chào mừng! Bạn đã đăng ký thành công."
   end
 
+  test "sign-up requires agreeing to the privacy policy and records when" do
+    travel_to Time.zone.parse("2026-10-19 10:00")
+    params = { full_name: "Lê Cường", phone: "0987 654 321", email: "cuong@example.com",
+               password: "password123", password_confirmation: "password123" }
+
+    get new_user_registration_path
+    assert_select "input[type=checkbox][name='user[privacy_consent]'][required]"
+    assert_select "label a[href='/privacy']", text: "chính sách bảo mật"
+
+    assert_no_difference("User.count") { post user_registration_path, params: { user: params.merge(privacy_consent: "0") } }
+    assert_select "#error_explanation li", text: "Bạn cần đồng ý với chính sách bảo mật để đăng ký"
+
+    post user_registration_path, params: { user: params.merge(privacy_consent: "1") }
+    assert_equal Time.current, User.find_by!(email: "cuong@example.com").privacy_accepted_at
+  end
+
+  test "the privacy policy is public, in both languages" do
+    get privacy_path
+    assert_select "h1", "Chính sách bảo mật"
+    assert_select "footer a[href='/privacy']"
+
+    get privacy_path(locale: :en)
+    assert_select "h1", "Privacy policy"
+  end
+
   test "remembers the language used to sign up" do
     get new_user_registration_path(locale: :en)
     assert_select "input[type=hidden][name='user[locale]'][value=en]"
 
     post user_registration_path(locale: :en), params: { user: {
       full_name: "Lê Cường", phone: "0987 654 321", email: "cuong@example.com",
-      password: "password123", password_confirmation: "password123", locale: "en"
+      password: "password123", password_confirmation: "password123", locale: "en", privacy_consent: "1"
     } }
 
     assert_equal "en", User.find_by!(email: "cuong@example.com").locale
@@ -32,7 +57,7 @@ class AuthenticationTest < ActionDispatch::IntegrationTest
   test "sign-up cannot choose its own role" do
     post user_registration_path, params: { user: {
       full_name: "Hacker", phone: "0987654321", email: "hacker@example.com",
-      password: "password123", password_confirmation: "password123", role: "admin"
+      password: "password123", password_confirmation: "password123", role: "admin", privacy_consent: "1"
     } }
 
     assert User.find_by!(email: "hacker@example.com").customer?

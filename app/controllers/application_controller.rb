@@ -29,7 +29,7 @@ class ApplicationController < ActionController::Base
 
   # Devise only permits its authentication keys by default, which is :login here, so add :email explicitly.
   def configure_permitted_parameters
-    devise_parameter_sanitizer.permit(:sign_up, keys: %i[email full_name phone locale])
+    devise_parameter_sanitizer.permit(:sign_up, keys: %i[email full_name phone locale privacy_consent])
     devise_parameter_sanitizer.permit(:account_update, keys: %i[email full_name phone])
   end
 end

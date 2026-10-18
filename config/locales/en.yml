@@ -26,6 +26,7 @@ en:
         password: Password
         password_confirmation: Confirm password
         current_password: Current password
+        privacy_consent: Privacy consent
       venue:
         name: Name
         slug: Slug
@@ -74,9 +75,11 @@ en:
     errors:
       models:
         user:
+          privacy_consent_required: "You need to agree to the privacy policy to sign up"
           attributes:
             password_confirmation:
               confirmation: "doesn't match the password"
+
         venue:
           not_multiple_of_30: "must be a multiple of 30"
           less_than_min: "must be greater than or equal to the minimum duration"
@@ -116,6 +119,8 @@ en:
         admin: Manage
       locale_switcher:
         label: Language
+      footer:
+        privacy: Privacy policy
     admin:
       nav:
         label: Management
@@ -144,6 +149,8 @@ en:
         submit: Sign up
         have_account: Already have an account?
         sign_in: Sign in
+        privacy_consent_html: "I agree to provide my name, phone number and email to book courts, as described in the %{link}."
+        privacy_policy: privacy policy
       edit:
         title: Account settings
         change_password: Change password

@@ -26,6 +26,8 @@ Rails.application.routes.draw do
       resource :settings, only: %i[edit update]
     end
 
+    get "privacy", to: "pages#privacy"
+
     # The home page is the booking schedule; ?date=YYYY-MM-DD picks the day.
     root "schedules#show"
   end

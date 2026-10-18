@@ -15,6 +15,7 @@ CREATE TABLE users (
   role varchar NOT NULL DEFAULT 'customer',
   locale varchar NOT NULL DEFAULT 'vi',
   booking_locked_until timestamptz,
+  privacy_accepted_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT users_role_valid CHECK (role IN ('customer', 'admin')),
