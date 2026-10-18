@@ -386,6 +386,8 @@ en:
       deadline_html: "Please transfer within %{time}."
       deadline_passed: The hold has ended. If you just transferred, this page updates itself when the money arrives.
       qr_alt: VietQR code for the transfer
+      save_qr: Save the QR image
+      save_qr_hint: "On your phone? Save the image, then open your bank app → Scan QR → pick the saved image."
       bank: Bank
       account_number: Account number
       account_name: Account holder
