@@ -33,6 +33,9 @@ html lang=I18n.locale class="h-full bg-slate-50"
       / Nested layouts (layouts/admin) pass their page in :content.
       = content_for?(:content) ? yield(:content) : yield
 
+    - unless controller_path.start_with?("admin/")
+      = render "layouts/application/contact", venue: contact_venue
+
     footer class="border-t border-slate-200 bg-white"
       div class="mx-auto flex max-w-5xl flex-wrap justify-between gap-2 px-4 py-4 text-xs text-slate-500 sm:px-6"
         span = "© #{Date.current.year} VN Badminton"
