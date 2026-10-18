@@ -2,7 +2,8 @@
            [ t(".customers"), admin_customers_path, controller_name == "customers" ] ]
 / Prices, settings and staff are for the owner only.
 - if current_user.owner?
-  - tabs += [ [ t(".price_rules"), admin_price_rules_path, controller_name == "price_rules" ],
+  - tabs += [ [ t(".reports"), admin_reports_path, controller_name == "reports" ],
+              [ t(".price_rules"), admin_price_rules_path, controller_name == "price_rules" ],
               [ t(".settings"), edit_admin_settings_path, controller_name == "settings" ],
               [ t(".staff"), admin_staff_members_path, controller_name == "staff_members" ] ]
 

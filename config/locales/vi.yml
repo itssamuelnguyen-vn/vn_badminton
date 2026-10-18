@@ -131,6 +131,7 @@ vi:
         settings: Cài đặt
         staff: Nhân viên
         customers: Khách hàng
+        reports: Báo cáo
 
 
   devise:
@@ -552,3 +553,22 @@ vi:
         no_bookings: Chưa có lượt đặt nào.
       update:
         success: Đã lưu thông tin khách.
+    reports:
+      show:
+        title: Báo cáo
+        explanation: Doanh thu và tỷ lệ lấp đầy theo tháng. Không tính lượt đã huỷ.
+        previous_month: Tháng trước
+        next_month: Tháng sau
+        export: Xuất CSV
+        expected: Doanh thu dự kiến
+        collected: Đã thu
+        bookings: Lượt đặt
+        occupancy: Lấp đầy
+        by_hour: Tỷ lệ lấp đầy theo khung giờ
+        by_hour_hint: Giờ sân đã đặt so với giờ sân mở cửa trong tháng, theo từng giờ trong ngày.
+        by_day: Theo ngày
+        day: Ngày
+        hours: Giờ sân
+        no_shows: Không đến
+        cancelled: Đã huỷ
+        total: Tổng

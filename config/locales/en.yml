@@ -132,6 +132,7 @@ en:
         settings: Settings
         staff: Staff
         customers: Customers
+        reports: Reports
 
 
   devise:
@@ -568,3 +569,22 @@ en:
         no_bookings: No bookings yet.
       update:
         success: Customer saved.
+    reports:
+      show:
+        title: Reports
+        explanation: Monthly revenue and occupancy. Cancelled bookings are not counted.
+        previous_month: Previous month
+        next_month: Next month
+        export: Export CSV
+        expected: Expected revenue
+        collected: Collected
+        bookings: Bookings
+        occupancy: Occupancy
+        by_hour: Occupancy by time of day
+        by_hour_hint: Court time booked over court time open during the month, for each hour of the day.
+        by_day: By day
+        day: Day
+        hours: Court time
+        no_shows: No-shows
+        cancelled: Cancelled
+        total: Total

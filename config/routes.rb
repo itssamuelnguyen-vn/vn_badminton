@@ -25,6 +25,7 @@ Rails.application.routes.draw do
         end
       end
       resources :customers, only: %i[index show update], param: :phone
+      get "reports", to: "reports#show", as: :reports
       resources :price_rules, except: :show
       resources :users, only: [] do
         patch :unlock_booking, on: :member
