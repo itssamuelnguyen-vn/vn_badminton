@@ -25,6 +25,9 @@ html lang=I18n.locale class="h-full bg-slate-50"
 
   / Signed in: the page reloads itself after the session timeout (session_timeout_controller.js).
   body class="flex min-h-full flex-col text-slate-900 antialiased" data-controller=("session-timeout" if user_signed_in?) data-session-timeout-seconds-value=(Devise.timeout_in.to_i if user_signed_in?)
+    / Reloads every open page of the account when its deletion is asked, which signs it out (Accounts::Deletion).
+    - if user_signed_in?
+      = turbo_stream_from current_user, :account
     = render "layouts/application/header"
     = render "layouts/application/unverified_notice"
 

@@ -25,15 +25,22 @@ release_expired_holds: &release_expired_holds
   command: "Booking.release_expired_holds!"
   schedule: every 15 minutes
 
+account_deletions: &account_deletions
+  class: AccountDeletionJob
+  queue: default
+  schedule: every 15 minutes
+
 development:
   booking_reminders: *booking_reminders
   series_refunds: *series_refunds
   release_expired_holds: *release_expired_holds
+  account_deletions: *account_deletions
 
 production:
   booking_reminders: *booking_reminders
   series_refunds: *series_refunds
   release_expired_holds: *release_expired_holds
+  account_deletions: *account_deletions
   clear_solid_queue_finished_jobs:
     command: "SolidQueue::Job.clear_finished_in_batches(sleep_between_batches: 0.3)"
     schedule: every hour at minute 12

@@ -69,7 +69,8 @@ class Booking < ApplicationRecord
 
   validates :starts_at, :ends_at, presence: true
   validates :customer_name, presence: true, length: { maximum: 100 }, if: :kind_reservation?
-  validates :customer_phone, presence: true, format: { with: PhoneNumber::FORMAT }, if: :kind_reservation?
+  # Without a phone only once its customer deleted their account (Accounts::Deletion).
+  validates :customer_phone, presence: true, format: { with: PhoneNumber::FORMAT }, if: -> { kind_reservation? && !user&.deleted_at }
   validates :user, presence: true, if: :source_online?
   validates :total_amount_vnd, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :expires_at, presence: true, if: :pending?

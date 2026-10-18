@@ -1,0 +1,25 @@
+/ The owner's "Xoá tài khoản" for a customer or staff member (Accounts::Deletion), or its state once asked.
+- deletion = Accounts::Deletion.new(user)
+- if user.deletion_requested_at
+  div class="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-900 ring-1 ring-red-200" role="status"
+    p
+      = t("admin.users.deletion.requested", time: l(user.deletion_requested_at, format: :slot))
+      - if (finishes_at = deletion.finishes_at)
+        =< t("admin.users.deletion.finishes_at", time: l(finishes_at, format: :slot))
+    = button_to t("admin.users.deletion.cancel"), cancel_deletion_admin_user_path(user), method: :patch, class: "btn-secondary px-3 py-1.5 text-xs"
+- elsif deletion.allowed?
+  - pending = deletion.pending_bookings
+  details class="rounded-lg bg-white px-4 py-3 text-sm ring-1 ring-slate-200"
+    summary class="cursor-pointer font-medium text-red-700" = t("admin.users.deletion.title")
+    div class="mt-3 space-y-3"
+      p class="text-slate-600" = t("admin.users.deletion.explanation")
+      - if pending.any?
+        div class="rounded-lg bg-amber-50 px-3 py-2 text-amber-900 ring-1 ring-amber-200" role="alert"
+          p class="font-medium" = t("admin.users.deletion.pending", count: pending.size)
+          ul class="mt-1 list-disc pl-5"
+            - pending.each do |booking|
+              li = link_to "#{booking.code} · #{booking.court.display_name} · #{l(booking.starts_at.to_date, format: :day_month_year)} #{time_range(booking.starts_at, booking.ends_at)}", admin_booking_path(booking), class: "link"
+          p class="mt-1" = t("admin.users.deletion.pending_kept", time: l(deletion.finishes_at, format: :slot))
+      = button_to t("admin.users.deletion.submit"), admin_user_path(user), method: :delete,
+          class: "btn bg-white px-3 py-1.5 text-xs text-red-700 ring-1 ring-red-300 hover:bg-red-50",
+          form: { data: { turbo_confirm: t("admin.users.deletion.confirm", name: user.full_name) } }

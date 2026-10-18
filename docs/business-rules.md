@@ -7,7 +7,7 @@ Test là bản mô tả chính xác nhất: nếu tài liệu và test khác nha
 **Cách giữ tài liệu luôn đúng:** PR nào thay đổi một quy tắc thì sửa luôn mục tương ứng ở đây trong cùng PR
 (xem `CLAUDE.md`). Các con số có thể chỉnh trong **Quản lý → Cài đặt** được đánh dấu ⚙️ và ghi giá trị mặc định.
 
-> Cập nhật: 18/10/2026, theo `main` sau PR #15 + thanh toán online (PR mở). Mục đánh dấu ⏳ (nhánh `deploy-config`) là quy tắc chưa có trên `main`;
+> Cập nhật: 18/10/2026, theo `main` sau PR #22, cộng lịch sử lượt đặt (VH-11) và xoá tài khoản / tải dữ liệu (TK-07…09) đang chờ PR. Mục đánh dấu ⏳ (nhánh `deploy-config`) là quy tắc chưa có trên `main`;
 > khi merge, bỏ dấu ⏳.
 
 ---
@@ -42,6 +42,9 @@ Test là bản mô tả chính xác nhất: nếu tài liệu và test khác nha
 | TK-04 | **Ngôn ngữ email** theo ngôn ngữ khách dùng lúc đăng ký, cập nhật mỗi lần khách tự đặt/huỷ.                                                                                                                          | `app/models/user.rb` (`remember_locale`)                                                   |
 | TK-05 | **Vai trò**: `customer` (khách), `staff` (nhân viên), `admin` (chủ sân). Xem mục 9.                                                                                                                                  | `app/models/user.rb`                                                                       |
 | TK-06 | **Tự đăng xuất sau 30 phút không thao tác**, áp dụng cho mọi vai trò; **không còn "Ghi nhớ đăng nhập"**. Lịch tự cập nhật không tính là thao tác; trang tự chuyển về đăng nhập khi hết phiên.                        | `config/initializers/devise.rb` (`timeout_in`), `test/integration/session_timeout_test.rb` |
+| TK-07 | **Tải dữ liệu của tôi** (trang cài đặt tài khoản, nhập lại mật khẩu, tối đa 5 lần/giờ): file **JSON** gồm thông tin tài khoản, mọi lượt đặt kèm lịch sử thao tác (người làm ghi là bạn / sân / hệ thống), các khoản thanh toán và chuyển khoản. Không gồm ghi chú nội bộ của sân. | `app/services/accounts/data_export.rb`, `test/integration/account_deletion_test.rb`        |
+| TK-08 | **Xoá tài khoản**: khách tự xoá (nhập lại mật khẩu) hoặc **chủ sân** xoá tài khoản khách/nhân viên; **nhân viên không xoá được**; tài khoản chủ sân không xoá được. Trước khi xoá: **cảnh báo** liệt kê các lượt chưa chơi / đang chờ chuyển khoản. | `app/services/accounts/deletion.rb`, `app/controllers/users/registrations_controller.rb`, `app/controllers/admin/users_controller.rb` |
+| TK-09 | Khi yêu cầu xoá: tài khoản **bị khoá và đăng xuất ngay trên mọi thiết bị** (trang đang mở tự tải lại về trang đăng nhập; trang thanh toán vẫn hiện mã QR); bỏ giữ chỗ ở trang xác nhận; email **"sẽ được xoá"**. Lượt chưa chơi và mã chuyển khoản đang chờ **giữ nguyên** (tiền đến vẫn xác nhận lượt). **Xoá hẳn** (job 15 phút) khi không còn lượt chưa chơi/chờ chuyển khoản: xoá họ tên (khách), email, số điện thoại, mật khẩu; lượt đặt cũ còn tên "Khách đã xoá tài khoản", không số điện thoại; giữ thanh toán, giao dịch, lịch sử; nhân viên giữ tên trong lịch sử ("đã nghỉ"); xoá ghi chú nội bộ **trừ khi khách đang bị chặn** (giữ để không lách danh sách đen); email **"đã được xoá"**. Chủ sân **huỷ yêu cầu xoá** được khi chưa xoá hẳn (email cho khách). | `app/services/accounts/deletion.rb`, `app/jobs/account_deletion_job.rb`, `test/integration/account_deletion_test.rb` |
 
 ## 4. Đặt sân online (khách)
 
@@ -112,6 +115,9 @@ Chủ sân **không** nhận email (xem trên Lịch trong ngày). Nguồn: `app
 | Khách hàng (ghi chú, danh sách đen, mở khoá)                                  |       | ✓ (không thấy doanh thu) | ✓       |
 | Lịch cố định                                                                  |       | ✓                        | ✓       |
 | Báo cáo, bảng giá, cài đặt, quản lý nhân viên                                 |       |                          | ✓       |
+| Tải dữ liệu của mình (TK-07)                                                  | ✓     | ✓                        | ✓       |
+| Xoá tài khoản của mình (TK-08)                                                | ✓     | ✓                        |         |
+| Xoá tài khoản khách và nhân viên, huỷ yêu cầu xoá                             |       |                          | ✓       |
 
 Cấp quyền nhân viên: nhân viên **tự đăng ký** tài khoản, chủ sân nhập email/số điện thoại của họ ở trang Nhân viên. Nguồn: `app/models/user.rb` (`manager?`, `owner?`), `test/integration/staff_test.rb`.
 

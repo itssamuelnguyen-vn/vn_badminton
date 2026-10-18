@@ -1,6 +1,9 @@
 class BookingMailer < ApplicationMailer
   helper :bookings
 
+  # Nothing goes to a deleted account (Accounts::Deletion): its address is no longer the customer's.
+  after_action { message.perform_deliveries = false if [ @booking, *@bookings ].compact.first&.user&.deleted_at }
+
   # One email for the bookings made together (one per court):
   #   BookingMailer.with(bookings:, locale: I18n.locale).confirmed.deliver_later
   # The locale is passed in because the email is rendered later by a background job.

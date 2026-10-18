@@ -190,6 +190,20 @@ en:
         current_password_hint: Required to save any changes
         submit: Save changes
         pending_reconfirmation: "Waiting for verification of your new email: %{email}. Your current email is used until you open the verification link."
+        export:
+          title: Download my data
+          text: "A JSON file with your account details, every booking with its history, your payments and transfers."
+          password: Current password
+          submit: Download my data (JSON)
+        delete:
+          title: Delete my account
+          text: "Your account is locked and signed out at once. Your personal details (name, email, phone) are removed; past bookings and payments are kept for the venue's books, without your name."
+          pending: "You still have %{count} bookings to play or waiting for a transfer:"
+          pending_kept: "These stay as they are. Your account is deleted after the last one ends (around %{time}). To cancel one, cancel it first under the cancellation rules."
+          confirm: Delete your account? You will be signed out at once and the account cannot be restored.
+          password: Current password
+          submit: Delete my account
+          owner: The owner's account cannot be deleted.
     passwords:
       new:
         title: Forgot your password?
@@ -412,6 +426,33 @@ en:
       closed_text: This code no longer holds the court. If you just transferred, the booking is confirmed automatically while the slot is still free; otherwise the venue will contact you for a refund.
       book_again: Book another court
 
+  users:
+    registrations:
+      destroy:
+        not_allowed: This account cannot be deleted.
+        wrong_password: Wrong password.
+        scheduled: "Your account is locked and will be deleted after your last booking ends (around %{time}). We have sent you an email."
+        deleted: Your account has been deleted. We have sent you a confirmation email.
+
+  account_mailer:
+    deletion_requested:
+      subject: Your VN Badminton account will be deleted
+      intro_by_customer: We have received your request to delete your account.
+      intro_by_owner: The venue has deleted your account.
+      locked: The account is locked and signed out on every device.
+      bookings_kept: "These bookings stay as they are; you can come and play as planned:"
+      finishes_at: "The account will be deleted for good after the last one ends (around %{time}). We will email you when it is done."
+      contact: If you did not ask for this, please contact the venue.
+    deleted:
+      subject: Your VN Badminton account has been deleted
+      intro: Your account has been deleted. Your name, email and phone number are no longer kept in the account.
+      kept: Past bookings and payments are kept by the venue for its books, without your personal details.
+      sign_up_again: Create a new account
+    deletion_cancelled:
+      subject: Your VN Badminton account will not be deleted
+      intro: The deletion of your account has been cancelled. You can sign in again as usual.
+      sign_in: Sign in
+
   booking_mailer:
     confirmed:
       subject: "Booking confirmed: %{codes}"
@@ -503,6 +544,8 @@ en:
         title: History
         empty: Nothing recorded yet (booking made before this feature).
         system: System
+        deleted_customer: Customer who deleted their account
+        by_former_staff: "%{name} (former staff)"
         by_customer: "Customer %{name}"
         by_staff: "%{name} (staff)"
         by_admin: "%{name} (owner)"
@@ -655,6 +698,21 @@ en:
     users:
       unlock_booking:
         success: The customer can book online again.
+      destroy:
+        scheduled: "The account is locked and will be deleted after its last booking ends (around %{time}). The customer has been emailed."
+        deleted: Account deleted. The customer has been emailed.
+      cancel_deletion:
+        success: Deletion cancelled, the account works again. The customer has been emailed.
+      deletion:
+        title: Delete account
+        explanation: "The account is locked and signed out at once. Personal details are removed once no booking is left to play; bookings, payments and their history are kept. The customer is emailed."
+        pending: "%{count} bookings still to play or waiting for a transfer:"
+        pending_kept: "These stay as they are; the account is deleted after the last one ends (around %{time})."
+        confirm: "Delete %{name}'s account? It is locked and signed out at once."
+        submit: Delete account
+        requested: "Account waiting to be deleted (asked at %{time}), locked."
+        finishes_at: "It will be deleted after its last booking ends (around %{time})."
+        cancel: Cancel the deletion
     owner_only: Only the owner can open this page.
     roles:
       customer: Customer

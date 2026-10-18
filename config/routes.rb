@@ -5,6 +5,9 @@ Rails.application.routes.draw do
     devise_for :users, controllers: { sessions: "users/sessions", registrations: "users/registrations",
                                       passwords: "users/passwords", confirmations: "users/confirmations" }
 
+    # "Tải dữ liệu của tôi" on the account page.
+    resource :account_data, only: :create, path: "account/data", controller: "accounts/data_exports"
+
     resources :bookings, only: %i[index show new create], param: :code do
       member do
         patch :cancel
@@ -52,8 +55,11 @@ Rails.application.routes.draw do
         patch :assign, on: :member
       end
       resources :price_rules, except: :show
-      resources :users, only: [] do
-        patch :unlock_booking, on: :member
+      resources :users, only: :destroy do
+        member do
+          patch :unlock_booking
+          patch :cancel_deletion
+        end
       end
       resource :settings, only: %i[edit update]
       resources :staff_members, path: "staff", only: %i[index create destroy]

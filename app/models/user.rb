@@ -19,7 +19,12 @@ class User < ApplicationRecord
   has_many :cancelled_bookings, class_name: "Booking", foreign_key: :cancelled_by_id,
                                 inverse_of: :cancelled_by, dependent: :restrict_with_error
 
+  belongs_to :deletion_requested_by, class_name: "User", optional: true
+
   before_create { self.privacy_accepted_at = Time.current if privacy_consent == "1" }
+
+  # Not deleted, nor waiting to be (Accounts::Deletion).
+  scope :active, -> { where(deletion_requested_at: nil) }
 
   normalizes :email, with: ->(email) { email.strip.downcase }
   normalizes :phone, with: ->(phone) { PhoneNumber.normalize(phone) }
@@ -84,6 +89,15 @@ class User < ApplicationRecord
 
   def login
     @login || email
+  end
+
+  # Devise checks it on every request: an account whose deletion was asked is signed out everywhere at once.
+  def active_for_authentication?
+    super && deletion_requested_at.nil?
+  end
+
+  def inactive_message
+    deletion_requested_at ? :account_deleted : super
   end
 
   # A base error, so the message reads as a sentence instead of starting with the field name.

@@ -66,6 +66,8 @@ module BookingsHelper
   def booking_event_actor(event)
     actor = event.actor
     if actor.nil? then t("admin.bookings.history.system")
+    elsif actor.deleted_at && !actor.manager? then t("admin.bookings.history.deleted_customer")
+    elsif actor.deleted_at then t("admin.bookings.history.by_former_staff", name: actor.full_name)
     elsif actor.manager? then t("admin.bookings.history.by_#{actor.role}", name: actor.full_name)
     else t("admin.bookings.history.by_customer", name: actor.full_name)
     end
