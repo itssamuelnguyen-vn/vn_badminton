@@ -135,6 +135,7 @@ Cấp quyền nhân viên: nhân viên **tự đăng ký** tài khoản, chủ s
 | BM-04 | Bí mật **không bao giờ** nằm trong repo (repo công khai): `.kamal/secrets` chỉ đọc từ file/biến (có test kiểm tra); GitHub secret scanning + push protection bật.                                                                                 | `test/security/deploy_secrets_test.rb` (nhánh `deploy-config`)                      |
 | BM-06 | Webhook SePay chỉ nhận khi có **khoá API** đúng (`Authorization: Apikey …`, lưu trong credentials `sepay.webhook_api_key` hoặc biến `SEPAY_WEBHOOK_API_KEY`); chỉ nhận đúng các trường của SePay; mỗi giao dịch xử lý **một lần** (theo `id`).    | `app/controllers/webhooks/sepay_controller.rb`, `test/integration/payments_test.rb` |
 | BM-05 | Trang lỗi 400/404/422/500 theo giao diện web, **tiếng Việt**, tiếng Anh khi đường dẫn bắt đầu bằng `/en`.                                                                                                                                         | `public/*.html`                                                                     |
+| BM-07 | Trình duyệt quá cũ (trước **Safari/iOS 16.4**, Chrome 111, Firefox 128) nhận trang **“Trình duyệt chưa được hỗ trợ”** (406); trình duyệt trong app Messenger/Zalo trên iPhone đủ iOS 16.4 vẫn dùng được.                                          | `app/controllers/application_controller.rb`, `test/integration/browser_support_test.rb` |
 
 ## 12. Việc định kỳ (job nền)
 
