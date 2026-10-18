@@ -176,6 +176,8 @@ vi:
       month_year: "Tháng %-m, %Y"
       full: "%A, %d/%m/%Y"
       day_month_year: "%d/%m/%Y"
+  rate_limited: Bạn thao tác quá nhiều lần. Vui lòng thử lại sau ít phút.
+
   helpers:
     vnd: "%{amount}đ"
     every_day: Hằng ngày

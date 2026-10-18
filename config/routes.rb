@@ -1,7 +1,8 @@
 Rails.application.routes.draw do
   # Vietnamese (the default locale) has no prefix; English pages live under /en.
   scope "(:locale)", locale: /en/ do
-    devise_for :users
+    # The custom controllers only add rate limits; the views stay in app/views/devise.
+    devise_for :users, controllers: { sessions: "users/sessions", registrations: "users/registrations", passwords: "users/passwords" }
 
     resources :bookings, only: %i[index show new create], param: :code do
       patch :cancel, on: :member

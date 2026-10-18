@@ -179,6 +179,8 @@ en:
       month_year: "%B %Y"
       full: "%A, %d/%m/%Y"
       day_month_year: "%d/%m/%Y"
+  rate_limited: Too many attempts. Please try again in a few minutes.
+
   helpers:
     vnd: "%{amount} VND"
     every_day: Every day
