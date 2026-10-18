@@ -10,11 +10,53 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_19_000005) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_19_000006) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "citext"
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "booking_series", force: :cascade do |t|
+    t.string "customer_name", null: false
+    t.string "customer_phone", null: false
+    t.bigint "user_id"
+    t.bigint "created_by_id", null: false
+    t.bigint "court_ids", null: false, array: true
+    t.integer "days_of_week", limit: 2, null: false, array: true
+    t.integer "start_minute", null: false
+    t.integer "end_minute", null: false
+    t.date "starts_on", null: false
+    t.date "ends_on", null: false
+    t.bigint "price_per_hour_vnd"
+    t.text "note"
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
+    t.index ["created_by_id"], name: "index_booking_series_on_created_by_id"
+    t.index ["user_id"], name: "index_booking_series_on_user_id"
+    t.check_constraint "cardinality(court_ids) >= 1", name: "booking_series_courts_present"
+    t.check_constraint "cardinality(days_of_week) >= 1 AND cardinality(days_of_week) <= 7 AND days_of_week <@ ARRAY[0::smallint, 1::smallint, 2::smallint, 3::smallint, 4::smallint, 5::smallint, 6::smallint]", name: "booking_series_days_valid"
+    t.check_constraint "customer_phone::text ~ '^\\+84[0-9]{9}$'::text", name: "booking_series_customer_phone_format"
+    t.check_constraint "ends_on >= starts_on", name: "booking_series_date_range_valid"
+    t.check_constraint "length(btrim(customer_name::text)) > 0", name: "booking_series_customer_name_present"
+    t.check_constraint "price_per_hour_vnd IS NULL OR price_per_hour_vnd > 0 AND (price_per_hour_vnd % 1000::bigint) = 0", name: "booking_series_price_valid"
+    t.check_constraint "start_minute >= 0 AND end_minute <= 1440 AND end_minute > start_minute AND (start_minute % 30) = 0 AND (end_minute % 30) = 0", name: "booking_series_time_range_valid"
+  end
+
+  create_table "booking_series_periods", force: :cascade do |t|
+    t.bigint "series_id", null: false
+    t.date "month", null: false
+    t.bigint "amount_vnd", null: false
+    t.bigint "credit_vnd", default: 0, null: false
+    t.datetime "paid_at", precision: 0, null: false
+    t.bigint "paid_by_id", null: false
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
+    t.index ["paid_by_id"], name: "index_booking_series_periods_on_paid_by_id"
+    t.index ["series_id", "month"], name: "index_booking_series_periods_on_series_id_and_month", unique: true
+    t.index ["series_id"], name: "index_booking_series_periods_on_series_id"
+    t.check_constraint "EXTRACT(day FROM month) = 1::numeric", name: "booking_series_periods_month_start"
+    t.check_constraint "amount_vnd >= 0 AND credit_vnd >= 0 AND credit_vnd <= amount_vnd", name: "booking_series_periods_amounts_valid"
+  end
 
   create_table "bookings", force: :cascade do |t|
     t.bigint "court_id", null: false
@@ -42,10 +84,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000005) do
     t.datetime "created_at", precision: 0, null: false
     t.datetime "updated_at", precision: 0, null: false
     t.datetime "reminder_sent_at", precision: 0
+    t.bigint "series_id"
+    t.bigint "series_refund_vnd"
+    t.bigint "series_refund_period_id"
     t.index ["code"], name: "index_bookings_on_code", unique: true
     t.index ["court_id", "starts_at"], name: "index_bookings_on_court_id_and_starts_at"
     t.index ["created_by_id"], name: "index_bookings_on_created_by_id"
     t.index ["expires_at"], name: "index_bookings_on_expires_at", where: "((status)::text = 'pending'::text)"
+    t.index ["series_id"], name: "index_bookings_on_series_id"
+    t.index ["series_refund_period_id"], name: "index_bookings_on_series_refund_period_id"
     t.index ["starts_at"], name: "index_bookings_on_starts_at"
     t.index ["user_id"], name: "index_bookings_on_user_id"
     t.check_constraint "(ends_at - starts_at) <= 'PT24H'::interval", name: "bookings_max_duration"
@@ -60,6 +107,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000005) do
     t.check_constraint "kind::text = ANY (ARRAY['reservation'::character varying, 'block'::character varying]::text[])", name: "bookings_kind_valid"
     t.check_constraint "mod(EXTRACT(epoch FROM starts_at), 1800::numeric) = 0::numeric AND mod(EXTRACT(epoch FROM ends_at), 1800::numeric) = 0::numeric", name: "bookings_aligned_to_slot"
     t.check_constraint "payment_status::text = ANY (ARRAY['unpaid'::character varying, 'paid'::character varying, 'refunded'::character varying]::text[])", name: "bookings_payment_status_valid"
+    t.check_constraint "series_id IS NULL OR kind::text = 'reservation'::text", name: "bookings_series_reservations_only"
+    t.check_constraint "series_refund_vnd IS NULL OR series_refund_vnd >= 0 AND series_id IS NOT NULL", name: "bookings_series_refund_valid"
     t.check_constraint "source::text <> 'online'::text OR user_id IS NOT NULL", name: "bookings_online_requires_user"
     t.check_constraint "source::text = ANY (ARRAY['online'::character varying, 'phone'::character varying, 'walk_in'::character varying, 'staff'::character varying]::text[])", name: "bookings_source_valid"
     t.check_constraint "status::text <> 'pending'::text OR expires_at IS NOT NULL", name: "bookings_pending_requires_expiry"
@@ -193,6 +242,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000005) do
     t.check_constraint "status::text = ANY (ARRAY['active'::character varying, 'inactive'::character varying]::text[])", name: "venues_status_valid"
   end
 
+  add_foreign_key "booking_series", "users"
+  add_foreign_key "booking_series", "users", column: "created_by_id"
+  add_foreign_key "booking_series_periods", "booking_series", column: "series_id"
+  add_foreign_key "booking_series_periods", "users", column: "paid_by_id"
+  add_foreign_key "bookings", "booking_series", column: "series_id"
+  add_foreign_key "bookings", "booking_series_periods", column: "series_refund_period_id"
   add_foreign_key "bookings", "courts"
   add_foreign_key "bookings", "users"
   add_foreign_key "bookings", "users", column: "cancelled_by_id"

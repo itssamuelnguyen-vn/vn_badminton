@@ -15,6 +15,7 @@ en:
       court: Court
       price_rule: Price rule
       booking: Booking
+      booking_series: Regular booking
 
     attributes:
       user:
@@ -71,6 +72,17 @@ en:
         total_amount_vnd: Total amount
         note: Note
         expires_at: Hold expiry
+      booking_series:
+        customer_name: Customer name
+        customer_phone: Customer phone
+        court_ids: Courts
+        days_of_week: Days of the week
+        start_minute: Start time
+        end_minute: End time
+        starts_on: From
+        ends_on: Until
+        price_per_hour_vnd: Agreed price per hour
+        note: Note
 
     errors:
       models:
@@ -108,6 +120,13 @@ en:
             one: "can be at most %{count} day in advance"
             other: "can be at most %{count} days in advance"
           duration_out_of_range: "Duration must be between %{min} and %{max} minutes"
+        booking_series:
+          before_starts_on: "must be after the start date"
+          after_start: "must be after the start time"
+          off_slot_grid: "Times must be on the half hour"
+          invalid_days: "are invalid"
+          not_multiple_of_1000: "must be a multiple of 1,000 VND"
+          too_far: "at most 1 year after the start date"
 
   layouts:
     application:
@@ -134,6 +153,7 @@ en:
         staff: Staff
         customers: Customers
         reports: Reports
+        series: Regular bookings
 
 
   devise:
@@ -312,6 +332,9 @@ en:
         one: "Note: cancelling now locks online booking for %{days} days."
         other: "Note: this will be cancellation %{count} of the day, which locks online booking for %{days} days."
       reschedule: Change time
+      series_note: This session belongs to a regular booking paid by the month. If you skip it and someone else books and plays this time, its price is taken off next month.
+      skip: Skip this session
+      skip_confirm: Skip this session? The time will be open for others to book.
     index:
       title: My bookings
       new: Book a court
@@ -438,6 +461,8 @@ en:
         locked: "This customer cannot book online until %{until} (too many cancellations in a day)."
         unlock: Unlock
         reschedule: Change time
+        series: Regular booking
+        series_link: Open
       new:
         title: Book or block a court
         kind: Type
@@ -611,3 +636,74 @@ en:
         no_shows: No-shows
         cancelled: Cancelled
         total: Total
+    series:
+      form:
+        price_placeholder: Empty = price rules
+        price_hint: The price agreed with the regular customer (multiple of 1,000 VND). Empty uses the price rules.
+      index:
+        title: Regular bookings
+        explanation: Regular customers book the same time every week and pay at the start of each month.
+        new: New regular booking
+        empty: No regular bookings yet.
+      new:
+        title: New regular booking
+        explanation: The next step lists every session to check before creating them; sessions that clash or fall on closed days are skipped.
+        submit: Preview the sessions
+      preview:
+        title: Check the sessions
+        ok: To create
+        skipped: Skipped
+        total: Total
+        back: Edit
+        submit:
+          one: "Create %{count} session"
+          other: "Create %{count} sessions"
+      create:
+        success: "Regular booking created: %{created} sessions (%{skipped} skipped)."
+      show:
+        kicker: Regular booking
+        back: All regular bookings
+        agreed_price: "Agreed price: %{price}/hour"
+        price_rules: Priced by the price rules
+        bill: "Sessions %{amount} · refunds %{credit} · to collect %{due}"
+        paid: "Paid on %{date}"
+        mark_paid: "Collected %{amount}"
+        mark_paid_confirm: "Confirm you collected %{amount} for this month?"
+        refund: "Refund %{amount}"
+        reasons:
+          series_skip: Skipped by the customer
+          venue_closed: Venue closed
+          series_ended: Series ended
+        extend: Extend
+        extend_submit: Extend to this date
+        price: Change the agreed price
+        price_hint: Applies to the sessions still to play in months not paid yet. Empty = price rules.
+        price_submit: Save price
+        close: Venue closed (holiday, repairs)
+        close_hint: Cancels the sessions in this range and refunds them in full on the next month (for paid months).
+        close_confirm: Cancel the sessions in this range?
+        close_submit: Cancel the sessions
+        from: From
+        to: To
+        end: End the series
+        end_hint: Cancels the sessions from this date, without refund. To change the time of the whole series, end it and create a new one.
+        end_confirm: End the series from this date?
+        end_submit: End the series
+      extend:
+        success:
+          one: "%{count} session added."
+          other: "%{count} sessions added."
+        not_later: The new end date must be after the current one.
+      end_from:
+        success:
+          one: "Series ended, %{count} session cancelled."
+          other: "Series ended, %{count} sessions cancelled."
+      close_range:
+        success:
+          one: "%{count} session cancelled (venue closed)."
+          other: "%{count} sessions cancelled (venue closed)."
+      mark_paid:
+        success: Monthly payment recorded.
+        already_paid: This month is already marked as paid.
+      update_price:
+        success: Price updated for the sessions still to play.

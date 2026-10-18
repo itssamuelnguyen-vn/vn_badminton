@@ -15,6 +15,7 @@ vi:
       court: Sân
       price_rule: Bảng giá
       booking: Lượt đặt sân
+      booking_series: Lịch cố định
 
     attributes:
       user:
@@ -71,6 +72,17 @@ vi:
         total_amount_vnd: Tổng tiền
         note: Ghi chú
         expires_at: Hạn giữ chỗ
+      booking_series:
+        customer_name: Tên khách
+        customer_phone: Số điện thoại khách
+        court_ids: Sân
+        days_of_week: Các ngày trong tuần
+        start_minute: Giờ bắt đầu
+        end_minute: Giờ kết thúc
+        starts_on: Từ ngày
+        ends_on: Đến ngày
+        price_per_hour_vnd: Giá riêng mỗi giờ
+        note: Ghi chú
 
     errors:
       models:
@@ -107,6 +119,13 @@ vi:
           beyond_horizon:
             other: "chỉ được đặt trước tối đa %{count} ngày"
           duration_out_of_range: "Thời lượng phải từ %{min} đến %{max} phút"
+        booking_series:
+          before_starts_on: "phải sau ngày bắt đầu"
+          after_start: "phải sau giờ bắt đầu"
+          off_slot_grid: "Giờ phải tròn 30 phút"
+          invalid_days: "không hợp lệ"
+          not_multiple_of_1000: "phải là bội số của 1.000đ"
+          too_far: "tối đa 1 năm kể từ ngày bắt đầu"
 
   layouts:
     application:
@@ -133,6 +152,7 @@ vi:
         staff: Nhân viên
         customers: Khách hàng
         reports: Báo cáo
+        series: Lịch cố định
 
 
   devise:
@@ -304,6 +324,9 @@ vi:
       lock_warning:
         other: "Lưu ý: đây sẽ là lần huỷ thứ %{count} trong hôm nay. Tài khoản sẽ không thể đặt sân online trong %{days} ngày."
       reschedule: Đổi giờ
+      series_note: Đây là buổi trong lịch cố định đã đóng tiền theo tháng. Nếu bạn báo nghỉ và có người khác đặt chơi giờ này, tiền buổi đó sẽ được trừ vào tháng sau.
+      skip: Báo nghỉ buổi này
+      skip_confirm: Báo nghỉ buổi này? Giờ này sẽ được mở cho người khác đặt.
     index:
       title: Lượt đặt của tôi
       new: Đặt sân
@@ -426,6 +449,8 @@ vi:
         locked: "Khách đang bị khoá đặt online đến %{until} (huỷ nhiều lần trong ngày)."
         unlock: Mở khoá
         reschedule: Đổi giờ
+        series: Lịch cố định
+        series_link: Xem lịch
       new:
         title: Đặt sân / khoá sân
         kind: Loại
@@ -595,3 +620,70 @@ vi:
         no_shows: Không đến
         cancelled: Đã huỷ
         total: Tổng
+    series:
+      form:
+        price_placeholder: Để trống = theo bảng giá
+        price_hint: Giá thoả thuận với khách cố định (bội số 1.000đ). Để trống thì tính theo bảng giá.
+      index:
+        title: Lịch cố định
+        explanation: Khách quen đặt cùng giờ hằng tuần, đóng tiền đầu mỗi tháng.
+        new: Tạo lịch cố định
+        empty: Chưa có lịch cố định nào.
+      new:
+        title: Tạo lịch cố định
+        explanation: Bước tiếp theo sẽ hiện từng buổi để kiểm tra trước khi tạo; buổi trùng lịch hoặc sân nghỉ sẽ được bỏ qua.
+        submit: Xem trước các buổi
+      preview:
+        title: Kiểm tra các buổi
+        ok: Sẽ tạo
+        skipped: Bỏ qua
+        total: Tổng tiền
+        back: Sửa lại
+        submit:
+          other: "Tạo %{count} buổi"
+      create:
+        success: "Đã tạo lịch cố định: %{created} buổi (bỏ qua %{skipped})."
+      show:
+        kicker: Lịch cố định
+        back: Tất cả lịch cố định
+        agreed_price: "Giá riêng: %{price}/giờ"
+        price_rules: Giá theo bảng giá
+        bill: "Tiền các buổi %{amount} · trừ hoàn %{credit} · cần thu %{due}"
+        paid: "Đã thu ngày %{date}"
+        mark_paid: "Đã thu %{amount}"
+        mark_paid_confirm: "Xác nhận đã thu %{amount} cho tháng này?"
+        refund: "Hoàn %{amount}"
+        reasons:
+          series_skip: Khách báo nghỉ
+          venue_closed: Sân nghỉ
+          series_ended: Kết thúc lịch
+        extend: Gia hạn
+        extend_submit: Gia hạn đến ngày này
+        price: Đổi giá riêng
+        price_hint: Áp dụng cho các buổi chưa chơi thuộc tháng chưa đóng tiền. Để trống = theo bảng giá.
+        price_submit: Lưu giá
+        close: Sân nghỉ (lễ, sửa chữa)
+        close_hint: Huỷ các buổi trong khoảng ngày này và hoàn đủ tiền vào tháng sau (với tháng đã đóng).
+        close_confirm: Huỷ các buổi trong khoảng ngày này?
+        close_submit: Huỷ các buổi
+        from: Từ ngày
+        to: Đến ngày
+        end: Kết thúc lịch
+        end_hint: Huỷ các buổi từ ngày này trở đi, không hoàn tiền. Muốn đổi giờ cả lịch thì kết thúc rồi tạo lịch mới.
+        end_confirm: Kết thúc lịch từ ngày này?
+        end_submit: Kết thúc lịch
+      extend:
+        success:
+          other: "Đã thêm %{count} buổi."
+        not_later: Ngày gia hạn phải sau ngày kết thúc hiện tại.
+      end_from:
+        success:
+          other: "Đã kết thúc lịch, huỷ %{count} buổi."
+      close_range:
+        success:
+          other: "Đã huỷ %{count} buổi do sân nghỉ."
+      mark_paid:
+        success: Đã ghi nhận tiền tháng.
+        already_paid: Tháng này đã được đánh dấu đã thu.
+      update_price:
+        success: Đã cập nhật giá cho các buổi chưa chơi.

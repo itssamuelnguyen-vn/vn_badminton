@@ -1,0 +1,48 @@
+/ The series fields; preview.html.slim repeats them as hidden fields to create what was previewed.
+- series = local_assigns.fetch(:series)
+div class="grid gap-4 sm:grid-cols-2"
+  div
+    = f.label :customer_name, BookingSeries.human_attribute_name(:customer_name), class: "form-label"
+    = f.text_field :customer_name, required: true, maxlength: 100, autocomplete: "off", class: "form-input"
+  div
+    = f.label :customer_phone, BookingSeries.human_attribute_name(:customer_phone), class: "form-label"
+    = f.telephone_field :customer_phone, value: PhoneNumber.to_local(series.customer_phone), required: true, placeholder: "0901 234 567", class: "form-input"
+
+fieldset
+  legend class="form-label" = BookingSeries.human_attribute_name(:court_ids)
+  div class="flex flex-wrap gap-2"
+    = f.collection_check_boxes :court_ids, Venue.main.courts.active, :id, :display_name do |b|
+      = b.label class: "flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 has-checked:bg-emerald-50 has-checked:ring-emerald-500" do
+        = b.check_box class: "accent-emerald-600"
+        = b.text
+
+fieldset
+  legend class="form-label" = BookingSeries.human_attribute_name(:days_of_week)
+  div class="flex flex-wrap gap-2"
+    = f.collection_check_boxes :days_of_week, Admin::VenueSettings::WEEK.map { |day| [ day, t("date.abbr_day_names")[day] ] }, :first, :last do |b|
+      = b.label class: "flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 has-checked:bg-emerald-50 has-checked:ring-emerald-500" do
+        = b.check_box class: "accent-emerald-600"
+        = b.text
+
+div class="grid grid-cols-2 gap-3 sm:grid-cols-4"
+  div
+    = f.label :start_minute, BookingSeries.human_attribute_name(:start_minute), class: "form-label"
+    = f.select :start_minute, minute_options(0..1410), {}, class: "form-input"
+  div
+    = f.label :end_minute, BookingSeries.human_attribute_name(:end_minute), class: "form-label"
+    = f.select :end_minute, minute_options(30..1440), {}, class: "form-input"
+  div
+    = f.label :starts_on, BookingSeries.human_attribute_name(:starts_on), class: "form-label"
+    = f.date_field :starts_on, required: true, class: "form-input"
+  div
+    = f.label :ends_on, BookingSeries.human_attribute_name(:ends_on), class: "form-label"
+    = f.date_field :ends_on, required: true, class: "form-input"
+
+div class="grid gap-4 sm:grid-cols-2"
+  div
+    = f.label :price_per_hour_vnd, BookingSeries.human_attribute_name(:price_per_hour_vnd), class: "form-label"
+    = f.number_field :price_per_hour_vnd, min: 1000, step: 1000, placeholder: t("admin.series.form.price_placeholder"), class: "form-input"
+    p class="form-hint" = t("admin.series.form.price_hint")
+  div
+    = f.label :note, BookingSeries.human_attribute_name(:note), class: "form-label"
+    = f.text_field :note, maxlength: 500, class: "form-input"

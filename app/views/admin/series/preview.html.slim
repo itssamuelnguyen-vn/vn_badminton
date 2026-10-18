@@ -1,0 +1,39 @@
+- content_for :title, t(".title")
+- plan = @plan
+- series = @series
+
+div class="mx-auto max-w-3xl space-y-6"
+  div
+    h1 class="text-2xl font-bold" = t(".title")
+    p class="mt-1 text-sm text-slate-600"
+      = "#{series.customer_name} · #{PhoneNumber.to_local(series.customer_phone)} · #{series.courts.map(&:display_name).join(", ")} · "
+      = "#{format_days(series.days_of_week)} #{OpeningHour.format_minute(series.start_minute)} – #{OpeningHour.format_minute(series.end_minute)}"
+
+  dl class="grid grid-cols-3 gap-3"
+    - [ [ t(".ok"), plan.ok.size ], [ t(".skipped"), plan.sessions.size - plan.ok.size ], [ t(".total"), format_vnd(plan.total_vnd) ] ].each do |label, value|
+      div class="rounded-xl bg-white px-4 py-3 ring-1 ring-slate-200"
+        dt class="text-xs text-slate-500" = label
+        dd class="mt-1 text-lg font-semibold tabular-nums" = value
+
+  div class="divide-y divide-slate-100 rounded-xl bg-white ring-1 ring-slate-200"
+    - plan.sessions.each do |session|
+      div class="flex flex-wrap items-center justify-between gap-3 px-4 py-2 text-sm"
+        span class=("text-slate-400 line-through" unless session.ok?)
+          = "#{l(session.starts_at.to_date, format: :full)} · #{session.court.display_name} · #{time_range(session.starts_at, session.ends_at)}"
+        - if session.ok?
+          span class="tabular-nums" = format_vnd(session.booking.total_amount_vnd)
+        - else
+          span class="text-xs text-red-700" = session.problems.to_sentence
+
+  = form_with model: series, url: admin_series_index_path, method: :post, class: "flex flex-col-reverse gap-3 sm:flex-row sm:justify-end" do |f|
+    / The previewed series, sent again to create it.
+    - %i[customer_name start_minute end_minute starts_on ends_on price_per_hour_vnd note].each do |field|
+      = f.hidden_field field
+    = f.hidden_field :customer_phone, value: series.customer_phone
+    - series.court_ids.each do |id|
+      = hidden_field_tag "booking_series[court_ids][]", id, id: nil
+    - series.days_of_week.each do |day|
+      = hidden_field_tag "booking_series[days_of_week][]", day, id: nil
+    = link_to t(".back"), new_admin_series_path, class: "btn-secondary"
+    - if plan.ok.any?
+      = f.submit t(".submit", count: plan.ok.size), class: "btn-primary"
