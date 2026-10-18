@@ -105,7 +105,7 @@ class BookingBatch
   def supersede_awaiting_payments
     bookings.each do |booking|
       @user.bookings.pending.where.not(payment_id: nil).where(court_id: booking.court_id)
-           .overlapping(booking.starts_at, booking.ends_at).each { |old| old.cancel!(by: @user, reason: "payment_replaced") }
+           .overlapping(booking.starts_at, booking.ends_at).includes(:user, :payment, court: :venue).each { |old| old.cancel!(by: @user, reason: "payment_replaced") }
     end
   end
 

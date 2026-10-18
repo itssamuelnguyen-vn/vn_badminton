@@ -13,7 +13,7 @@ class SchedulesController < ApplicationController
   # The slots of the day held right now by customers who have not finished booking.
   def holds
     Booking.holding_slot.pending.kind_reservation.where(court: @venue.courts).on_local_date(@date, @venue.zone)
-           .includes(:court).order(:starts_at, :court_id)
+           .includes(:court).order(:starts_at, :court_id).to_a
   end
 
   # ?reschedule=CODE: the customer is moving that booking (see BookingsController#review_reschedule).
