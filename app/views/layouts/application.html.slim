@@ -23,7 +23,8 @@ html lang=I18n.locale class="h-full bg-slate-50"
     = stylesheet_link_tag :app, "data-turbo-track": "reload"
     = javascript_importmap_tags
 
-  body class="flex min-h-full flex-col text-slate-900 antialiased"
+  / Signed in: the page reloads itself after the session timeout (session_timeout_controller.js).
+  body class="flex min-h-full flex-col text-slate-900 antialiased" data-controller=("session-timeout" if user_signed_in?) data-session-timeout-seconds-value=(Devise.timeout_in.to_i if user_signed_in?)
     = render "layouts/application/header"
     = render "layouts/application/unverified_notice"
 

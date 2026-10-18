@@ -64,6 +64,8 @@ class BookingLimitsTest < ActionDispatch::IntegrationTest
     assert_select "#error_explanation li", text: /không thể đặt sân online đến 10:00 ngày 26\/10\/2026/
 
     travel_to Time.zone.parse("2026-10-26 10:01")
+    sign_out :user # a week later the session has timed out
+    sign_in users(:an)
     assert_difference("Booking.count", 1) { post bookings_path, params: { booking: { slots: { "0" => slot(:court_one, "2026-10-27 18:00", 60) } } } }
   end
 

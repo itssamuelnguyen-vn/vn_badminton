@@ -141,7 +141,6 @@ vi:
         title: Đăng nhập
         login: Email hoặc số điện thoại
         login_hint: "Ví dụ: an@example.com hoặc 0901 234 567"
-        remember_me: Ghi nhớ đăng nhập
         forgot_password: Quên mật khẩu?
         submit: Đăng nhập
         no_account: Chưa có tài khoản?

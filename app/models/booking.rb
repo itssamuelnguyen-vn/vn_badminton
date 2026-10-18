@@ -75,7 +75,7 @@ class Booking < ApplicationRecord
   # Courts are locked in id order so that bookings on several courts cannot deadlock each other.
   def self.lock_courts!(court_ids)
     court_ids.compact.map(&:to_i).uniq.sort.each do |court_id|
-      connection.select_value(sanitize_sql_array([ "SELECT pg_advisory_xact_lock(?, ?)", COURT_LOCK_NAMESPACE, court_id ]))
+      connection.execute(sanitize_sql_array([ "SELECT pg_advisory_xact_lock(?, ?)", COURT_LOCK_NAMESPACE, court_id ]))
     end
   end
 
