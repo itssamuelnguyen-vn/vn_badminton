@@ -44,7 +44,7 @@ class BookingSeriesTest < ActionDispatch::IntegrationTest
 
   test "the customer skips one session: only that time is released" do
     series = create_series
-    session = series.bookings.order(:starts_at).first
+    session = series.bookings.where(court: courts(:court_one)).order(:starts_at).first # two courts start together
     sign_in users(:an)
 
     get booking_path(session)
