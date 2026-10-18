@@ -4,6 +4,7 @@ module Schedule
   #
   #   day = Schedule::Day.new(venue: Venue.main, date: Date.new(2026, 10, 20), user: current_user)
   #   day.times                      # => slot start times from opening to closing
+  #   day.upcoming_times             # => the same without slots that already started (today)
   #   day.slot(court, time).state    # => :available, :booked, :held, :mine, :blocked or :unavailable
   class Day
     SLOT = 30.minutes
@@ -34,7 +35,13 @@ module Schedule
 
     # False once every slot of the day has started (e.g. today after closing time).
     def bookable?
-      times.any? { |time| time >= @now }
+      upcoming_times.any?
+    end
+
+    # The rows the customer schedule shows: on today's date, slots that already started cannot be booked,
+    # so they are left out instead of making customers scroll past them.
+    def upcoming_times
+      times.select { |time| time >= @now }
     end
 
     def times

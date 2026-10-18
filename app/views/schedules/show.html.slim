@@ -9,10 +9,11 @@ div class="mb-6 flex flex-wrap items-end justify-between gap-4"
 
 = render "schedules/date_picker", calendar: @calendar
 
-- if @day.open?
-  - unless @day.bookable?
-    p class="mb-3 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200" role="status"
-      = t(".no_slots_left")
+- if @day.open? && !@day.bookable?
+  / Today after the last slot started: nothing left to pick, so no grid.
+  p class="mb-3 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200" role="status"
+    = t(".no_slots_left")
+- elsif @day.open?
   div data-controller="slot-picker" data-slot-picker-new-url-value=new_booking_path data-slot-picker-min-minutes-value=@venue.min_booking_minutes data-slot-picker-max-minutes-value=@venue.max_booking_minutes data-slot-picker-currency-value=t("helpers.vnd") data-slot-picker-locale-value=t(".number_locale") data-slot-picker-too-short-value=t(".too_short", minutes: @venue.min_booking_minutes) data-slot-picker-too-long-value=t(".too_long", minutes: @venue.max_booking_minutes) data-slot-picker-total-label-value=t(".total")
     div class="mb-3 flex flex-wrap items-center justify-between gap-3"
       = render "schedules/legend"

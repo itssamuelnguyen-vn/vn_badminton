@@ -6,7 +6,7 @@ div class="max-h-[70vh] overflow-auto rounded-xl bg-white ring-1 ring-slate-200"
     - day.courts.each do |court|
       div class="sticky top-0 z-10 border-b border-l border-slate-200 bg-white px-2 py-2 text-center font-semibold" role="columnheader" = court.display_name
 
-    - day.times.each_with_index do |time, index|
+    - day.upcoming_times.each_with_index do |time, index|
       div class="sticky left-0 z-10 border-b border-slate-100 bg-white px-2 py-2 text-right text-xs text-slate-500 tabular-nums" role="rowheader"
         = l(time, format: :hour_minute)
       - day.courts.each do |court|
