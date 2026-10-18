@@ -2,7 +2,8 @@ module Admin
   # Bookings taken by the owner (phone calls, walk-ins) and maintenance blocks, plus the day-to-day
   # actions on any booking: check-in, no-show, payment and cancellation.
   class BookingsController < BaseController
-    before_action :set_booking, only: %i[show check_in no_show mark_paid cancel undo_check_in undo_no_show undo_payment edit_schedule reschedule]
+    before_action :set_booking, only: %i[show check_in no_show mark_paid cancel undo_check_in undo_no_show undo_payment edit_schedule reschedule
+                                         confirm_payment cancel_venue_fault mark_refunded]
 
     def show
     end
@@ -13,17 +14,51 @@ module Admin
       @form.end_minute ||= @form.start_minute + venue.min_booking_minutes if @form.start_minute
     end
 
+    # Phone bookings are paid in full by transfer like online ones: held for Payment::WINDOW with a payment
+    # code and link to send to the customer. Walk-ins pay cash at the counter and are confirmed at once.
     def create
       @form = BookingForm.new(venue: venue, attributes: params.require(:booking).permit(*BookingForm::FIELDS).to_h)
       booking = @form.build(created_by: current_user)
+      transfer = booking.kind_reservation? && booking.source_phone?
+      if transfer && !venue.payments_enabled?
+        return redirect_to(edit_admin_settings_path, alert: t(".payments_unavailable"))
+      end
 
-      if booking.reserve
-        BookingMailer.with(bookings: [ booking ]).confirmed.deliver_later if booking.user
-        redirect_to admin_root_path(date: @form.date&.iso8601), notice: t(".success.#{booking.kind}", court: booking.court.display_name)
+      if transfer ? reserve_for_payment(booking) : booking.reserve
+        if transfer
+          redirect_to admin_booking_path(booking), notice: t(".awaiting_payment", court: booking.court.display_name)
+        else
+          BookingMailer.with(bookings: [ booking ]).confirmed.deliver_later if booking.user
+          redirect_to admin_root_path(date: @form.date&.iso8601), notice: t(".success.#{booking.kind}", court: booking.court.display_name)
+        end
       else
         @booking = booking
         render :new, status: :unprocessable_content
       end
+    end
+
+    # The transfer was seen by the owner/staff (e.g. in the bank app) before or without the webhook.
+    def confirm_payment
+      Payments::Confirm.call(@booking.payment, by: current_user)
+      redirect_to admin_booking_path(@booking), notice: t(".success")
+    rescue ArgumentError, NoMethodError
+      redirect_to admin_booking_path(@booking), alert: t("admin.bookings.not_allowed")
+    end
+
+    # The venue could not provide the court: cancelled, and a paid booking is owed back in full.
+    def cancel_venue_fault
+      @booking.cancel_for_venue_fault!(by: current_user)
+      BookingMailer.with(booking: @booking).cancelled.deliver_later if @booking.user
+      redirect_back_or_to admin_booking_path(@booking), notice: t(".success")
+    rescue ArgumentError
+      redirect_back_or_to admin_booking_path(@booking), alert: t("admin.bookings.not_allowed")
+    end
+
+    def mark_refunded
+      @booking.mark_refunded!(by: current_user)
+      redirect_back_or_to admin_booking_path(@booking), notice: t(".success")
+    rescue ArgumentError
+      redirect_back_or_to admin_booking_path(@booking), alert: t("admin.bookings.not_allowed")
     end
 
     def check_in
@@ -79,6 +114,20 @@ module Admin
     end
 
     private
+
+    def reserve_for_payment(booking, now: Time.current)
+      Booking.transaction do
+        booking.assign_attributes(status: :pending, expires_at: now + Payment::WINDOW + Payment::GRACE)
+        booking.validate # prices the booking
+        raise ActiveRecord::Rollback if booking.errors.any?
+
+        booking.payment = Payment.create!(purpose: :bookings, user: booking.user, created_by: current_user,
+                                          amount_vnd: booking.total_amount_vnd, expires_at: now + Payment::WINDOW)
+        booking.reserve || raise(ActiveRecord::Rollback)
+      end.tap do |saved|
+        HoldExpiryJob.set(wait_until: booking.expires_at + 1.second).perform_later([ booking.court_id ]) if saved
+      end
+    end
 
     def set_booking
       @booking = Booking.find_by!(code: params[:code])

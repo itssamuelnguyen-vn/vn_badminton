@@ -72,16 +72,21 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "dd", text: "180.000đ"
 
+    post bookings_path, params: { booking: { slots: { "0" => slot(:court_one, "18:00", "19:30") }, note: "Cần thuê vợt" } }
+    payment = Payment.last
+    assert_redirected_to payment_path(payment)
+    assert_equal 180_000, payment.amount_vnd
+    assert Booking.last.pending?, "held until the transfer arrives"
+
     assert_enqueued_emails 1 do
       assert_difference "Booking.confirmed.count", 1 do
-        post bookings_path, params: { booking: { slots: { "0" => slot(:court_one, "18:00", "19:30") }, note: "Cần thuê vợt" } }
+        transfer
       end
     end
 
     booking = Booking.last
-    assert_redirected_to booking_path(booking)
     assert booking.confirmed?
-    assert booking.payment_unpaid?
+    assert booking.payment_paid?
     assert_equal 180_000, booking.total_amount_vnd
     assert_equal "Cần thuê vợt", booking.note
     assert_equal "+84901234567", booking.customer_phone
@@ -158,18 +163,20 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     assert_select "span", text: "Tổng tiền (2 sân)"
     assert_select "span", text: "420.000đ"
 
+    post bookings_path, params: { booking: { slots: slots, note: "Đi nhóm 8 người" } }
+    assert_equal 420_000, Payment.last.amount_vnd, "one transfer for both courts"
     assert_enqueued_emails 1 do
       assert_difference "Booking.confirmed.count", 2 do
-        post bookings_path, params: { booking: { slots: slots, note: "Đi nhóm 8 người" } }
+        transfer
       end
     end
-    assert_redirected_to bookings_path
     assert_equal [ "Đi nhóm 8 người" ], Booking.last(2).map(&:note).uniq
   end
 
   test "a customer who booked two courts can cancel just one of them" do
     sign_in users(:an)
     post bookings_path, params: { booking: { slots: { "0" => slot(:court_one, "18:00", "19:30"), "1" => slot(:court_two, "18:00", "19:30") } } }
+    transfer
     first, second = Booking.last(2).sort_by { |b| b.court.position }
 
     patch cancel_booking_path(second)

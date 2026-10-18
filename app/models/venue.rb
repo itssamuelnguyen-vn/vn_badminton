@@ -18,6 +18,9 @@ class Venue < ApplicationRecord
   validates :max_booking_minutes, numericality: { only_integer: true, less_than_or_equal_to: 720 }
   validates :cancellation_cutoff_hours, numericality: { only_integer: true, in: 0..168 }
   validates :booking_horizon_days, numericality: { only_integer: true, in: 1..365 }
+  normalizes :bank_code, :bank_account_number, with: ->(value) { value.strip.presence }
+  normalizes :bank_account_name, with: ->(value) { value.strip.upcase.presence }
+  validates :bank_account_number, format: { with: /\A[A-Za-z0-9]{4,19}\z/ }, allow_nil: true
   validates :max_upcoming_bookings, numericality: { only_integer: true, in: 1..50 }
   validates :cancellation_lock_threshold, numericality: { only_integer: true, in: 1..20 }
   validates :cancellation_lock_days, numericality: { only_integer: true, in: 1..90 }
@@ -26,6 +29,11 @@ class Venue < ApplicationRecord
   # The app serves a single venue; customer pages always use it.
   def self.main
     active.order(:id).first!
+  end
+
+  # Online payment by bank transfer needs the account customers transfer to.
+  def payments_enabled?
+    bank_code.present? && bank_account_number.present?
   end
 
   def zone

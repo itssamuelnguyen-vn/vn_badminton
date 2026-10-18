@@ -69,9 +69,8 @@ class BookingHoldTest < ActionDispatch::IntegrationTest
     get root_path(date: "2026-10-20")
     assert_select "button[data-court-name='Sân 1'][data-starts-label='18:00']"
 
-    assert_difference "Booking.confirmed.count", 1 do
-      post bookings_path, params: { booking: { slots: @slots } }
-    end
+    post bookings_path, params: { booking: { slots: @slots } }
+    assert_difference("Booking.confirmed.count", 1) { transfer }
     assert_equal users(:chi), Booking.confirmed.sole.user
     assert_empty Booking.pending, "the expired hold was released"
   end
@@ -82,6 +81,7 @@ class BookingHoldTest < ActionDispatch::IntegrationTest
     travel 5.minutes
 
     post bookings_path, params: { booking: { slots: @slots } }
+    transfer
     assert_equal [ "confirmed" ], Booking.where(user: users(:an)).pluck(:status)
 
     get new_booking_path(slots: { "0" => slot(:court_two, "18:00", "19:00") })

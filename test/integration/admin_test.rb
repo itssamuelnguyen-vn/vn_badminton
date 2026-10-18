@@ -58,8 +58,8 @@ class AdminTest < ActionDispatch::IntegrationTest
     assert_select "div.sticky.left-0", text: "22:30"
   end
 
-  test "books a court for a phone customer and links the booking to their account" do
-    assert_enqueued_emails 1 do
+  test "books a court for a phone customer, held until the transfer, and links it to their account" do
+    assert_no_enqueued_emails do
       assert_difference "Booking.count", 1 do
         post admin_bookings_path, params: { booking: {
           kind: "reservation", court_id: courts(:court_one).id, date: "2026-10-20", start_minute: 1080, end_minute: 1170,
@@ -69,7 +69,15 @@ class AdminTest < ActionDispatch::IntegrationTest
     end
 
     booking = Booking.last
-    assert_redirected_to admin_root_path(date: "2026-10-20")
+    assert_redirected_to admin_booking_path(booking)
+    assert booking.pending?
+    follow_redirect!
+    assert_select "input[value='http://www.example.com/payments/#{booking.payment.token}']"
+
+    assert_enqueued_emails(1) { transfer }
+    booking.reload
+    assert booking.confirmed?
+    assert booking.payment_paid?
     assert booking.source_phone?
     assert_equal users(:an), booking.user
     assert_equal users(:owner), booking.created_by

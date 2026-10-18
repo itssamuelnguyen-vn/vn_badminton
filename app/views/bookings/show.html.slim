@@ -15,7 +15,11 @@ div class="card mx-auto max-w-lg"
   - if @booking.note.present?
     p class="mt-4 rounded-lg bg-slate-50 p-3 text-sm text-slate-700" = @booking.note
 
-  - if @booking.payment_unpaid? && !@booking.cancelled?
+  - if @booking.pending? && @booking.payment&.open?
+    div class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-violet-50 px-4 py-3 text-sm text-violet-900 ring-1 ring-violet-200"
+      p = t(".awaiting_payment", time: l(@booking.payment.expires_at, format: :hour_minute))
+      = link_to t("bookings.index.pay_now"), payment_path(@booking.payment), class: "btn-primary px-3 py-1.5 text-xs"
+  - elsif @booking.payment_unpaid? && !@booking.cancelled?
     p class="mt-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200" = t("bookings.new.pay_at_venue")
 
   / Warn before the cancellation that would lock online booking (Venue#cancellation_lock_threshold).
@@ -31,6 +35,6 @@ div class="card mx-auto max-w-lg"
           class: "btn-secondary"
     - if @booking.cancellable_by_customer?
       = button_to (@booking.series_id ? t(".skip") : t(".cancel")), cancel_booking_path(@booking), method: :patch, class: "btn w-full bg-red-600 text-white hover:bg-red-700",
-          form: { data: { turbo_confirm: (@booking.series_id ? t(".skip_confirm") : t(".cancel_confirm")) } }
+          form: { data: { turbo_confirm: (@booking.series_id ? t(".skip_confirm") : @booking.payment_paid? ? t(".cancel_confirm_paid") : t(".cancel_confirm")) } }
     - elsif @booking.confirmed?
       p class="text-xs text-slate-500 sm:text-right" = t(".cancel_cutoff", hours: @booking.court.venue.cancellation_cutoff_hours)

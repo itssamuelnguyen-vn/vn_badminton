@@ -42,6 +42,9 @@ en:
         max_upcoming_bookings: Maximum upcoming bookings per customer
         cancellation_lock_threshold: Cancellations in a day before the lock
         cancellation_lock_days: Online booking lock (days)
+        bank_code: Bank
+        bank_account_number: Account number
+        bank_account_name: Account holder
       opening_hour:
         day_of_week: Day of week
         opens_minute: Opening time
@@ -106,6 +109,7 @@ en:
           before_valid_from: "must be after the start date"
           other_venue: "does not belong to this venue"
         booking:
+          dearer_than_paid: "The new time costs more than what you paid (%{paid} VND). Please contact the venue to change it"
           not_reschedulable: "This booking can no longer be moved"
           slot_just_taken: "This slot was just booked by someone else, please choose another time"
           slot_taken: "This slot is already booked"
@@ -154,6 +158,7 @@ en:
         customers: Customers
         reports: Reports
         series: Regular bookings
+        transactions: Transactions
 
 
   devise:
@@ -315,10 +320,14 @@ en:
       no_selection: Please pick a time on the schedule first.
       held_html: "These slots are held for you for %{time}. Please confirm before the time runs out."
       hold_expired: The hold has expired. You can still confirm if nobody booked these slots meanwhile.
+      pay_by_transfer:
+        one: "Pay in full by bank transfer in the next step (within %{count} minute). The court is confirmed as soon as the money arrives."
+        other: "Pay in full by bank transfer in the next step (within %{count} minutes). The court is confirmed as soon as the money arrives."
     create:
       success:
         one: Your court is booked! We've sent you a confirmation email.
         other: Your %{count} courts are booked! We've sent you a confirmation email.
+      payments_unavailable: Online payment is not set up yet. Please call the venue to book.
     cancel:
       success: Your booking has been cancelled.
       not_allowed: This booking can no longer be cancelled.
@@ -335,12 +344,17 @@ en:
       series_note: This session belongs to a regular booking paid by the month. If you skip it and someone else books and plays this time, its price is taken off next month.
       skip: Skip this session
       skip_confirm: Skip this session? The time will be open for others to book.
+      awaiting_payment: "Waiting for your transfer (before %{time}). The court is confirmed as soon as the money arrives."
+      cancel_confirm_paid: A paid booking is NOT refunded when you cancel it yourself. Cancel anyway?
     index:
       title: My bookings
       new: Book a court
       upcoming: Upcoming
       no_upcoming: You have no upcoming bookings.
       past: Past and cancelled
+      awaiting_payment: Waiting for your transfer
+      awaiting_payment_line: "%{amount} · transfer before %{time} to keep the court"
+      pay_now: Pay now
     lock_notice: "Your account cannot book online until %{until} because of several cancellations in one day. Please call the venue if you need help."
     unverified: Please verify your email before booking. We sent a verification link to your email.
     changed_meanwhile: This booking was just updated elsewhere. Please check its status and try again.
@@ -365,6 +379,29 @@ en:
         other: "Each account can hold %{count} upcoming bookings; you can only book %{remaining} more court(s)."
       blacklisted: Your account cannot book online at the moment. Please contact the venue.
 
+  payments:
+    show:
+      title: Bank transfer
+      intro: Scan the code with your banking app, or transfer with the details below. The court is confirmed automatically when the money arrives.
+      deadline_html: "Please transfer within %{time}."
+      deadline_passed: The hold has ended. If you just transferred, this page updates itself when the money arrives.
+      qr_alt: VietQR code for the transfer
+      bank: Bank
+      account_number: Account number
+      account_name: Account holder
+      amount: Amount
+      content: Content
+      exact: "Transfer exactly %{amount} with the content %{code} to be confirmed automatically."
+      for: "For:"
+      for_series: "Court fee for %{month} – %{name}"
+      paid_title: Payment received
+      paid_bookings: Your booking is confirmed. We sent you a confirmation email.
+      paid_series: The month's court fee is recorded. Thank you!
+      view_bookings: View my bookings
+      closed_title: This payment code has expired
+      closed_text: The court is no longer held for this code. If you already transferred, please contact the venue.
+      book_again: Book another court
+
   booking_mailer:
     confirmed:
       subject: "Booking confirmed: %{codes}"
@@ -374,6 +411,7 @@ en:
         other: "Your bookings for %{count} courts are confirmed:"
       view_bookings: View my bookings
       cancel_policy: "You can cancel online up to %{hours} hours before the start time."
+      paid: Paid in full by bank transfer. See you at the court!
     cancelled:
       subject: "Booking %{code} cancelled"
       intro_by_customer: "Your booking has been cancelled as you asked:"
@@ -449,6 +487,8 @@ en:
         undo_no_show_confirm: Put the booking back to confirmed?
         undo_payment: Undo payment
         undo_payment_confirm: "Mark %{amount} as not collected?"
+        cancel_venue_fault: Cancel (venue problem)
+        cancel_venue_fault_confirm: "Cancel because of a venue problem (power cut, broken court...)? A refund of %{amount} will be recorded for the customer."
       show:
         title: "Booking %{code}"
         customer: Customer
@@ -463,6 +503,14 @@ en:
         reschedule: Change time
         series: Regular booking
         series_link: Open
+        awaiting_payment: "Waiting for a transfer of %{amount}, content %{code}, before %{time}."
+        payment_link: Payment link for the customer
+        confirm_payment: Money received (confirm by hand)
+        confirm_payment_confirm: "Did you check the account and receive the full %{amount}?"
+        refund_due: "%{amount} to refund to the customer (venue problem)."
+        refunded: "%{amount} refunded on %{date}."
+        mark_refunded: Refunded
+        mark_refunded_confirm: "Confirm you transferred %{amount} back to the customer?"
       new:
         title: Book or block a court
         kind: Type
@@ -481,6 +529,8 @@ en:
         success:
           reservation: "%{court} booked for the customer."
           block: "%{court} blocked."
+        payments_unavailable: Enter the bank account that receives transfers in Settings before booking for phone customers (they pay in full by transfer).
+        awaiting_payment: "%{court} held for 15 minutes. Send the payment link below to the customer; the court is confirmed when the money arrives."
       check_in:
         success: Checked in.
       no_show:
@@ -503,6 +553,12 @@ en:
         submit: Save the new time
       reschedule:
         success: Booking moved.
+      confirm_payment:
+        success: Payment confirmed.
+      cancel_venue_fault:
+        success: Cancelled because of the venue. The refund owed has been recorded.
+      mark_refunded:
+        success: Refund recorded.
     price_rules:
       index:
         title: Price rules
@@ -549,6 +605,8 @@ en:
         cancellation_lock_hint:
           one: "A customer who cancels once in a day cannot book online for %{days} days. You can unlock them early from the booking page."
           other: "A customer who cancels %{count} times in one day cannot book online for %{days} days. You can unlock them early from the booking page."
+        bank: Receiving account
+        bank_hint: "Customers transfer to this account (VietQR code). It must be connected to SePay for bookings to be confirmed automatically. Bank code as in VietQR, e.g. MBBank, VCB, TCB, ACB."
       update:
         success: Settings saved.
     users:
@@ -689,6 +747,8 @@ en:
         end_hint: Cancels the sessions from this date, without refund. To change the time of the whole series, end it and create a new one.
         end_confirm: End the series from this date?
         end_submit: End the series
+        request_payment: Create a transfer code
+        awaiting_transfer: "Waiting for a transfer of %{amount}, content %{code}. Send this link to the customer:"
       extend:
         success:
           one: "%{count} session added."
@@ -707,3 +767,37 @@ en:
         already_paid: This month is already marked as paid.
       update_price:
         success: Price updated for the sessions still to play.
+      request_payment:
+        success: Transfer code created for this month.
+        nothing_due: Nothing left to collect for this month.
+    bank_transactions:
+      index:
+        title: Transactions
+        explanation: Money transferred to the account (through SePay). Bookings are confirmed automatically when the customer transfers the exact amount with the right content in time; anything else needs you.
+        needs_review:
+          one: "Needs review (%{count})"
+          other: "Needs review (%{count})"
+        reasons:
+          unknown_code: No payment code
+          wrong_amount: Wrong amount
+          late: Late transfer
+          already_paid: Already paid
+        payment: "Code %{code} · %{amount} · %{status} ·"
+        statuses:
+          awaiting: waiting
+          paid: paid
+          expired: expired
+          cancelled: cancelled
+        note_placeholder: "What did you do? (e.g. refunded, confirmed by hand)"
+        resolve: Done
+        nothing_to_review: Nothing to review.
+        refunds:
+          one: "Refunds owed (%{count})"
+          other: "Refunds owed (%{count})"
+        no_refunds: No refunds owed.
+        recent: Recent transactions
+        matched: Confirmed automatically
+        resolved_by: "Handled by %{name}: %{note}"
+        no_recent: No transactions yet.
+      update:
+        success: Marked as handled.

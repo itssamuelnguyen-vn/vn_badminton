@@ -1,0 +1,53 @@
+- content_for :title, t(".title")
+
+div class="space-y-8"
+  div
+    h1 class="text-2xl font-bold sm:text-3xl" = t(".title")
+    p class="mt-1 text-sm text-slate-600" = t(".explanation")
+
+  section aria-labelledby="review-title"
+    h2#review-title class="mb-3 text-lg font-semibold" = t(".needs_review", count: @needs_review.size)
+    - if @needs_review.any?
+      div class="divide-y divide-slate-100 rounded-xl bg-white ring-1 ring-slate-200"
+        - @needs_review.each do |transaction|
+          div class="space-y-2 px-4 py-3 text-sm"
+            div class="flex flex-wrap items-center justify-between gap-2"
+              p class="font-semibold tabular-nums" = "#{format_vnd(transaction.amount_vnd)} · #{transaction.transacted_at && l(transaction.transacted_at, format: :slot)}"
+              span class="rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-800 ring-1 ring-amber-200" = t(".reasons.#{transaction.review_reason}")
+            p class="break-all text-slate-600" = transaction.content
+            - if (payment = transaction.payment)
+              p class="text-xs text-slate-500"
+                = t(".payment", code: payment.code, amount: format_vnd(payment.amount_vnd), status: t(".statuses.#{payment.status}"))
+                - payment.bookings.each do |booking|
+                  =< link_to booking.code, admin_booking_path(booking), class: "link"
+            = form_with url: admin_bank_transaction_path(transaction), method: :patch, class: "flex flex-wrap gap-2" do |f|
+              = f.text_field :resolution_note, placeholder: t(".note_placeholder"), required: true, class: "form-input min-w-0 flex-1 py-1.5", aria: { label: t(".note_placeholder") }
+              = f.submit t(".resolve"), class: "btn-secondary"
+    - else
+      p class="card text-center text-sm text-slate-600" = t(".nothing_to_review")
+
+  section aria-labelledby="refunds-title"
+    h2#refunds-title class="mb-3 text-lg font-semibold" = t(".refunds", count: @refunds.size)
+    - if @refunds.any?
+      div class="divide-y divide-slate-100 rounded-xl bg-white ring-1 ring-slate-200"
+        - @refunds.each do |booking|
+          div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm"
+            = link_to admin_booking_path(booking), class: "hover:text-emerald-700" do
+              p class="font-semibold" = "#{format_vnd(booking.refund_vnd)} · #{booking.customer_name} · #{PhoneNumber.to_local(booking.customer_phone)}"
+              p class="text-slate-600" = "#{booking.code} · #{booking.court.display_name} · #{l(booking.starts_at.to_date, format: :day_month_year)} #{time_range(booking.starts_at, booking.ends_at)}"
+            = button_to t("admin.bookings.show.mark_refunded"), mark_refunded_admin_booking_path(booking), method: :patch, class: "btn-secondary px-3 py-1.5 text-xs",
+                form: { data: { turbo_confirm: t("admin.bookings.show.mark_refunded_confirm", amount: format_vnd(booking.refund_vnd)) } }
+    - else
+      p class="card text-center text-sm text-slate-600" = t(".no_refunds")
+
+  section aria-labelledby="recent-title"
+    h2#recent-title class="mb-3 text-lg font-semibold" = t(".recent")
+    - if @recent.any?
+      div class="divide-y divide-slate-100 rounded-xl bg-white text-sm ring-1 ring-slate-200"
+        - @recent.each do |transaction|
+          div class="flex flex-wrap items-center justify-between gap-2 px-4 py-2"
+            span class="tabular-nums" = "#{format_vnd(transaction.amount_vnd)} · #{transaction.payment&.code || transaction.content.to_s.truncate(40)}"
+            span class="text-xs text-slate-500"
+              = transaction.resolved? ? t(".resolved_by", name: transaction.resolved_by&.full_name, note: transaction.resolution_note) : t(".matched")
+    - else
+      p class="card text-center text-sm text-slate-600" = t(".no_recent")

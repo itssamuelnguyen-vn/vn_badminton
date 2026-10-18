@@ -52,6 +52,25 @@ class BookingBatch
     bookings.map(&:expires_at).compact.min
   end
 
+  # The confirmed choice of the customer, waiting for the transfer: the bookings stay held (pending) for
+  # Payment::WINDOW (plus Payment::GRACE for slow bank notifications), linked to a Payment to transfer.
+  # Returns the Payment, or nil when the bookings could not be saved (errors on the bookings).
+  def reserve_for_payment(created_by: @user, now: Time.current)
+    deadline = now + Payment::WINDOW
+    payment = nil
+    Booking.transaction do
+      save_bookings(hold_until: deadline + Payment::GRACE) || raise(ActiveRecord::Rollback)
+      # Priced once saved; one payment for all of them.
+      payment = Payment.create!(purpose: :bookings, user: @user, created_by: created_by, amount_vnd: total_amount_vnd, expires_at: deadline)
+      Booking.where(id: bookings.map(&:id)).update_all(payment_id: payment.id)
+      bookings.each { |booking| booking.payment = payment }
+    end
+    return unless payment
+
+    HoldExpiryJob.set(wait_until: payment.expires_at + Payment::GRACE + 1.second).perform_later(bookings.map(&:court_id).uniq)
+    payment
+  end
+
   def errors?
     errors.any? || bookings.any? { |booking| booking.errors.any? }
   end
@@ -65,12 +84,13 @@ class BookingBatch
   def save_bookings(hold_until: nil)
     return false if bookings.empty?
 
-    Booking.transaction do
+    Booking.transaction(requires_new: true) do
       # Locking the customer's row makes two bookings sent at the same time wait for each other,
       # so they cannot both get past the upcoming-bookings limit.
       @user.lock!
       Booking.lock_courts!(bookings.map(&:court_id))
       Booking.delete_holds!(@user.bookings) # the customer's previous hold is replaced (or confirmed) by this one
+      supersede_awaiting_payments
       Booking.release_expired_holds!(bookings.map(&:court_id))
       raise ActiveRecord::Rollback unless customer_allowed?
 
@@ -79,6 +99,14 @@ class BookingBatch
       raise ActiveRecord::Rollback unless results.all?
     end
     bookings.all?(&:persisted?)
+  end
+
+  # Paying again for the same slots (double click, back button) replaces the customer's earlier unpaid try.
+  def supersede_awaiting_payments
+    bookings.each do |booking|
+      @user.bookings.pending.where.not(payment_id: nil).where(court_id: booking.court_id)
+           .overlapping(booking.starts_at, booking.ends_at).each { |old| old.cancel!(by: @user, reason: "payment_replaced") }
+    end
   end
 
   # The customer's unexpired hold, when it is for exactly the picked slots.

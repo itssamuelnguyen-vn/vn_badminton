@@ -51,6 +51,25 @@ div class="card mx-auto max-w-lg"
       p = t(".locked", until: l(@booking.user.booking_locked_until, format: :slot))
       = button_to t(".unlock"), unlock_booking_admin_user_path(@booking.user), method: :patch, class: "btn-secondary px-3 py-1.5 text-xs"
 
+  - if @booking.pending? && (payment = @booking.payment)&.open?
+    div class="mt-4 space-y-3 rounded-lg bg-violet-50 p-4 text-sm text-violet-900 ring-1 ring-violet-200"
+      p class="font-semibold" = t(".awaiting_payment", amount: format_vnd(payment.amount_vnd), code: payment.code, time: l(payment.expires_at, format: :hour_minute))
+      div class="flex flex-wrap items-start gap-4"
+        = image_tag payment.qr_url(Venue.main), alt: "VietQR", class: "w-36 rounded ring-1 ring-violet-200", width: 144, height: 144
+        div class="min-w-0 flex-1 space-y-2"
+          p = t(".payment_link")
+          input type="text" readonly=true value=payment_url(payment) class="form-input text-xs" aria-label=t(".payment_link") onclick="this.select()"
+          = button_to t(".confirm_payment"), confirm_payment_admin_booking_path(@booking), method: :patch, class: "btn-secondary px-3 py-1.5 text-xs",
+              form: { data: { turbo_confirm: t(".confirm_payment_confirm", amount: format_vnd(payment.amount_vnd)) } }
+  - if @booking.refund_vnd
+    div class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-sky-50 px-4 py-3 text-sm text-sky-900 ring-1 ring-sky-200"
+      - if @booking.refunded_at
+        p = t(".refunded", amount: format_vnd(@booking.refund_vnd), date: l(@booking.refunded_at, format: :slot))
+      - else
+        p = t(".refund_due", amount: format_vnd(@booking.refund_vnd))
+        = button_to t(".mark_refunded"), mark_refunded_admin_booking_path(@booking), method: :patch, class: "btn-secondary px-3 py-1.5 text-xs",
+            form: { data: { turbo_confirm: t(".mark_refunded_confirm", amount: format_vnd(@booking.refund_vnd)) } }
+
   - if @booking.note.present?
     p class="mt-4 rounded-lg bg-slate-50 p-3 text-sm text-slate-700" = @booking.note
 
