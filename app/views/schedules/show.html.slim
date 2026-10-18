@@ -44,4 +44,6 @@ div class="mb-6 flex flex-wrap items-end justify-between gap-4"
 - else
   div class="card text-center text-slate-600" = t(".closed")
 
+- if @holds
+  = render "schedules/holds", holds: @holds
 = render "schedules/price_list", venue: @venue

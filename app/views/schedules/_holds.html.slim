@@ -1,0 +1,19 @@
+/ For the owner and staff: who is holding slots of the day right now (on the confirmation page, or waiting for
+/ their transfer), to call them about the court. Refreshed live with the grid.
+section class="mt-10" aria-labelledby="holds-title"
+  h2#holds-title class="text-lg font-semibold" = t(".title", count: holds.size)
+  p class="mb-3 text-xs text-slate-500" = t(".staff_only")
+  - if holds.any?
+    div class="divide-y divide-slate-100 rounded-xl bg-white text-sm ring-1 ring-slate-200"
+      - holds.each do |booking|
+        div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-3"
+          div class="min-w-0"
+            = link_to "#{time_range(booking.starts_at, booking.ends_at)} · #{booking.court.display_name}", admin_booking_path(booking), class: "font-semibold hover:text-emerald-700"
+            p class="text-slate-600"
+              = booking.customer_name
+              | ·
+              =< link_to PhoneNumber.to_local(booking.customer_phone), "tel:#{booking.customer_phone}", class: "link"
+          p class="text-xs text-violet-800"
+            = t(booking.payment_id ? ".awaiting_transfer" : ".confirming", time: l(booking.expires_at, format: :hour_minute))
+  - else
+    p class="card text-center text-sm text-slate-600" = t(".none")

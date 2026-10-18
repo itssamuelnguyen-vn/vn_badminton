@@ -284,6 +284,12 @@ en:
         blocked: Maintenance
         unavailable: Unavailable
         held: Held
+    holds:
+      title: "Customers holding slots (%{count})"
+      staff_only: Only the owner and staff see this.
+      confirming: "Confirming · held until %{time}"
+      awaiting_transfer: "Waiting for the transfer · held until %{time}"
+      none: Nobody is holding a slot on this day.
     price_list:
       title: Prices
       name: Rate
