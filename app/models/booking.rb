@@ -160,6 +160,25 @@ class Booking < ApplicationRecord
     update!(status: :no_show)
   end
 
+  # Undo for the owner's and staff's actions pressed by mistake: back to the state before them.
+  def undo_check_in!
+    raise ArgumentError, "Only checked-in bookings can be undone" unless checked_in?
+
+    update!(status: :confirmed, checked_in_at: nil)
+  end
+
+  def undo_no_show!
+    raise ArgumentError, "Only no-show bookings can be undone" unless no_show?
+
+    update!(status: :confirmed)
+  end
+
+  def undo_payment!
+    raise ArgumentError, "Only paid bookings can be undone" unless payment_paid?
+
+    update!(payment_status: :unpaid, paid_at: nil)
+  end
+
   private
 
   # Any change shows on the schedules of the dates involved, including where the booking was before a move.

@@ -143,6 +143,31 @@ class AdminTest < ActionDispatch::IntegrationTest
     assert other.reload.no_show?
   end
 
+  test "undoes a check-in, a payment and a no-show pressed by mistake" do
+    booking = courts(:court_one).bookings.create!(user: users(:an), starts_at: at("18:00"), ends_at: at("19:00"))
+    booking.check_in!
+    booking.mark_paid!
+
+    get admin_booking_path(booking)
+    assert_select "button", text: "Huỷ nhận sân"
+    assert_select "button", text: "Huỷ \"đã thu\""
+
+    patch undo_check_in_admin_booking_path(booking)
+    patch undo_payment_admin_booking_path(booking)
+    booking.reload
+    assert booking.confirmed?
+    assert_nil booking.checked_in_at
+    assert booking.payment_unpaid?
+    assert_nil booking.paid_at
+
+    booking.mark_no_show!
+    patch undo_no_show_admin_booking_path(booking)
+    assert booking.reload.confirmed?
+
+    patch undo_payment_admin_booking_path(booking)
+    assert_equal "Không thể thực hiện thao tác này với lượt đặt hiện tại.", flash[:alert]
+  end
+
   test "a booking changed meanwhile shows a message instead of an error page" do
     booking = courts(:court_one).bookings.create!(user: users(:an), starts_at: at("18:00"), ends_at: at("19:00"))
     # As if the customer cancelled between loading the booking and saving the check-in.

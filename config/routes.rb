@@ -19,6 +19,9 @@ Rails.application.routes.draw do
           patch :no_show
           patch :mark_paid
           patch :cancel
+          patch :undo_check_in
+          patch :undo_no_show
+          patch :undo_payment
         end
       end
       resources :price_rules, except: :show

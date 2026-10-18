@@ -401,6 +401,12 @@ en:
         cancel_confirm:
           reservation: Cancel this booking? The customer is not notified automatically.
           block: Remove this block?
+        undo_check_in: Undo check-in
+        undo_check_in_confirm: Put the booking back to not checked in?
+        undo_no_show: Undo no-show
+        undo_no_show_confirm: Put the booking back to confirmed?
+        undo_payment: Undo payment
+        undo_payment_confirm: "Mark %{amount} as not collected?"
       show:
         title: "Booking %{code}"
         customer: Customer
@@ -436,6 +442,12 @@ en:
         success: Marked as a no-show.
       mark_paid:
         success: Payment recorded.
+      undo_check_in:
+        success: Check-in undone.
+      undo_no_show:
+        success: Back to confirmed.
+      undo_payment:
+        success: Payment undone.
       cancel:
         success:
           reservation: Booking cancelled.

@@ -389,6 +389,12 @@ vi:
         cancel_confirm:
           reservation: Huỷ lượt đặt này? Khách sẽ không được thông báo tự động.
           block: Gỡ khoá sân này?
+        undo_check_in: Huỷ nhận sân
+        undo_check_in_confirm: Đưa lượt đặt về trạng thái chưa nhận sân?
+        undo_no_show: Huỷ "không đến"
+        undo_no_show_confirm: Đưa lượt đặt về trạng thái đã xác nhận?
+        undo_payment: Huỷ "đã thu"
+        undo_payment_confirm: "Đánh dấu chưa thu %{amount}?"
       show:
         title: "Lượt đặt %{code}"
         customer: Khách
@@ -424,6 +430,12 @@ vi:
         success: Đã đánh dấu khách không đến.
       mark_paid:
         success: Đã ghi nhận thanh toán.
+      undo_check_in:
+        success: Đã huỷ nhận sân.
+      undo_no_show:
+        success: Đã đưa lượt đặt về đã xác nhận.
+      undo_payment:
+        success: Đã đánh dấu chưa thu tiền.
       cancel:
         success:
           reservation: Đã huỷ lượt đặt.

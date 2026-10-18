@@ -2,7 +2,7 @@ module Admin
   # Bookings taken by the owner (phone calls, walk-ins) and maintenance blocks, plus the day-to-day
   # actions on any booking: check-in, no-show, payment and cancellation.
   class BookingsController < BaseController
-    before_action :set_booking, only: %i[show check_in no_show mark_paid cancel]
+    before_action :set_booking, only: %i[show check_in no_show mark_paid cancel undo_check_in undo_no_show undo_payment]
 
     def show
     end
@@ -36,6 +36,18 @@ module Admin
 
     def mark_paid
       transition(:mark_paid!)
+    end
+
+    def undo_check_in
+      transition(:undo_check_in!)
+    end
+
+    def undo_no_show
+      transition(:undo_no_show!)
+    end
+
+    def undo_payment
+      transition(:undo_payment!)
     end
 
     def cancel
