@@ -486,6 +486,38 @@ vi:
         undo_payment_confirm: "Đánh dấu chưa thu %{amount}?"
         cancel_venue_fault: Huỷ do sự cố của sân
         cancel_venue_fault_confirm: "Huỷ vì sân có sự cố (cúp điện, sân hỏng...)? Hệ thống sẽ ghi nhận cần hoàn %{amount} cho khách."
+      history:
+        title: Lịch sử
+        empty: Chưa có thao tác nào được ghi lại (lượt đặt tạo trước khi có tính năng này).
+        system: Hệ thống
+        by_customer: "Khách %{name}"
+        by_staff: "%{name} (nhân viên)"
+        by_admin: "%{name} (chủ sân)"
+        created:
+          made: "Tạo lượt đặt (%{source}): %{slot} · %{amount}"
+          held: "Giữ chỗ chờ chuyển khoản (%{source}): %{slot} · %{amount}"
+        rescheduled: "Đổi giờ: %{from} → %{to}"
+        price_changed: "Đổi giá: %{from} → %{to}"
+        cancelled:
+          plain: Huỷ lượt đặt
+          venue_fault: Huỷ do sự cố của sân
+          payment_replaced: Huỷ, thay bằng lần thanh toán mới
+          series_skip: Báo nghỉ buổi này
+          venue_closed: Huỷ vì sân nghỉ
+          series_ended: Huỷ vì lịch cố định kết thúc
+        payment_expired: Hết hạn chuyển khoản, giờ đó được mở lại
+        confirmed: Xác nhận lượt đặt
+        checked_in: Nhận sân
+        check_in_undone: Huỷ nhận sân
+        no_show: Đánh dấu không đến
+        no_show_undone: Huỷ “không đến”
+        paid:
+          transfer: "Đã nhận %{amount} chuyển khoản, lượt đặt được xác nhận"
+          cash: "Đã thu %{amount} tiền mặt"
+          series: "Đã thu %{amount} (tiền tháng của lịch cố định)"
+        payment_undone: "Huỷ “đã thu” %{amount}"
+        refund_due: "Ghi nhận cần hoàn %{amount} cho khách"
+        refunded: "Đã hoàn %{amount} cho khách"
       show:
         title: "Lượt đặt %{code}"
         customer: Khách

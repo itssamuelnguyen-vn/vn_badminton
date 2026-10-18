@@ -499,6 +499,38 @@ en:
         undo_payment_confirm: "Mark %{amount} as not collected?"
         cancel_venue_fault: Cancel (venue problem)
         cancel_venue_fault_confirm: "Cancel because of a venue problem (power cut, broken court...)? A refund of %{amount} will be recorded for the customer."
+      history:
+        title: History
+        empty: Nothing recorded yet (booking made before this feature).
+        system: System
+        by_customer: "Customer %{name}"
+        by_staff: "%{name} (staff)"
+        by_admin: "%{name} (owner)"
+        created:
+          made: "Booked (%{source}): %{slot} · %{amount}"
+          held: "Held until the transfer (%{source}): %{slot} · %{amount}"
+        rescheduled: "Moved: %{from} → %{to}"
+        price_changed: "Price changed: %{from} → %{to}"
+        cancelled:
+          plain: Cancelled
+          venue_fault: Cancelled because of a venue problem
+          payment_replaced: Cancelled, replaced by a new payment
+          series_skip: Session skipped
+          venue_closed: Cancelled, venue closed
+          series_ended: Cancelled, regular booking ended
+        payment_expired: Transfer not received in time, slot released
+        confirmed: Booking confirmed
+        checked_in: Checked in
+        check_in_undone: Check-in undone
+        no_show: Marked as no-show
+        no_show_undone: No-show undone
+        paid:
+          transfer: "%{amount} received by transfer, booking confirmed"
+          cash: "%{amount} received in cash"
+          series: "%{amount} received (regular booking's month)"
+        payment_undone: "Payment of %{amount} undone"
+        refund_due: "%{amount} to refund to the customer"
+        refunded: "%{amount} refunded to the customer"
       show:
         title: "Booking %{code}"
         customer: Customer

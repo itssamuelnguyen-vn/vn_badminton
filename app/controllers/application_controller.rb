@@ -13,6 +13,8 @@ class ApplicationController < ActionController::Base
   prepend_before_action :ignore_background_refresh
   around_action :switch_locale
   before_action :configure_permitted_parameters, if: :devise_controller?
+  # Not in Devise's controllers: there current_user would sign in from the form before the sign-in rate limit runs.
+  before_action(unless: :devise_controller?) { Current.user = current_user }
 
   # Keep the current locale in every generated URL (no prefix for the default locale).
   def default_url_options

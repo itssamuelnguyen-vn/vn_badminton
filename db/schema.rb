@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_19_000007) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_19_000009) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "citext"
@@ -40,6 +40,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000007) do
     t.index ["status"], name: "index_bank_transactions_on_status"
     t.check_constraint "direction::text = ANY (ARRAY['in'::character varying, 'out'::character varying]::text[])", name: "bank_transactions_direction_valid"
     t.check_constraint "status::text = ANY (ARRAY['matched'::character varying, 'needs_review'::character varying, 'ignored'::character varying, 'resolved'::character varying]::text[])", name: "bank_transactions_status_valid"
+  end
+
+  create_table "booking_events", force: :cascade do |t|
+    t.bigint "booking_id", null: false
+    t.bigint "actor_id"
+    t.string "action", null: false
+    t.jsonb "details", default: {}, null: false
+    t.datetime "created_at", precision: 0, null: false
+    t.index ["actor_id"], name: "index_booking_events_on_actor_id"
+    t.index ["booking_id", "id"], name: "index_booking_events_on_booking_id_and_id"
+    t.index ["booking_id"], name: "index_booking_events_on_booking_id"
   end
 
   create_table "booking_series", force: :cascade do |t|
@@ -311,6 +322,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000007) do
 
   add_foreign_key "bank_transactions", "payments"
   add_foreign_key "bank_transactions", "users", column: "resolved_by_id"
+  add_foreign_key "booking_events", "bookings", on_delete: :cascade
+  add_foreign_key "booking_events", "users", column: "actor_id"
   add_foreign_key "booking_series", "users"
   add_foreign_key "booking_series", "users", column: "created_by_id"
   add_foreign_key "booking_series_periods", "booking_series", column: "series_id"

@@ -1,0 +1,12 @@
+/ Who did what to the booking and when (BookingEvent), oldest first.
+section class="card mx-auto mt-6 max-w-lg" aria-labelledby="history-title"
+  h2#history-title class="mb-3 text-lg font-semibold" = t(".title")
+  - if events.any?
+    ol class="space-y-3 border-l border-slate-200 pl-4 text-sm"
+      - events.each do |event|
+        li class="relative"
+          span class="absolute top-1.5 -left-[1.3rem] size-2 rounded-full bg-slate-300" aria-hidden="true"
+          p = booking_event_text(event)
+          p class="text-xs text-slate-500" = "#{l(event.created_at, format: :slot)} · #{booking_event_actor(event)}"
+  - else
+    p class="text-sm text-slate-600" = t(".empty")
