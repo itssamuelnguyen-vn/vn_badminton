@@ -32,6 +32,19 @@ module Admin
       self.date ||= venue.today
     end
 
+    # The form filled in from an existing booking (for moving it).
+    def self.from_booking(booking)
+      venue = booking.court.venue
+      local = booking.starts_at.in_time_zone(venue.zone)
+      day_start = local.beginning_of_day
+      new(venue: venue, attributes: { kind: booking.kind, court_id: booking.court_id, date: local.to_date,
+                                      start_minute: ((booking.starts_at - day_start) / 60).to_i,
+                                      end_minute: ((booking.ends_at - day_start) / 60).to_i })
+    end
+
+    def starts_at = time_at(start_minute)
+    def ends_at = time_at(end_minute)
+
     def block?
       kind == "block"
     end

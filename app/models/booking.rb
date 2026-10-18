@@ -65,7 +65,7 @@ class Booking < ApplicationRecord
   validate :price_available
   validate :court_and_venue_bookable, if: :schedule_changed?
   validate :within_opening_hours, if: -> { kind_reservation? && schedule_changed? }
-  validate :within_customer_policy, if: -> { kind_reservation? && source_online? && schedule_changed? }
+  validate :within_customer_policy, if: -> { kind_reservation? && source_online? && schedule_changed? && !staff_change }
   validate :slot_free, if: -> { schedule_changed? && holds_slot? }
 
   # Makes bookings on the same courts wait for each other until the end of the current transaction.
@@ -110,6 +110,37 @@ class Booking < ApplicationRecord
   rescue ActiveRecord::ExclusionViolation, ActiveRecord::Deadlocked
     errors.add(:base, :slot_just_taken)
     false
+  end
+
+  # Set while the owner or staff move a booking: the online booking rules (duration, horizon) do not apply.
+  attr_accessor :staff_change
+
+  # Moves a confirmed booking (or a block) to another court and/or time, with the court locks of #reserve
+  # (old and new courts) and a new price. Customers: see #reschedulable_by_customer?. Returns true when saved.
+  #   booking.reschedule(court: court, starts_at: from, ends_at: to, by: current_user)
+  def reschedule(court:, starts_at:, ends_at:, by:)
+    unless by.manager? ? (confirmed? || kind_block?) && holds_slot? : reschedulable_by_customer?
+      errors.add(:base, :not_reschedulable)
+      return false
+    end
+
+    old_court_id = court_id
+    self.class.transaction(requires_new: true) do
+      self.class.lock_courts!([ old_court_id, court&.id ])
+      self.class.release_expired_holds!([ old_court_id, court&.id ])
+      assign_attributes(court: court, starts_at: starts_at, ends_at: ends_at, reminder_sent_at: nil)
+      self.staff_change = by.manager?
+      save
+    end
+  rescue ActiveRecord::ExclusionViolation, ActiveRecord::Deadlocked
+    errors.add(:base, :slot_just_taken)
+    false
+  end
+
+  # Customers move their own booking online until the cancellation cutoff, while it is unpaid
+  # (a paid booking's price could change) and unless they are blacklisted.
+  def reschedulable_by_customer?(now = Time.current)
+    confirmed? && cancellable_by_customer?(now) && payment_unpaid? && !CustomerProfile.blocked?(customer_phone)
   end
 
   # URLs use the customer-facing code (/bookings/K7Q2M9XA) instead of the sequential id.
@@ -158,6 +189,25 @@ class Booking < ApplicationRecord
     raise ArgumentError, "Only confirmed bookings can be marked as no-show" unless confirmed?
 
     update!(status: :no_show)
+  end
+
+  # Undo for the owner's and staff's actions pressed by mistake: back to the state before them.
+  def undo_check_in!
+    raise ArgumentError, "Only checked-in bookings can be undone" unless checked_in?
+
+    update!(status: :confirmed, checked_in_at: nil)
+  end
+
+  def undo_no_show!
+    raise ArgumentError, "Only no-show bookings can be undone" unless no_show?
+
+    update!(status: :confirmed)
+  end
+
+  def undo_payment!
+    raise ArgumentError, "Only paid bookings can be undone" unless payment_paid?
+
+    update!(payment_status: :unpaid, paid_at: nil)
   end
 
   private

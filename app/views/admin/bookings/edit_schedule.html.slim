@@ -1,0 +1,34 @@
+- content_for :title, t(".title", code: @booking.code)
+- form = @form
+
+div class="card mx-auto max-w-lg"
+  h1 class="mb-2 text-2xl font-bold" = t(".title", code: @booking.code)
+  p class="mb-6 text-sm text-slate-600"
+    = "#{@booking.kind_block? ? (@booking.note.presence || t("admin.block")) : @booking.customer_name} · "
+    = "#{@booking.court.display_name} · #{l(@booking.starts_at.to_date, format: :full)} · #{time_range(@booking.starts_at, @booking.ends_at)}"
+
+  = form_with scope: :booking, url: reschedule_admin_booking_path(@booking), method: :patch, class: "space-y-5" do |f|
+    - if @booking.errors.any?
+      div#error_explanation role="alert" class="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-200"
+        ul class="list-disc space-y-1 pl-5"
+          - @booking.errors.full_messages.each do |message|
+            li = message
+
+    div
+      = f.label :court_id, Booking.human_attribute_name(:court), class: "form-label"
+      = f.select :court_id, form.venue.courts.active.map { |court| [ court.display_name, court.id ] }, { selected: form.court_id }, class: "form-input"
+    div class="grid grid-cols-3 gap-3"
+      div class="col-span-3 sm:col-span-1"
+        = f.label :date, t("bookings.details.date"), class: "form-label"
+        = f.date_field :date, value: form.date&.iso8601, required: true, class: "form-input"
+      div
+        = f.label :start_minute, Booking.human_attribute_name(:starts_at), class: "form-label"
+        = f.select :start_minute, minute_options(0..1410), { selected: form.start_minute }, class: "form-input"
+      div
+        = f.label :end_minute, Booking.human_attribute_name(:ends_at), class: "form-label"
+        = f.select :end_minute, minute_options(30..1440), { selected: form.end_minute }, class: "form-input"
+    p class="text-xs text-slate-500" = t(".hint")
+
+    div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"
+      = link_to t("admin.bookings.new.back"), admin_booking_path(@booking), class: "btn-secondary"
+      = f.submit t(".submit"), class: "btn-primary"

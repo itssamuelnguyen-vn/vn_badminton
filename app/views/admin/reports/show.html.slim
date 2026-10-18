@@ -1,0 +1,71 @@
+- content_for :title, t(".title")
+- report = @report
+- totals = report.totals
+- percent = ->(value) { value ? number_to_percentage(value * 100, precision: 1, strip_insignificant_zeros: true) : "—" }
+
+div class="mb-6 flex flex-wrap items-end justify-between gap-4"
+  div
+    h1 class="text-2xl font-bold sm:text-3xl" = t(".title")
+    p class="mt-1 text-sm text-slate-600" = t(".explanation")
+  div class="flex flex-wrap items-center gap-2"
+    = link_to "‹", admin_reports_path(month: @month.prev_month.strftime("%Y-%m")), class: "btn-secondary px-3", aria: { label: t(".previous_month") }
+    span class="min-w-32 text-center font-semibold" = l(@month, format: :month_year)
+    = link_to "›", admin_reports_path(month: @month.next_month.strftime("%Y-%m")), class: "btn-secondary px-3", aria: { label: t(".next_month") }
+    = link_to t(".export"), admin_reports_path(month: @month.strftime("%Y-%m"), format: :csv), class: "btn-secondary ml-2"
+
+dl class="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4"
+  - [ [ t(".expected"), format_vnd(totals.expected_vnd) ], [ t(".collected"), format_vnd(totals.collected_vnd) ],
+      [ t(".bookings"), totals.bookings ], [ t(".occupancy"), percent.(totals.occupancy) ] ].each do |label, value|
+    div class="rounded-xl bg-white px-4 py-3 ring-1 ring-slate-200"
+      dt class="text-xs text-slate-500" = label
+      dd class="mt-1 text-lg font-semibold tabular-nums" = value
+
+section class="mb-8" aria-labelledby="hours-title"
+  h2#hours-title class="mb-1 text-lg font-semibold" = t(".by_hour")
+  p class="mb-3 text-xs text-slate-500" = t(".by_hour_hint")
+  / One series, so no legend: each bar carries its value; the day table below is the full data.
+  ol class="space-y-1.5 rounded-xl bg-white p-4 ring-1 ring-slate-200"
+    - report.hours.each do |hour|
+      - label = "#{format("%02d:00", hour.hour)} – #{format("%02d:00", hour.hour + 1)}"
+      li class="grid grid-cols-[6.5rem_1fr_3.5rem] items-center gap-3 text-sm" title="#{label}: #{percent.(hour.occupancy)} (#{format_duration(hour.booked_minutes)} / #{format_duration(hour.open_minutes)})"
+        span class="text-xs text-slate-500 tabular-nums" = label
+        span class="h-3 rounded-full bg-slate-100"
+          span class="block h-3 rounded-full bg-emerald-600" style="width: #{((hour.occupancy || 0) * 100).clamp(0, 100).round(1)}%"
+        span class="text-right text-xs font-medium tabular-nums" = percent.(hour.occupancy)
+
+section aria-labelledby="days-title"
+  h2#days-title class="mb-3 text-lg font-semibold" = t(".by_day")
+  div class="overflow-x-auto rounded-xl bg-white ring-1 ring-slate-200"
+    table class="w-full text-left text-sm"
+      thead class="bg-slate-50 text-xs text-slate-500 uppercase"
+        tr
+          th class="px-3 py-2 font-medium" = t(".day")
+          th class="px-3 py-2 text-right font-medium" = t(".bookings")
+          th class="px-3 py-2 text-right font-medium" = t(".hours")
+          th class="px-3 py-2 text-right font-medium" = t(".occupancy")
+          th class="px-3 py-2 text-right font-medium" = t(".expected")
+          th class="px-3 py-2 text-right font-medium" = t(".collected")
+          th class="px-3 py-2 text-right font-medium" = t(".no_shows")
+          th class="px-3 py-2 text-right font-medium" = t(".cancelled")
+      tbody class="divide-y divide-slate-100 tabular-nums"
+        - report.days.each do |day|
+          tr class=("text-slate-400" if day.bookings.zero? && day.cancelled.zero?)
+            td class="px-3 py-2 whitespace-nowrap"
+              = link_to l(day.date, format: :full), admin_root_path(date: day.date.iso8601), class: "hover:text-emerald-700"
+            td class="px-3 py-2 text-right" = day.bookings
+            td class="px-3 py-2 text-right" = format_duration(day.booked_minutes)
+            td class="px-3 py-2 text-right" = percent.(day.occupancy)
+            td class="px-3 py-2 text-right" = format_vnd(day.expected_vnd)
+            td class="px-3 py-2 text-right" = format_vnd(day.collected_vnd)
+            td class="px-3 py-2 text-right" = day.no_shows
+            td class="px-3 py-2 text-right" = day.cancelled
+      tfoot class="border-t border-slate-200 font-semibold tabular-nums"
+        tr
+          td class="px-3 py-2" = t(".total")
+          td class="px-3 py-2 text-right" = totals.bookings
+          td class="px-3 py-2 text-right" = format_duration(totals.booked_minutes)
+          td class="px-3 py-2 text-right" = percent.(totals.occupancy)
+          td class="px-3 py-2 text-right" = format_vnd(totals.expected_vnd)
+          td class="px-3 py-2 text-right" = format_vnd(totals.collected_vnd)
+          td class="px-3 py-2 text-right" = totals.no_shows
+          td class="px-3 py-2 text-right" = totals.cancelled

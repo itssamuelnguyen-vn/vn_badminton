@@ -1,4 +1,6 @@
 / ‹ [selected date ▾] ›  The button opens a month calendar; days that cannot be booked are disabled.
+/ link_params: kept on every date link (e.g. reschedule mode).
+- link_params = local_assigns.fetch(:link_params, {})
 - nav_class = "flex size-10 items-center justify-center rounded-lg bg-white ring-1 ring-slate-200"
 - chevron_left = capture do
   svg viewBox="0 0 20 20" class="size-5" fill="currentColor" aria-hidden="true"
@@ -9,7 +11,7 @@
 
 div class="relative mb-4 flex items-center gap-2" data-controller="date-picker"
   - if (previous_date = calendar.previous_selectable)
-    = link_to chevron_left, root_path(date: previous_date.iso8601), class: "#{nav_class} text-slate-700 hover:ring-emerald-400", aria: { label: t(".previous_day") }
+    = link_to chevron_left, root_path(date: previous_date.iso8601, **link_params), class: "#{nav_class} text-slate-700 hover:ring-emerald-400", aria: { label: t(".previous_day") }
   - else
     span class="#{nav_class} text-slate-300" aria-hidden="true" = chevron_left
 
@@ -25,7 +27,7 @@ div class="relative mb-4 flex items-center gap-2" data-controller="date-picker"
       path d="M5.3 7.3a1 1 0 0 1 1.4 0L10 10.6l3.3-3.3a1 1 0 1 1 1.4 1.4l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 0 1 0-1.4Z"
 
   - if (next_date = calendar.next_selectable)
-    = link_to chevron_right, root_path(date: next_date.iso8601), class: "#{nav_class} text-slate-700 hover:ring-emerald-400", aria: { label: t(".next_day") }
+    = link_to chevron_right, root_path(date: next_date.iso8601, **link_params), class: "#{nav_class} text-slate-700 hover:ring-emerald-400", aria: { label: t(".next_day") }
   - else
     span class="#{nav_class} text-slate-300" aria-hidden="true" = chevron_right
 
@@ -52,7 +54,7 @@ div class="relative mb-4 flex items-center gap-2" data-controller="date-picker"
             - if date == calendar.selected
               span class=[ *classes, "bg-emerald-600 font-semibold text-white" ] aria-current="date" role="gridcell" = date.day
             - elsif calendar.selectable?(date)
-              = link_to date.day, root_path(date: date.iso8601), role: "gridcell", aria: { label: l(date, format: :full) },
+              = link_to date.day, root_path(date: date.iso8601, **link_params), role: "gridcell", aria: { label: l(date, format: :full) },
                   class: [ *classes, "font-medium text-slate-800 hover:bg-emerald-50" ]
             - else
               span class=[ *classes, "cursor-not-allowed text-slate-300" ] aria-disabled="true" role="gridcell" = date.day

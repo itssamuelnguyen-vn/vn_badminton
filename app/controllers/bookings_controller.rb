@@ -7,7 +7,8 @@ class BookingsController < ApplicationController
   rate_limit to: 30, within: 10.minutes, only: :new, by: -> { current_user.id }, store: RATE_LIMIT_STORE,
              with: -> { rate_limited(root_path) }
   before_action :require_verified_email, only: %i[new create]
-  before_action :set_booking, only: %i[show cancel]
+  before_action :set_booking, only: %i[show cancel review_reschedule reschedule]
+  before_action :require_reschedulable, only: %i[review_reschedule reschedule]
 
   def index
     bookings = current_user.bookings.kind_reservation.where.not(status: :pending).includes(:court)
@@ -44,6 +45,28 @@ class BookingsController < ApplicationController
     end
   end
 
+  # Confirmation page for moving a booking to the slot picked on the schedule (reschedule mode):
+  #   /bookings/K7Q2M9XA/reschedule?slots[0][court_id]=..&slots[0][starts_at]=..&slots[0][ends_at]=..
+  # Shows the old and new times and the new price; checks the new slot without saving.
+  def review_reschedule
+    @original = @booking.dup
+    slot = slots_from(params).first or return redirect_to(booking_path(@booking), alert: t("bookings.new.no_selection"))
+    @booking.assign_attributes(court: rescheduled_court(slot), starts_at: slot[:starts_at], ends_at: slot[:ends_at])
+    @booking.validate
+  end
+
+  def reschedule
+    @original = @booking.dup
+    slot = params.require(:reschedule).permit(:court_id, :starts_at, :ends_at)
+
+    if @booking.reschedule(court: rescheduled_court(slot), starts_at: slot[:starts_at], ends_at: slot[:ends_at], by: current_user)
+      BookingMailer.with(booking: @booking, previous: @original.attributes.slice("court_id", "starts_at", "ends_at")).rescheduled.deliver_later
+      redirect_to booking_path(@booking), notice: t(".success")
+    else
+      render :review_reschedule, status: :unprocessable_content
+    end
+  end
+
   # "Pick another time" on the confirmation page: frees the held slots right away instead of after the timeout.
   def release_hold
     Booking.delete_holds!(current_user.bookings)
@@ -67,6 +90,14 @@ class BookingsController < ApplicationController
   # The banner under the header (layouts/application/_unverified_notice) has the button to resend the email.
   def require_verified_email
     redirect_to root_path, alert: t("bookings.unverified") unless current_user.confirmed?
+  end
+
+  def require_reschedulable
+    redirect_to booking_path(@booking), alert: t("bookings.reschedule.not_allowed") unless @booking.reschedulable_by_customer?
+  end
+
+  def rescheduled_court(slot)
+    Venue.main.courts.active.find(slot[:court_id])
   end
 
   def set_booking

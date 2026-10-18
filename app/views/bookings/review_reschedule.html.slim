@@ -1,0 +1,35 @@
+- content_for :title, t(".title")
+- original = @original
+
+div class="card mx-auto max-w-lg"
+  h1 class="mb-6 text-2xl font-bold" = t(".title", code: @booking.code)
+
+  - if @booking.errors.any?
+    div#error_explanation role="alert" class="mb-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-200"
+      ul class="list-disc space-y-1 pl-5"
+        - @booking.errors.full_messages.each do |message|
+          li = message
+
+  dl class="divide-y divide-slate-100 text-sm"
+    div class="flex justify-between gap-4 py-2 text-slate-500"
+      dt = t(".before")
+      dd class="text-right line-through"
+        = "#{original.court.display_name} · #{l(original.starts_at.to_date, format: :full)} · #{time_range(original.starts_at, original.ends_at)}"
+    div class="flex justify-between gap-4 py-2"
+      dt class="font-medium" = t(".after")
+      dd class="text-right font-semibold"
+        = "#{@booking.court.display_name} · #{l(@booking.starts_at.to_date, format: :full)} · #{time_range(@booking.starts_at, @booking.ends_at)}"
+    div class="flex justify-between gap-4 py-3 text-base"
+      dt class="font-semibold" = t("bookings.details.total")
+      dd class="text-right"
+        - if @booking.total_amount_vnd != original.total_amount_vnd
+          span class="mr-2 text-sm text-slate-400 line-through tabular-nums" = format_vnd(original.total_amount_vnd)
+        span class="font-bold text-emerald-700 tabular-nums" = format_vnd(@booking.total_amount_vnd)
+
+  = form_with scope: :reschedule, url: reschedule_booking_path(@booking), method: :patch, class: "mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end" do |f|
+    = f.hidden_field :court_id, value: @booking.court_id
+    = f.hidden_field :starts_at, value: @booking.starts_at&.iso8601
+    = f.hidden_field :ends_at, value: @booking.ends_at&.iso8601
+    = link_to t(".back"), root_path(date: @booking.starts_at.in_time_zone(@booking.court.venue.zone).to_date.iso8601, reschedule: @booking.code), class: "btn-secondary"
+    - unless @booking.errors.any?
+      = f.submit t(".submit"), class: "btn-primary"

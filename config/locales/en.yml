@@ -94,6 +94,7 @@ en:
           before_valid_from: "must be after the start date"
           other_venue: "does not belong to this venue"
         booking:
+          not_reschedulable: "This booking can no longer be moved"
           slot_just_taken: "This slot was just booked by someone else, please choose another time"
           slot_taken: "This slot is already booked"
           no_price: "No price is set for the slot at %{time}"
@@ -130,6 +131,9 @@ en:
         board: Day board
         price_rules: Price rules
         settings: Settings
+        staff: Staff
+        customers: Customers
+        reports: Reports
 
 
   devise:
@@ -225,6 +229,8 @@ en:
       total: "Total: %{amount}"
       no_slots_left: There are no more bookable times on this day. Please choose another date.
       taken_meanwhile: A slot you picked was just booked or held by someone else. Please pick again.
+      rescheduling: "Moving booking %{code} (%{court}, %{time}). Pick the new time on one court."
+      stop_rescheduling: Keep it as it is
     date_picker:
       label: Choose a date
       today: today
@@ -306,6 +312,7 @@ en:
       lock_warning:
         one: "Note: cancelling now locks online booking for %{days} days."
         other: "Note: this will be cancellation %{count} of the day, which locks online booking for %{days} days."
+      reschedule: Change time
     index:
       title: My bookings
       new: Book a court
@@ -315,6 +322,15 @@ en:
     lock_notice: "Your account cannot book online until %{until} because of several cancellations in one day. Please call the venue if you need help."
     unverified: Please verify your email before booking. We sent a verification link to your email.
     changed_meanwhile: This booking was just updated elsewhere. Please check its status and try again.
+    reschedule:
+      not_allowed: This booking can no longer be moved (past the cutoff, already paid or no longer active). Please call the venue.
+      success: Booking moved. We sent you a confirmation email.
+    review_reschedule:
+      title: "Move booking %{code}"
+      before: Before
+      after: After the change
+      back: Pick another time
+      submit: Confirm the change
 
   booking_batch:
     errors:
@@ -325,6 +341,7 @@ en:
       too_many:
         one: "Each account can hold %{count} upcoming booking; you can book %{remaining} more court."
         other: "Each account can hold %{count} upcoming bookings; you can only book %{remaining} more court(s)."
+      blacklisted: Your account cannot book online at the moment. Please contact the venue.
 
   booking_mailer:
     confirmed:
@@ -346,6 +363,10 @@ en:
       subject: "Reminder: %{court} at %{time}"
       intro: "You are playing at %{time} on %{court}:"
       cancel_policy: "If you cannot come, please cancel online at least %{hours} hours before the start time or call the venue."
+    rescheduled:
+      subject: "Booking %{code} moved"
+      intro: "Your booking has been moved to a new time:"
+      before: "Before:"
 
   admin:
     not_authorized: You are not allowed to open the management pages.
@@ -400,6 +421,12 @@ en:
         cancel_confirm:
           reservation: Cancel this booking? The customer is not notified automatically.
           block: Remove this block?
+        undo_check_in: Undo check-in
+        undo_check_in_confirm: Put the booking back to not checked in?
+        undo_no_show: Undo no-show
+        undo_no_show_confirm: Put the booking back to confirmed?
+        undo_payment: Undo payment
+        undo_payment_confirm: "Mark %{amount} as not collected?"
       show:
         title: "Booking %{code}"
         customer: Customer
@@ -411,6 +438,7 @@ en:
         back: Back to the day board
         locked: "This customer cannot book online until %{until} (too many cancellations in a day)."
         unlock: Unlock
+        reschedule: Change time
       new:
         title: Book or block a court
         kind: Type
@@ -435,10 +463,22 @@ en:
         success: Marked as a no-show.
       mark_paid:
         success: Payment recorded.
+      undo_check_in:
+        success: Check-in undone.
+      undo_no_show:
+        success: Back to confirmed.
+      undo_payment:
+        success: Payment undone.
       cancel:
         success:
           reservation: Booking cancelled.
           block: Block removed.
+      edit_schedule:
+        title: "Move booking %{code}"
+        hint: The price is recalculated from the price rules. Online booking rules do not apply; opening hours still apply to bookings. Customers with an account get an email.
+        submit: Save the new time
+      reschedule:
+        success: Booking moved.
     price_rules:
       index:
         title: Price rules
@@ -490,3 +530,85 @@ en:
     users:
       unlock_booking:
         success: The customer can book online again.
+    owner_only: Only the owner can open this page.
+    roles:
+      customer: Customer
+      staff: Staff
+      admin: Owner
+    staff_members:
+      index:
+        title: Staff
+        explanation: "Staff can use the day board, book for customers, block courts, check in, record payments, cancel and see the customer list; they cannot see revenue, prices, settings or this page."
+        remove: Remove access
+        remove_confirm: "Remove staff access for %{name}? The account goes back to a customer account."
+        add: Add a staff member
+        login: Email or phone number of the account
+        login_hint: Staff sign up on the website first, then enter their email or phone number here.
+        submit: Give staff access
+      create:
+        not_found: No account with this email or phone number.
+        already_staff: "%{name} is already staff or the owner."
+        success: "%{name} is now staff."
+      destroy:
+        success: "Removed staff access for %{name}."
+    customers:
+      blacklisted: Blacklisted
+      blacklisted_warning: "This customer is blacklisted (no online booking). Reason: %{reason}"
+      index:
+        title: Customers
+        explanation: Everyone who booked (online or through the venue) and every customer account, by phone number.
+        search: Search
+        search_placeholder: Name, phone number or email
+        no_name: "(no name)"
+        bookings:
+          one: "%{count} booking"
+          other: "%{count} bookings"
+        no_shows:
+          one: "%{count} no-show"
+          other: "%{count} no-shows"
+        last: "Last: %{date}"
+        limited:
+          one: "Showing the %{count} most recent customer. Use the search to find others."
+          other: "Showing the %{count} most recent customers. Use the search to find others."
+        empty: No customers.
+      show:
+        back: Customer list
+        unverified: email not verified
+        no_account: no account (booked through the venue)
+        blocked: "Blacklisted since %{date} (by %{by}). Reason: %{reason}"
+        stats:
+          bookings: Bookings
+          upcoming: Upcoming
+          no_shows: No-shows
+          self_cancellations: Self-cancelled
+          revenue: Revenue
+        note: Note
+        note_placeholder: "E.g. regular, usually books Tuesday evenings"
+        note_hint: Only the owner and staff see this note.
+        blacklist: Blacklist this customer
+        blacklist_reason: Reason
+        blacklist_hint: Blacklisted customers cannot book online; the owner and staff can still book for them.
+        save: Save
+        history: Booking history
+        no_bookings: No bookings yet.
+      update:
+        success: Customer saved.
+    reports:
+      show:
+        title: Reports
+        explanation: Monthly revenue and occupancy. Cancelled bookings are not counted.
+        previous_month: Previous month
+        next_month: Next month
+        export: Export CSV
+        expected: Expected revenue
+        collected: Collected
+        bookings: Bookings
+        occupancy: Occupancy
+        by_hour: Occupancy by time of day
+        by_hour_hint: Court time booked over court time open during the month, for each hour of the day.
+        by_day: By day
+        day: Day
+        hours: Court time
+        no_shows: No-shows
+        cancelled: Cancelled
+        total: Total

@@ -1,0 +1,27 @@
+- content_for :title, t(".title")
+
+div class="mx-auto max-w-2xl space-y-6"
+  div
+    h1 class="text-2xl font-bold sm:text-3xl" = t(".title")
+    p class="mt-1 text-sm text-slate-600" = t(".explanation")
+
+  div class="divide-y divide-slate-100 rounded-xl bg-white ring-1 ring-slate-200"
+    - @members.each do |member|
+      div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
+        div class="min-w-0"
+          p class="font-semibold" = member.full_name
+          p class="truncate text-sm text-slate-600" = [ member.email, PhoneNumber.to_local(member.phone) ].compact.join(" · ")
+        div class="flex items-center gap-2"
+          span class="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700 ring-1 ring-slate-200" = t("admin.roles.#{member.role}")
+          - if member.staff?
+            = button_to t(".remove"), admin_staff_member_path(member), method: :delete,
+                class: "btn bg-white px-2.5 py-1 text-xs text-red-700 ring-1 ring-red-200 hover:bg-red-50",
+                form: { data: { turbo_confirm: t(".remove_confirm", name: member.full_name) } }
+
+  = form_with url: admin_staff_members_path, class: "card space-y-3" do |f|
+    h2 class="text-lg font-semibold" = t(".add")
+    div
+      = f.label :login, t(".login"), class: "form-label"
+      = f.text_field :login, required: true, autocomplete: "off", placeholder: "an@example.com / 0901 234 567", class: "form-input"
+      p class="form-hint" = t(".login_hint")
+    = f.submit t(".submit"), class: "btn-primary"

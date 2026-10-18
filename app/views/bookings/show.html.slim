@@ -23,6 +23,9 @@ div class="card mx-auto max-w-lg"
 
   div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between"
     = link_to t(".all_bookings"), bookings_path, class: "btn-secondary"
+    - if @booking.reschedulable_by_customer?
+      = link_to t(".reschedule"), root_path(date: @booking.starts_at.in_time_zone(@booking.court.venue.zone).to_date.iso8601, reschedule: @booking.code),
+          class: "btn-secondary"
     - if @booking.cancellable_by_customer?
       = button_to t(".cancel"), cancel_booking_path(@booking), method: :patch, class: "btn w-full bg-red-600 text-white hover:bg-red-700",
           form: { data: { turbo_confirm: t(".cancel_confirm") } }

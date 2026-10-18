@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex">
   <title>Trình duyệt chưa được hỗ trợ | VN Badminton</title>
+  <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" href="/icon.png" type="image/png">
-  <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <!-- Static page served by Rails even when the app itself fails: no layout or Tailwind build here,
        so the colors (emerald/slate) and the logo of the site header are inlined. -->
   <style>
@@ -22,7 +22,7 @@
       display: flex; align-items: center; gap: .5rem; max-width: 64rem; margin: 0 auto; padding: .75rem 1rem;
       color: #047857; font-size: 1.125rem; font-weight: 700; text-decoration: none;
     }
-    header svg { width: 1.5rem; height: 1.5rem; }
+    header img { width: 2.25rem; height: 2.25rem; }
     main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem 1rem; }
     .card {
       width: 100%; max-width: 28rem; padding: 2rem; border-radius: 1rem; background: #fff; text-align: center;
@@ -44,9 +44,7 @@
 <body>
   <header>
     <a href="/">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M8.5 15.5 4 4l11.5 4.5"/><path d="M6.5 10 14 9.5M9.5 6.5 9 14"/><circle cx="16.5" cy="16.5" r="3.5"/>
-      </svg>
+      <img src="/icon.png" alt="">
       VN Badminton
     </a>
   </header>

@@ -2,11 +2,20 @@ class SchedulesController < ApplicationController
   def show
     @venue = Venue.main
     @date = selected_date
-    @day = Schedule::Day.new(venue: @venue, date: @date, user: current_user)
+    @rescheduling = rescheduling
+    @day = Schedule::Day.new(venue: @venue, date: @date, user: current_user, ignore: @rescheduling)
     @calendar = Schedule::Calendar.new(venue: @venue, selected: @date)
   end
 
   private
+
+  # ?reschedule=CODE: the customer is moving that booking (see BookingsController#review_reschedule).
+  def rescheduling
+    return if params[:reschedule].blank? || !user_signed_in?
+
+    booking = current_user.bookings.find_by(code: params[:reschedule])
+    booking if booking&.reschedulable_by_customer?
+  end
 
   # Falls back to the default date for a missing, malformed or out-of-range ?date=.
   def selected_date
