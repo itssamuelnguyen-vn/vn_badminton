@@ -31,19 +31,14 @@
     .code { margin: 0 0 .5rem; color: #059669; font-size: 3rem; font-weight: 800; line-height: 1; letter-spacing: -.02em; }
     h1 { margin: 0; font-size: 1.5rem; line-height: 1.3; }
     p { margin: .75rem 0 0; color: #475569; line-height: 1.5; }
-    .en { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid #f1f5f9; font-size: .875rem; }
-    .en strong { display: block; color: #0f172a; }
-    .en p { margin-top: .25rem; color: #64748b; }
-    .actions { margin-top: 1.5rem; display: flex; flex-direction: column; gap: .75rem; }
+    .actions { margin-top: 1.5rem; display: flex; justify-content: center; }
     .btn {
       display: inline-flex; justify-content: center; padding: .625rem 1rem; border-radius: .5rem;
       font-size: .875rem; font-weight: 600; text-decoration: none;
     }
     .btn-primary { background: #059669; color: #fff; }
     .btn-primary:hover { background: #047857; }
-    .btn-secondary { background: #fff; color: #334155; box-shadow: 0 0 0 1px #cbd5e1; }
-    .btn-secondary:hover { background: #f8fafc; }
-    @media (min-width: 640px) { .actions { flex-direction: row; justify-content: center; } }
+    [hidden] { display: none !important; }
   </style>
 </head>
 <body>
@@ -57,17 +52,28 @@
   </header>
   <main>
     <div class="card">
-      <h1>Trình duyệt chưa được hỗ trợ</h1>
-      <p>Vui lòng cập nhật trình duyệt (Chrome, Safari, Firefox, Edge, Cốc Cốc) lên phiên bản mới nhất.</p>
-      <div class="en" lang="en">
-        <strong>Your browser is not supported</strong>
-        <p>Please update your browser (Chrome, Safari, Firefox, Edge) to the latest version.</p>
+      <!-- One language at a time: Vietnamese by default, English when the failing URL is under /en (script below). -->
+      <div data-lang="vi">
+        <h1>Trình duyệt chưa được hỗ trợ</h1>
+        <p>Vui lòng cập nhật trình duyệt (Chrome, Safari, Firefox, Edge, Cốc Cốc) lên phiên bản mới nhất.</p>
+        <div class="actions"><a class="btn btn-primary" href="/">Về trang đặt sân</a></div>
       </div>
-      <div class="actions">
-        <a class="btn btn-primary" href="/">Về trang đặt sân</a>
-        <a class="btn btn-secondary" href="/en" lang="en">Go to the booking page</a>
+      <div data-lang="en" lang="en" hidden>
+        <h1>Your browser is not supported</h1>
+        <p>Please update your browser (Chrome, Safari, Firefox, Edge) to the latest version.</p>
+        <div class="actions"><a class="btn btn-primary" href="/en">Back to the booking page</a></div>
       </div>
     </div>
   </main>
+  <script>
+    // Plain ES5: this also runs on the "unsupported browser" page.
+    if (/^\/en(\/|$)/.test(window.location.pathname)) {
+      var blocks = document.querySelectorAll("[data-lang]");
+      for (var i = 0; i < blocks.length; i++) blocks[i].hidden = blocks[i].getAttribute("data-lang") !== "en";
+      document.documentElement.lang = "en";
+      document.title = "Your browser is not supported | VN Badminton";
+      document.querySelector("header a").setAttribute("href", "/en");
+    }
+  </script>
 </body>
 </html>
