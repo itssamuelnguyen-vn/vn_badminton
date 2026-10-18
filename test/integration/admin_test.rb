@@ -143,6 +143,21 @@ class AdminTest < ActionDispatch::IntegrationTest
     assert other.reload.no_show?
   end
 
+  test "a booking changed meanwhile shows a message instead of an error page" do
+    booking = courts(:court_one).bookings.create!(user: users(:an), starts_at: at("18:00"), ends_at: at("19:00"))
+    # As if the customer cancelled between loading the booking and saving the check-in.
+    original = Booking.instance_method(:check_in!)
+    Booking.define_method(:check_in!) { |**| raise ActiveRecord::StaleObjectError.new(self, "update") }
+    begin
+      patch check_in_admin_booking_path(booking)
+    ensure
+      Booking.define_method(:check_in!, original)
+    end
+
+    assert_redirected_to admin_booking_path(booking)
+    assert_equal "Lượt đặt vừa được cập nhật ở nơi khác. Vui lòng xem lại trạng thái rồi thử lại.", flash[:alert]
+  end
+
   test "managers can cancel a booking after the customer cutoff" do
     booking = courts(:court_one).bookings.create!(user: users(:an), starts_at: at("18:00", "2026-10-19"), ends_at: at("19:00", "2026-10-19"))
     travel_to Time.zone.parse("2026-10-19 17:30")

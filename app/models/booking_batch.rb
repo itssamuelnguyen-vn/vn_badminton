@@ -33,6 +33,7 @@ class BookingBatch
       # Locking the customer's row makes two bookings sent at the same time wait for each other,
       # so they cannot both get past the upcoming-bookings limit.
       @user.lock!
+      Booking.lock_courts!(bookings.map(&:court_id))
       raise ActiveRecord::Rollback unless customer_allowed?
 
       results = bookings.map(&:reserve)

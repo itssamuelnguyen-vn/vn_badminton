@@ -301,6 +301,7 @@ vi:
       past: Đã qua và đã huỷ
     lock_notice: "Tài khoản của bạn tạm thời không thể đặt sân online đến %{until} vì đã huỷ nhiều lần trong một ngày. Vui lòng gọi cho sân nếu cần hỗ trợ."
     unverified: Vui lòng xác minh email trước khi đặt sân. Chúng tôi đã gửi đường dẫn xác minh tới email của bạn.
+    changed_meanwhile: Lượt đặt vừa được cập nhật ở nơi khác. Vui lòng xem lại trạng thái rồi thử lại.
 
   booking_batch:
     errors:
