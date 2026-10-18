@@ -92,7 +92,9 @@ class BookingBatch
 
   def customer_allowed?(now = Time.current)
     @errors = []
-    if @user.booking_locked?(now)
+    if CustomerProfile.blocked?(@user.phone)
+      @errors << I18n.t("booking_batch.errors.blacklisted")
+    elsif @user.booking_locked?(now)
       @errors << I18n.t("booking_batch.errors.locked", until: I18n.l(@user.booking_locked_until.in_time_zone(venue.zone), format: :slot))
     else
       limit = venue.max_upcoming_bookings

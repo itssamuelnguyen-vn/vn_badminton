@@ -130,6 +130,7 @@ vi:
         price_rules: Bảng giá
         settings: Cài đặt
         staff: Nhân viên
+        customers: Khách hàng
 
 
   devise:
@@ -316,6 +317,7 @@ vi:
         other: "Bạn đang có %{count} lượt đặt sắp tới, là số tối đa. Vui lòng chơi xong hoặc huỷ bớt trước khi đặt thêm."
       too_many:
         other: "Mỗi tài khoản giữ tối đa %{count} lượt đặt sắp tới; bạn chỉ còn đặt thêm được %{remaining} sân."
+      blacklisted: Tài khoản của bạn hiện không thể đặt sân online. Vui lòng liên hệ sân.
 
   booking_mailer:
     confirmed:
@@ -511,3 +513,42 @@ vi:
         success: "%{name} giờ là nhân viên."
       destroy:
         success: "Đã gỡ quyền nhân viên của %{name}."
+    customers:
+      blacklisted: Danh sách đen
+      blacklisted_warning: "Khách trong danh sách đen (không đặt online được). Lý do: %{reason}"
+      index:
+        title: Khách hàng
+        explanation: Mọi người đã đặt sân (online hoặc qua chủ sân) và mọi tài khoản khách, theo số điện thoại.
+        search: Tìm
+        search_placeholder: Tên, số điện thoại hoặc email
+        no_name: "(chưa có tên)"
+        bookings:
+          other: "%{count} lượt đặt"
+        no_shows:
+          other: "%{count} lần không đến"
+        last: "Gần nhất: %{date}"
+        limited:
+          other: "Chỉ hiện %{count} khách gần nhất. Dùng ô tìm kiếm để tìm khách khác."
+        empty: Không có khách nào.
+      show:
+        back: Danh sách khách
+        unverified: chưa xác minh email
+        no_account: chưa có tài khoản (đặt qua chủ sân)
+        blocked: "Trong danh sách đen từ %{date} (bởi %{by}). Lý do: %{reason}"
+        stats:
+          bookings: Lượt đặt
+          upcoming: Sắp tới
+          no_shows: Không đến
+          self_cancellations: Tự huỷ
+          revenue: Doanh thu
+        note: Ghi chú
+        note_placeholder: "Ví dụ: khách quen, hay đặt tối thứ 3"
+        note_hint: Chỉ chủ sân và nhân viên thấy ghi chú này.
+        blacklist: Đưa vào danh sách đen
+        blacklist_reason: Lý do
+        blacklist_hint: Khách trong danh sách đen không đặt online được; chủ sân và nhân viên vẫn đặt hộ được.
+        save: Lưu
+        history: Lịch sử đặt sân
+        no_bookings: Chưa có lượt đặt nào.
+      update:
+        success: Đã lưu thông tin khách.

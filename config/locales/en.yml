@@ -131,6 +131,7 @@ en:
         price_rules: Price rules
         settings: Settings
         staff: Staff
+        customers: Customers
 
 
   devise:
@@ -326,6 +327,7 @@ en:
       too_many:
         one: "Each account can hold %{count} upcoming booking; you can book %{remaining} more court."
         other: "Each account can hold %{count} upcoming bookings; you can only book %{remaining} more court(s)."
+      blacklisted: Your account cannot book online at the moment. Please contact the venue.
 
   booking_mailer:
     confirmed:
@@ -524,3 +526,45 @@ en:
         success: "%{name} is now staff."
       destroy:
         success: "Removed staff access for %{name}."
+    customers:
+      blacklisted: Blacklisted
+      blacklisted_warning: "This customer is blacklisted (no online booking). Reason: %{reason}"
+      index:
+        title: Customers
+        explanation: Everyone who booked (online or through the venue) and every customer account, by phone number.
+        search: Search
+        search_placeholder: Name, phone number or email
+        no_name: "(no name)"
+        bookings:
+          one: "%{count} booking"
+          other: "%{count} bookings"
+        no_shows:
+          one: "%{count} no-show"
+          other: "%{count} no-shows"
+        last: "Last: %{date}"
+        limited:
+          one: "Showing the %{count} most recent customer. Use the search to find others."
+          other: "Showing the %{count} most recent customers. Use the search to find others."
+        empty: No customers.
+      show:
+        back: Customer list
+        unverified: email not verified
+        no_account: no account (booked through the venue)
+        blocked: "Blacklisted since %{date} (by %{by}). Reason: %{reason}"
+        stats:
+          bookings: Bookings
+          upcoming: Upcoming
+          no_shows: No-shows
+          self_cancellations: Self-cancelled
+          revenue: Revenue
+        note: Note
+        note_placeholder: "E.g. regular, usually books Tuesday evenings"
+        note_hint: Only the owner and staff see this note.
+        blacklist: Blacklist this customer
+        blacklist_reason: Reason
+        blacklist_hint: Blacklisted customers cannot book online; the owner and staff can still book for them.
+        save: Save
+        history: Booking history
+        no_bookings: No bookings yet.
+      update:
+        success: Customer saved.

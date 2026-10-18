@@ -24,6 +24,7 @@ Rails.application.routes.draw do
           patch :undo_payment
         end
       end
+      resources :customers, only: %i[index show update], param: :phone
       resources :price_rules, except: :show
       resources :users, only: [] do
         patch :unlock_booking, on: :member

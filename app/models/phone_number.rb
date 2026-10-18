@@ -17,6 +17,11 @@ module PhoneNumber
     end
   end
 
+  # For URLs: "+84901234567" -> "0901234567".
+  def self.local_digits(phone)
+    phone.to_s.match?(FORMAT) ? "0#{phone[3, 9]}" : phone
+  end
+
   # For display: "+84901234567" -> "0901 234 567". Anything else is returned unchanged.
   def self.to_local(phone)
     return phone unless phone.to_s.match?(FORMAT)

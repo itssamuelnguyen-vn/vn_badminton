@@ -1,0 +1,31 @@
+- content_for :title, t(".title")
+
+div class="mb-4 flex flex-wrap items-end justify-between gap-4"
+  div
+    h1 class="text-2xl font-bold sm:text-3xl" = t(".title")
+    p class="mt-1 text-sm text-slate-600" = t(".explanation")
+  = form_with url: admin_customers_path, method: :get, class: "flex gap-2" do |f|
+    = f.search_field :q, value: @query, placeholder: t(".search_placeholder"), class: "form-input w-64 py-1.5", aria: { label: t(".search") }
+    = f.submit t(".search"), name: nil, class: "btn-secondary"
+
+- if @customers.any?
+  div class="divide-y divide-slate-100 rounded-xl bg-white ring-1 ring-slate-200"
+    - @customers.each do |customer|
+      = link_to admin_customer_path(customer), class: "flex flex-wrap items-center justify-between gap-3 px-4 py-3 hover:bg-slate-50" do
+        div class="min-w-0"
+          p class="font-semibold"
+            = customer.name.presence || t(".no_name")
+            - if customer.blocked?
+              span class="ml-2 rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 ring-1 ring-red-200" = t("admin.customers.blacklisted")
+          p class="truncate text-sm text-slate-600"
+            = [ PhoneNumber.to_local(customer.phone), customer.user&.email ].compact.join(" · ")
+        div class="text-right text-xs text-slate-500"
+          p = t(".bookings", count: customer.bookings_count)
+          - if customer.no_shows.positive?
+            p class="text-red-700" = t(".no_shows", count: customer.no_shows)
+          - if customer.last_booking_at
+            p = t(".last", date: l(customer.last_booking_at.in_time_zone.to_date, format: :day_month_year))
+  - if @customers.size == Customers::Directory::LIMIT
+    p class="mt-2 text-xs text-slate-500" = t(".limited", count: Customers::Directory::LIMIT)
+- else
+  p class="card text-center text-sm text-slate-600" = t(".empty")

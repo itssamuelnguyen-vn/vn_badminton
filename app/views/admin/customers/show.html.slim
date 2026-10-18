@@ -1,0 +1,61 @@
+- content_for :title, @customer.name
+- customer = @customer
+
+div class="mx-auto max-w-3xl space-y-6"
+  div class="flex flex-wrap items-start justify-between gap-4"
+    div
+      h1 class="text-2xl font-bold" = customer.name.presence || t("admin.customers.index.no_name")
+      p class="mt-1 text-sm text-slate-600"
+        = link_to PhoneNumber.to_local(customer.phone), "tel:#{customer.phone}", class: "link tabular-nums"
+        - if customer.user
+          = " · #{customer.user.email}"
+          - unless customer.user.confirmed?
+            = " (#{t(".unverified")})"
+        - else
+          = " · #{t(".no_account")}"
+    = link_to t(".back"), admin_customers_path, class: "btn-secondary"
+
+  - if customer.blocked?
+    p class="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-200" role="status"
+      = t(".blocked", date: l(customer.profile.blocked_at, format: :slot), by: customer.profile.blocked_by&.full_name, reason: customer.profile.blocked_reason.presence || "—")
+  - if customer.user&.booking_locked?
+    div class="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900 ring-1 ring-amber-200"
+      p = t("admin.bookings.show.locked", until: l(customer.user.booking_locked_until, format: :slot))
+      = button_to t("admin.bookings.show.unlock"), unlock_booking_admin_user_path(customer.user), method: :patch, class: "btn-secondary px-3 py-1.5 text-xs"
+
+  dl class="grid grid-cols-2 gap-3 sm:grid-cols-4"
+    - stats = [ [ t(".stats.bookings"), customer.bookings_count ], [ t(".stats.upcoming"), customer.upcoming_count ],
+                [ t(".stats.no_shows"), customer.no_shows ], [ t(".stats.self_cancellations"), customer.self_cancellations ] ]
+    - stats << [ t(".stats.revenue"), format_vnd(customer.revenue_vnd) ] if current_user.owner?
+    - stats.each do |label, value|
+      div class="rounded-xl bg-white px-4 py-3 ring-1 ring-slate-200"
+        dt class="text-xs text-slate-500" = label
+        dd class="mt-1 text-lg font-semibold tabular-nums" = value
+
+  = form_with model: @profile, url: admin_customer_path(customer), method: :patch, class: "card space-y-4" do |f|
+    div
+      = f.label :note, t(".note"), class: "form-label"
+      = f.text_area :note, rows: 3, maxlength: 2000, placeholder: t(".note_placeholder"), class: "form-input"
+      p class="form-hint" = t(".note_hint")
+    div class="space-y-2 rounded-lg bg-slate-50 p-3"
+      label class="flex items-center gap-2 text-sm font-medium"
+        = f.check_box :blocked, checked: @profile.blocked?, class: "size-4 accent-red-600"
+        = t(".blacklist")
+      = f.text_field :blocked_reason, maxlength: 200, placeholder: t(".blacklist_reason"), class: "form-input", aria: { label: t(".blacklist_reason") }
+      p class="form-hint" = t(".blacklist_hint")
+    = f.submit t(".save"), class: "btn-primary"
+
+  section
+    h2 class="mb-3 text-lg font-semibold" = t(".history")
+    - if @bookings.any?
+      div class="divide-y divide-slate-100 rounded-xl bg-white ring-1 ring-slate-200"
+        - @bookings.each do |booking|
+          = link_to admin_booking_path(booking), class: "flex flex-wrap items-center justify-between gap-3 px-4 py-3 hover:bg-slate-50" do
+            div
+              p class="font-medium" = "#{l(booking.starts_at.to_date, format: :full)} · #{booking.court.display_name}"
+              p class="text-sm text-slate-600 tabular-nums" = "#{time_range(booking.starts_at, booking.ends_at)} · #{format_vnd(booking.total_amount_vnd)}"
+            div class="flex gap-2"
+              = booking_status_badge(booking)
+              = payment_status_badge(booking)
+    - else
+      p class="card text-center text-sm text-slate-600" = t(".no_bookings")

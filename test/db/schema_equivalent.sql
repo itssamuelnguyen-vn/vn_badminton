@@ -120,6 +120,21 @@ CREATE TABLE price_rules (
 CREATE INDEX index_price_rules_on_venue_id ON price_rules (venue_id);
 CREATE INDEX index_price_rules_on_court_id ON price_rules (court_id);
 
+CREATE TABLE customer_profiles (
+  id bigserial PRIMARY KEY,
+  phone varchar NOT NULL,
+  note text,
+  blocked_at timestamptz,
+  blocked_reason varchar,
+  blocked_by_id bigint REFERENCES users(id),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT customer_profiles_phone_format CHECK (phone ~ '^\+84[0-9]{9}$'),
+  CONSTRAINT customer_profiles_blocked_consistent CHECK ((blocked_at IS NULL) = (blocked_by_id IS NULL))
+);
+CREATE UNIQUE INDEX index_customer_profiles_on_phone ON customer_profiles (phone);
+CREATE INDEX index_customer_profiles_on_blocked_by_id ON customer_profiles (blocked_by_id);
+
 CREATE TABLE bookings (
   id bigserial PRIMARY KEY,
   court_id bigint NOT NULL REFERENCES courts(id),

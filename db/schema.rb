@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_19_000004) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_19_000005) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "citext"
@@ -79,6 +79,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000004) do
     t.index ["id", "venue_id"], name: "index_courts_on_id_and_venue_id", unique: true
     t.check_constraint "length(btrim(name::text)) >= 1 AND length(btrim(name::text)) <= 50", name: "courts_name_length"
     t.check_constraint "status::text = ANY (ARRAY['active'::character varying, 'inactive'::character varying]::text[])", name: "courts_status_valid"
+  end
+
+  create_table "customer_profiles", force: :cascade do |t|
+    t.string "phone", null: false
+    t.text "note"
+    t.datetime "blocked_at", precision: 0
+    t.string "blocked_reason"
+    t.bigint "blocked_by_id"
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
+    t.index ["blocked_by_id"], name: "index_customer_profiles_on_blocked_by_id"
+    t.index ["phone"], name: "index_customer_profiles_on_phone", unique: true
+    t.check_constraint "(blocked_at IS NULL) = (blocked_by_id IS NULL)", name: "customer_profiles_blocked_consistent"
+    t.check_constraint "phone::text ~ '^\\+84[0-9]{9}$'::text", name: "customer_profiles_phone_format"
   end
 
   create_table "opening_hours", force: :cascade do |t|
@@ -184,6 +198,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000004) do
   add_foreign_key "bookings", "users", column: "cancelled_by_id"
   add_foreign_key "bookings", "users", column: "created_by_id"
   add_foreign_key "courts", "venues"
+  add_foreign_key "customer_profiles", "users", column: "blocked_by_id"
   add_foreign_key "opening_hours", "venues", on_delete: :cascade
   add_foreign_key "price_rules", "courts", column: ["court_id", "venue_id"], primary_key: ["id", "venue_id"], name: "fk_price_rules_court_venue"
   add_foreign_key "price_rules", "venues"

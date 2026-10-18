@@ -1,4 +1,5 @@
-- tabs = [ [ t(".board"), admin_root_path, controller_name.in?(%w[boards bookings]) ] ]
+- tabs = [ [ t(".board"), admin_root_path, controller_name.in?(%w[boards bookings]) ],
+           [ t(".customers"), admin_customers_path, controller_name == "customers" ] ]
 / Prices, settings and staff are for the owner only.
 - if current_user.owner?
   - tabs += [ [ t(".price_rules"), admin_price_rules_path, controller_name == "price_rules" ],
