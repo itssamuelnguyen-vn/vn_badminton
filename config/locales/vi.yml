@@ -423,6 +423,8 @@ vi:
         scheduled: "Tài khoản đã được khoá và sẽ bị xoá sau khi lượt chơi cuối kết thúc (khoảng %{time}). Chúng tôi đã gửi email cho bạn."
         deleted: Tài khoản của bạn đã được xoá. Chúng tôi đã gửi email xác nhận.
 
+  api:
+    unauthorized: Vui lòng đăng nhập lại.
   account_mailer:
     deletion_requested:
       subject: Tài khoản VN Badminton của bạn sẽ được xoá

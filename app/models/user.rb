@@ -20,6 +20,10 @@ class User < ApplicationRecord
                                 inverse_of: :cancelled_by, dependent: :restrict_with_error
 
   belongs_to :deletion_requested_by, class_name: "User", optional: true
+  has_many :api_tokens, dependent: :delete_all
+
+  # A new password signs the mobile app out too (the web sessions already are, by Devise).
+  after_update { api_tokens.delete_all if saved_change_to_encrypted_password? }
 
   before_create { self.privacy_accepted_at = Time.current if privacy_consent == "1" }
 

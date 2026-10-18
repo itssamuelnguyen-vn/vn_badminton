@@ -53,6 +53,7 @@ module Accounts
 
       User.transaction do
         user.update_columns(deletion_requested_at: now, deletion_requested_by_id: by.id, updated_at: now)
+        user.api_tokens.delete_all # the mobile app is signed out too
         Booking.delete_holds!(user.bookings)
       end
       Turbo::StreamsChannel.broadcast_refresh_to(user, :account)

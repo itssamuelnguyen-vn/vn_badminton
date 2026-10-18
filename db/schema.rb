@@ -10,11 +10,22 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_19_000011) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_19_000012) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "citext"
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "api_tokens", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "token_digest", null: false
+    t.string "device_name"
+    t.datetime "last_used_at", precision: 0, null: false
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
+    t.index ["token_digest"], name: "index_api_tokens_on_token_digest", unique: true
+    t.index ["user_id"], name: "index_api_tokens_on_user_id"
+  end
 
   create_table "bank_transactions", force: :cascade do |t|
     t.bigint "sepay_id", null: false
@@ -325,6 +336,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000011) do
     t.check_constraint "status::text = ANY (ARRAY['active'::character varying, 'inactive'::character varying]::text[])", name: "venues_status_valid"
   end
 
+  add_foreign_key "api_tokens", "users", on_delete: :cascade
   add_foreign_key "bank_transactions", "payments"
   add_foreign_key "bank_transactions", "users", column: "resolved_by_id"
   add_foreign_key "booking_events", "bookings", on_delete: :cascade

@@ -434,6 +434,8 @@ en:
         scheduled: "Your account is locked and will be deleted after your last booking ends (around %{time}). We have sent you an email."
         deleted: Your account has been deleted. We have sent you a confirmation email.
 
+  api:
+    unauthorized: Please sign in again.
   account_mailer:
     deletion_requested:
       subject: Your VN Badminton account will be deleted

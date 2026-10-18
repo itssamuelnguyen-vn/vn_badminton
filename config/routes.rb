@@ -79,6 +79,25 @@ Rails.application.routes.draw do
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.
+  # The customer mobile app (Api::V1). No locale prefix: the language comes from Accept-Language.
+  namespace :api, defaults: { format: :json } do
+    namespace :v1 do
+      resource :session, only: %i[create destroy]
+      resource :registration, only: :create
+      resource :account, only: %i[show update destroy] do
+        post :export
+        post :resend_verification
+      end
+      resource :venue, only: :show
+      resource :schedule, only: :show
+      resource :hold, only: %i[create destroy]
+      resources :bookings, only: %i[index show create], param: :code do
+        patch :cancel, on: :member
+      end
+      resources :payments, only: :show, param: :token
+    end
+  end
+
   get "up" => "rails/health#show", as: :rails_health_check
 
   # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
