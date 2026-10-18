@@ -129,6 +129,7 @@ vi:
         board: Lịch trong ngày
         price_rules: Bảng giá
         settings: Cài đặt
+        staff: Nhân viên
 
 
   devise:
@@ -477,3 +478,24 @@ vi:
     users:
       unlock_booking:
         success: Đã mở khoá đặt online cho khách.
+    owner_only: Chỉ chủ sân mới vào được trang này.
+    roles:
+      customer: Khách
+      staff: Nhân viên
+      admin: Chủ sân
+    staff_members:
+      index:
+        title: Nhân viên
+        explanation: "Nhân viên dùng được lịch trong ngày, đặt hộ, khoá sân, nhận sân, thu tiền, huỷ và danh sách khách; không xem được doanh thu, bảng giá, cài đặt và trang này."
+        remove: Gỡ quyền
+        remove_confirm: "Gỡ quyền nhân viên của %{name}? Tài khoản trở lại thành tài khoản khách."
+        add: Thêm nhân viên
+        login: Email hoặc số điện thoại của tài khoản
+        login_hint: Nhân viên tự đăng ký tài khoản trên web trước, rồi bạn nhập email hoặc số điện thoại của họ ở đây.
+        submit: Cấp quyền nhân viên
+      create:
+        not_found: Không tìm thấy tài khoản nào với email hoặc số điện thoại này.
+        already_staff: "%{name} đã là nhân viên hoặc chủ sân."
+        success: "%{name} giờ là nhân viên."
+      destroy:
+        success: "Đã gỡ quyền nhân viên của %{name}."

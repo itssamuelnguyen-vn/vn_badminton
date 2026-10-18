@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_19_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_19_000004) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "citext"
@@ -145,7 +145,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000003) do
     t.check_constraint "length(btrim(full_name::text)) >= 1 AND length(btrim(full_name::text)) <= 100", name: "users_full_name_length"
     t.check_constraint "locale::text = ANY (ARRAY['vi'::character varying, 'en'::character varying]::text[])", name: "users_locale_valid"
     t.check_constraint "phone::text ~ '^\\+84[0-9]{9}$'::text", name: "users_phone_format"
-    t.check_constraint "role::text = ANY (ARRAY['customer'::character varying, 'admin'::character varying]::text[])", name: "users_role_valid"
+    t.check_constraint "role::text = ANY (ARRAY['customer'::character varying, 'staff'::character varying, 'admin'::character varying]::text[])", name: "users_role_valid"
   end
 
   create_table "venues", force: :cascade do |t|

@@ -130,6 +130,7 @@ en:
         board: Day board
         price_rules: Price rules
         settings: Settings
+        staff: Staff
 
 
   devise:
@@ -490,3 +491,24 @@ en:
     users:
       unlock_booking:
         success: The customer can book online again.
+    owner_only: Only the owner can open this page.
+    roles:
+      customer: Customer
+      staff: Staff
+      admin: Owner
+    staff_members:
+      index:
+        title: Staff
+        explanation: "Staff can use the day board, book for customers, block courts, check in, record payments, cancel and see the customer list; they cannot see revenue, prices, settings or this page."
+        remove: Remove access
+        remove_confirm: "Remove staff access for %{name}? The account goes back to a customer account."
+        add: Add a staff member
+        login: Email or phone number of the account
+        login_hint: Staff sign up on the website first, then enter their email or phone number here.
+        submit: Give staff access
+      create:
+        not_found: No account with this email or phone number.
+        already_staff: "%{name} is already staff or the owner."
+        success: "%{name} is now staff."
+      destroy:
+        success: "Removed staff access for %{name}."

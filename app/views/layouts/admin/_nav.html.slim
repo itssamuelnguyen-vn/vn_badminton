@@ -1,6 +1,9 @@
-- tabs = [ [ t(".board"), admin_root_path, controller_name.in?(%w[boards bookings]) ],
-           [ t(".price_rules"), admin_price_rules_path, controller_name == "price_rules" ],
-           [ t(".settings"), edit_admin_settings_path, controller_name == "settings" ] ]
+- tabs = [ [ t(".board"), admin_root_path, controller_name.in?(%w[boards bookings]) ] ]
+/ Prices, settings and staff are for the owner only.
+- if current_user.owner?
+  - tabs += [ [ t(".price_rules"), admin_price_rules_path, controller_name == "price_rules" ],
+              [ t(".settings"), edit_admin_settings_path, controller_name == "settings" ],
+              [ t(".staff"), admin_staff_members_path, controller_name == "staff_members" ] ]
 
 / The bottom line is an inset shadow, not a border: a -mb-px overlap would overflow and show a vertical scrollbar.
 nav class="mb-6 flex gap-1 overflow-x-auto text-sm whitespace-nowrap shadow-[inset_0_-1px_0_var(--color-slate-200)]" aria-label=t(".label")

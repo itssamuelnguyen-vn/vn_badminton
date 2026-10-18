@@ -26,6 +26,7 @@ Rails.application.routes.draw do
         patch :unlock_booking, on: :member
       end
       resource :settings, only: %i[edit update]
+      resources :staff_members, path: "staff", only: %i[index create destroy]
     end
 
     get "privacy", to: "pages#privacy"

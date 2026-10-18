@@ -17,11 +17,12 @@ div class="mb-4 flex flex-wrap items-end justify-between gap-4"
 
 = render "admin/boards/date_nav", date: @date, today: board.venue.today
 
+/ The day's revenue is for the owner; staff see the counts.
+- stats = [ [ t(".stats.bookings"), board.reservations.size ],
+            [ t(".stats.checked_in"), board.reservations.count { |b| b.checked_in? || b.completed? } ] ]
+- stats += [ [ t(".stats.expected"), format_vnd(board.expected_vnd) ], [ t(".stats.collected"), format_vnd(board.collected_vnd) ] ] if current_user.owner?
 dl class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4"
-  - [ [ t(".stats.bookings"), board.reservations.size ],
-      [ t(".stats.checked_in"), board.reservations.count { |b| b.checked_in? || b.completed? } ],
-      [ t(".stats.expected"), format_vnd(board.expected_vnd) ],
-      [ t(".stats.collected"), format_vnd(board.collected_vnd) ] ].each do |label, value|
+  - stats.each do |label, value|
     div class="rounded-xl bg-white px-4 py-3 ring-1 ring-slate-200"
       dt class="text-xs text-slate-500" = label
       dd class="mt-1 text-lg font-semibold tabular-nums" = value

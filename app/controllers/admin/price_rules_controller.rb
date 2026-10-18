@@ -1,5 +1,6 @@
 module Admin
   class PriceRulesController < BaseController
+    before_action :require_owner
     before_action :set_price_rule, only: %i[edit update destroy]
 
     def index

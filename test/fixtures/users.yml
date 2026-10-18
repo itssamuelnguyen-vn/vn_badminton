@@ -15,6 +15,14 @@ chi:
   encrypted_password: <%= Devise::Encryptor.digest(User, "password123") %>
   confirmed_at: 2026-10-01 00:00:00
 
+staffer:
+  email: nhanvien@example.com
+  full_name: Phạm Nhân Viên
+  phone: "+84944000222"
+  role: staff
+  encrypted_password: <%= Devise::Encryptor.digest(User, "password123") %>
+  confirmed_at: 2026-10-01 00:00:00
+
 owner:
   email: owner@example.com
   full_name: Chủ Sân

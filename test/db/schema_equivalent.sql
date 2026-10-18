@@ -22,7 +22,7 @@ CREATE TABLE users (
   unconfirmed_email varchar,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT users_role_valid CHECK (role IN ('customer', 'admin')),
+  CONSTRAINT users_role_valid CHECK (role IN ('customer', 'staff', 'admin')),
   CONSTRAINT users_full_name_length CHECK (length(btrim(full_name)) BETWEEN 1 AND 100),
   CONSTRAINT users_email_format CHECK (email ~ '^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$'),
   CONSTRAINT users_phone_format CHECK (phone ~ '^\+84[0-9]{9}$'),

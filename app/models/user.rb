@@ -8,7 +8,8 @@ class User < ApplicationRecord
   # The "I agree to the privacy policy" box of the sign-up form.
   attr_accessor :privacy_consent
 
-  enum :role, { customer: "customer", admin: "admin" }, default: :customer, validate: true
+  # admin: the owner (everything). staff: runs the day-to-day, without money (reports), prices, settings or staff.
+  enum :role, { customer: "customer", staff: "staff", admin: "admin" }, default: :customer, validate: true
 
   has_many :bookings, dependent: :restrict_with_error
   has_many :created_bookings, class_name: "Booking", foreign_key: :created_by_id,
@@ -92,8 +93,13 @@ class User < ApplicationRecord
     devise_mailer.send(notification, self, *args).deliver_later
   end
 
-  # Users who can manage the venue (currently only the owner).
+  # Users who can run the venue day to day: the owner and the staff.
   def manager?
+    admin? || staff?
+  end
+
+  # Prices, settings, revenue reports and staff accounts.
+  def owner?
     admin?
   end
 end
