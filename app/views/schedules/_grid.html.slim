@@ -4,15 +4,15 @@ div class="max-h-[70vh] overflow-auto rounded-xl bg-white ring-1 ring-slate-200"
   div class="grid text-sm" style="grid-template-columns: 4rem repeat(#{day.courts.size}, minmax(4.5rem, 1fr))" role="grid" aria-label=t(".label", date: l(day.date, format: :full))
     div class="sticky top-0 left-0 z-20 border-b border-slate-200 bg-white"
     - day.courts.each do |court|
-      div class="sticky top-0 z-10 border-b border-l border-slate-200 bg-white px-2 py-2 text-center font-semibold" role="columnheader" = court.name
+      div class="sticky top-0 z-10 border-b border-l border-slate-200 bg-white px-2 py-2 text-center font-semibold" role="columnheader" = court.display_name
 
     - day.times.each_with_index do |time, index|
       div class="sticky left-0 z-10 border-b border-slate-100 bg-white px-2 py-2 text-right text-xs text-slate-500 tabular-nums" role="rowheader"
         = l(time, format: :hour_minute)
       - day.courts.each do |court|
         - slot = day.slot(court, time)
-        - label = "#{court.name}, #{time_range(slot.starts_at, slot.ends_at)}: #{t(".states.#{slot.state}")}"
-        - cell_data = { court_id: court.id, court_name: court.name, index: index, starts_at: slot.starts_at.iso8601, ends_at: slot.ends_at.iso8601,
+        - label = "#{court.display_name}, #{time_range(slot.starts_at, slot.ends_at)}: #{t(".states.#{slot.state}")}"
+        - cell_data = { court_id: court.id, court_name: court.display_name, index: index, starts_at: slot.starts_at.iso8601, ends_at: slot.ends_at.iso8601,
                         starts_label: l(slot.starts_at, format: :hour_minute), ends_label: l(slot.ends_at, format: :hour_minute), price: slot.price_vnd }
         - if slot.available?
           = tag.button type: "button", aria: { pressed: "false", label: label },

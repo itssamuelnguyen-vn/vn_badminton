@@ -43,6 +43,13 @@ class AdminTest < ActionDispatch::IntegrationTest
     assert_select "details summary", text: "1 lượt đã huỷ"
   end
 
+  test "the day board names the courts in English" do
+    get admin_root_path(date: "2026-10-20", locale: :en)
+
+    assert_select "div.sticky.top-0", text: "Court 1"
+    assert_select "a[aria-label='Book Court 2 at 18:00']"
+  end
+
   test "the day board widens its rows to bookings outside the opening hours" do
     courts(:court_one).bookings.create!(kind: :block, starts_at: at("22:00"), ends_at: at("23:00"))
 

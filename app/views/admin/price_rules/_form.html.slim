@@ -9,7 +9,7 @@
 
   div
     = f.label :court_id, class: "form-label"
-    = f.select :court_id, rule.venue.courts.map { |court| [ court.name, court.id ] }, { include_blank: t("admin.price_rules.index.all_courts") }, class: "form-input"
+    = f.select :court_id, rule.venue.courts.map { |court| [ court.display_name, court.id ] }, { include_blank: t("admin.price_rules.index.all_courts") }, class: "form-input"
 
   fieldset
     legend class="form-label" = PriceRule.human_attribute_name(:days_of_week)

@@ -12,7 +12,7 @@ p = t(".intro", count: @bookings.size)
         strong = link_to booking.code, booking_url(booking, locale: locale)
     tr
       td = Booking.human_attribute_name(:court)
-      td = booking.court.name
+      td = booking.court.display_name
     tr
       td = t("bookings.details.date")
       td = l(booking.starts_at.to_date, format: :full)

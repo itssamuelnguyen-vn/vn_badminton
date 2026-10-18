@@ -16,7 +16,7 @@ end
 end
 
 (1..10).each do |number|
-  venue.courts.find_or_create_by!(name: "Sân #{number}") { |court| court.position = number }
+  venue.courts.find_or_create_by!(name: number.to_s) { |court| court.position = number }
 end
 
 [

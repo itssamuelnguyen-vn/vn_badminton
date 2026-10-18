@@ -179,6 +179,9 @@ en:
     vnd: "%{amount} VND"
     every_day: Every day
 
+  courts:
+    numbered: "Court %{number}"
+
   schedules:
     show:
       title: Book a court

@@ -176,6 +176,9 @@ vi:
     vnd: "%{amount}đ"
     every_day: Hằng ngày
 
+  courts:
+    numbered: "Sân %{number}"
+
   schedules:
     show:
       title: Đặt sân

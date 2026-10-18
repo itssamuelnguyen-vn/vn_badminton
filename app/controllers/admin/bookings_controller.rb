@@ -18,7 +18,7 @@ module Admin
       booking = @form.build(created_by: current_user)
 
       if booking.reserve
-        redirect_to admin_root_path(date: @form.date&.iso8601), notice: t(".success.#{booking.kind}", court: booking.court.name)
+        redirect_to admin_root_path(date: @form.date&.iso8601), notice: t(".success.#{booking.kind}", court: booking.court.display_name)
       else
         @booking = booking
         render :new, status: :unprocessable_content

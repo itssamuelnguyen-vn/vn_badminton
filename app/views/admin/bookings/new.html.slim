@@ -21,7 +21,7 @@ div class="card mx-auto max-w-lg"
 
     div
       = f.label :court_id, Booking.human_attribute_name(:court), class: "form-label"
-      = f.select :court_id, form.venue.courts.active.map { |court| [ court.name, court.id ] }, { selected: form.court_id }, class: "form-input"
+      = f.select :court_id, form.venue.courts.active.map { |court| [ court.display_name, court.id ] }, { selected: form.court_id }, class: "form-input"
 
     div class="grid grid-cols-3 gap-3"
       div class="col-span-3 sm:col-span-1"
