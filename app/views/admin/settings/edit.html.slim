@@ -69,6 +69,23 @@ div class="card mx-auto max-w-2xl"
       p class="form-hint" = t(".cancellation_lock_hint", count: venue.cancellation_lock_threshold, days: venue.cancellation_lock_days)
 
     section class="space-y-4"
+      h2 class="text-lg font-semibold" = t(".loyalty")
+      label class="flex items-center gap-2 text-sm"
+        = f.check_box :loyalty_enabled, checked: venue.loyalty_enabled?, class: "size-4 accent-emerald-600"
+        = Venue.human_attribute_name(:loyalty_enabled)
+      div class="grid grid-cols-2 gap-4 sm:grid-cols-3"
+        - %w[silver gold diamond].each do |tier|
+          div class="space-y-2 rounded-lg p-3 ring-1 ring-slate-200"
+            p class="font-medium" = t("loyalty.tiers.#{tier}")
+            div
+              = f.label :"#{tier}_hours", Venue.human_attribute_name(:tier_hours), class: "form-label"
+              = f.number_field :"#{tier}_hours", value: venue.public_send("#{tier}_hours"), min: 1, required: true, class: "form-input"
+            div
+              = f.label :"#{tier}_percent", Venue.human_attribute_name(:tier_percent), class: "form-label"
+              = f.number_field :"#{tier}_percent", value: venue.public_send("#{tier}_percent"), min: 0, max: 50, required: true, class: "form-input"
+      p class="form-hint" = t(".loyalty_hint")
+
+    section class="space-y-4"
       h2 class="text-lg font-semibold" = t(".bank")
       p class="form-hint -mt-2" = t(".bank_hint")
       div class="grid gap-4 sm:grid-cols-3"

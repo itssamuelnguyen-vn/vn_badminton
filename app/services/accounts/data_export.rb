@@ -23,7 +23,9 @@ module Accounts
         payments: payments,
         series_requests: series_requests,
         reviews: reviews,
-        waitlist: waitlist
+        waitlist: waitlist,
+        packages: packages,
+        vouchers_used: vouchers_used
       }
     end
 
@@ -88,6 +90,19 @@ module Accounts
     def waitlist
       @user.waitlist_entries.order(:starts_at).map do |entry|
         { starts_at: entry.starts_at.iso8601, ends_at: entry.ends_at.iso8601, notified_at: entry.notified_at&.iso8601 }
+      end
+    end
+
+    def packages
+      @user.package_purchases.order(:created_at).map do |purchase|
+        { name: purchase.name, status: purchase.status, minutes_total: purchase.minutes_total, minutes_left: purchase.minutes_left,
+          price_vnd: purchase.price_vnd, paid_at: purchase.paid_at&.iso8601, expires_at: purchase.expires_at&.iso8601 }
+      end
+    end
+
+    def vouchers_used
+      VoucherRedemption.where(user: @user).includes(:voucher, :payment).order(:created_at).map do |redemption|
+        { code: redemption.voucher.code, discount_vnd: redemption.discount_vnd, payment: redemption.payment.code, at: redemption.created_at.iso8601 }
       end
     end
 

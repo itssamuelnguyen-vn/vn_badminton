@@ -7,7 +7,7 @@ Test là bản mô tả chính xác nhất: nếu tài liệu và test khác nha
 **Cách giữ tài liệu luôn đúng:** PR nào thay đổi một quy tắc thì sửa luôn mục tương ứng ở đây trong cùng PR
 (xem `CLAUDE.md`). Các con số có thể chỉnh trong **Quản lý → Cài đặt** được đánh dấu ⚙️ và ghi giá trị mặc định.
 
-> Cập nhật: 20/10/2026, theo `main` sau PR #24, cộng tiện ích của app (đổi giờ trong app DOI-05, yêu cầu lịch cố định CD-09…10, mục 15: TI-01…04) đang chờ PR. Mục đánh dấu ⏳ (nhánh `deploy-config`) là quy tắc chưa có trên `main`;
+> Cập nhật: 20/10/2026, theo `main` sau PR #24, cộng tiện ích của app (đổi giờ trong app DOI-05, yêu cầu lịch cố định CD-09…10, mục 15: TI-01…04) và ưu đãi (mục 16: UD-01…06) đang chờ PR. Mục đánh dấu ⏳ (nhánh `deploy-config`) là quy tắc chưa có trên `main`;
 > khi merge, bỏ dấu ⏳.
 
 ---
@@ -121,7 +121,7 @@ Chủ sân **không** nhận email (xem trên Lịch trong ngày). Nguồn: `app
 | Lịch cố định                                                                  |       | ✓                        | ✓       |
 | Yêu cầu lịch cố định của khách (tạo lịch / từ chối), xem đánh giá             |       | ✓                        | ✓       |
 | Báo cáo, bảng giá, cài đặt, quản lý nhân viên                                 |       |                          | ✓       |
-| Đồ thuê thêm, bảng tin                                                        |       |                          | ✓       |
+| Đồ thuê thêm, bảng tin, mã giảm giá, gói giờ, hạng thành viên                 |       |                          | ✓       |
 | Tải dữ liệu của mình (TK-07)                                                  | ✓     | ✓                        | ✓       |
 | Xoá tài khoản của mình (TK-08)                                                | ✓     | ✓                        |         |
 | Xoá tài khoản khách và nhân viên, huỷ yêu cầu xoá                             |       |                          | ✓       |
@@ -199,6 +199,17 @@ Nguồn: `config/recurring.yml`.
 | TI-02 | **Bảng tin**: chủ sân đăng tin (tiêu đề, nội dung, bản tiếng Anh tuỳ chọn, kiểu thông tin/ưu đãi/lưu ý) hiện **từ ngày – đến ngày** trên trang **Đặt sân** (web) và trong app. | `app/models/announcement.rb`, `app/views/schedules/_announcements.html.slim`, `test/integration/api/app_extras_test.rb` |
 | TI-03 | **Đánh giá buổi chơi** (trong app): khách đánh giá **1–5 sao** + góp ý tuỳ chọn cho lượt **của mình đã nhận sân**, **sau giờ kết thúc** và **trong 14 ngày**; **một lần** mỗi lượt. Chỉ chủ sân và nhân viên xem (**Quản lý → Đánh giá**: điểm trung bình, số đánh giá mỗi mức sao). Xoá tài khoản: giữ số sao, **xoá lời góp ý** (TK-09). | `app/models/review.rb`, `app/controllers/admin/reviews_controller.rb`, `test/integration/api/app_extras_test.rb` |
 | TI-04 | **Báo khi có sân trống** (trong app): khách chờ một khung giờ (tròn 30 phút, ở tương lai) **trên sân bất kỳ**; tối đa **5 khung đang chờ** mỗi khách. Khi một lượt đặt/giữ chỗ chồng khung đó bị **huỷ, hết hạn chuyển khoản, đổi giờ đi** hoặc **bỏ giữ chỗ**, nếu có **một sân trống trọn khung** thì **mọi người đang chờ** nhận email (EM-07), **mỗi khung một lần**; ai đặt trước được trước. Khung đã bắt đầu thì thôi chờ. | `app/models/waitlist_entry.rb`, `app/jobs/waitlist_job.rb`, `test/integration/api/app_extras_test.rb` |
+
+## 16. Ưu đãi: hạng thành viên, mã giảm giá, gói giờ
+
+| Mã    | Quy tắc | Nguồn |
+|-------|---------|-------|
+| UD-01 | **Hạng thành viên** theo **số giờ đã chơi trong 12 tháng gần nhất** (lượt **đã nhận sân/hoàn thành** và **đã thanh toán**, kể cả buổi lịch cố định): **Đồng** dưới 20 giờ (không giảm), **Bạc** từ 20 giờ giảm **3%** ⚙️, **Vàng** từ 60 giờ giảm **5%** ⚙️, **Kim cương** từ 150 giờ giảm **10%** ⚙️ (số giờ phải tăng dần; mức giảm 0–50%; có thể **tắt** cả chương trình ⚙️). Giảm vào **tiền sân** khi khách **đặt online** (web và app), làm tròn xuống nghìn đồng. Khách xem hạng, số giờ và hạng kế tiếp trong app; nhân viên xem ở trang khách hàng. | `app/services/loyalty/tier.rb`, `test/integration/api/offers_test.rb` |
+| UD-02 | **Mã giảm giá** (chủ sân tạo, **Quản lý → Mã giảm giá**): giảm **%** (có thể **giảm tối đa**) hoặc **số tiền**, **từ ngày – đến ngày**, tuỳ chọn **chỉ một số ngày trong tuần** và **khung giờ** (mọi lượt trong đơn phải bắt đầu và kết thúc trong khung), **đơn tối thiểu** (tiền sân), **tổng số lượt** và **số lượt mỗi khách** (mặc định 1). Một lượt dùng **được tính khi đơn đang chờ chuyển khoản hoặc đã trả**; đơn hết hạn chuyển khoản thì **trả lại lượt**. Mã không phân biệt hoa thường, bỏ khoảng trắng. Khách nhập mã ở bước xác nhận (web và app); **mã không dùng được thì không đặt** và báo lý do. Mã đã dùng thì **tắt** chứ không xoá. | `app/models/voucher.rb`, `test/integration/api/offers_test.rb` |
+| UD-03 | **Mỗi đơn một ưu đãi**: lấy mức **có lợi hơn** cho khách giữa ưu đãi hạng và mã giảm giá (mã giảm ít hơn hạng → giữ hạng, báo khách, vẫn đặt). Ưu đãi **chỉ giảm tiền sân**, không giảm đồ thuê thêm (TI-01); chia cho các sân theo tiền sân. Không áp dụng cho đặt hộ (VH-02) và lịch cố định (giá do sân thoả thuận). Số tiền khách trả = tiền sân − giảm + đồ; hoàn tiền do sự cố của sân hoàn **số đã trả**. Đổi giờ lượt đã giảm: giữ nguyên số đã trả (DOI-01). | `app/services/pricing/offer.rb`, `app/models/booking_batch.rb` |
+| UD-04 | **Gói giờ** (chủ sân tạo, **Quản lý → Gói giờ**): số giờ (tròn 30 phút), giá, **dùng trong N ngày** (1–730) kể từ lúc trả tiền (hết hạn cuối ngày), tuỳ chọn **chỉ dùng trong khung giờ**. Khách **mua trong app** bằng **chuyển khoản** (mã thanh toán riêng, 30 phút); tiền về → gói **có hiệu lực**. Gói đã bán thì **tắt** chứ không xoá. **Báo cáo tháng** ghi tiền bán gói riêng (lượt đặt bằng gói tính 0đ trong doanh thu). | `app/models/package_purchase.rb`, `app/services/payments/confirm.rb`, `test/integration/api/offers_test.rb` |
+| UD-05 | **Đặt bằng gói giờ** (trong app): lượt được **xác nhận và thanh toán ngay**, trừ số phút vào gói (khoá gói khi trừ để hai lượt không dùng trùng giờ). Cần: gói còn hạn, **đủ giờ**, ngày chơi **trước hạn gói**, đúng khung giờ của gói. Đồ thuê thêm **không chọn được** khi trả bằng gói (thuê tại quầy). Không cộng ưu đãi hạng/mã. Email xác nhận như DAT-07. | `app/models/booking_batch.rb` (`reserve_with_package`) |
+| UD-06 | **Giờ trong gói không hoàn tiền**. Khách **tự huỷ** lượt đặt bằng gói: **không trả lại giờ** (giống HUY-01). Sân **huỷ do sự cố** (VH-04): **trả lại giờ** vào gói, không hoàn tiền. | `app/models/booking.rb` (`cancel_for_venue_fault!`) |
 
 ---
 

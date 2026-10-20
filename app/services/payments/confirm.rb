@@ -18,6 +18,7 @@ module Payments
                           payment_status: :paid, paid_at: now)
         end
         payment.series.billing(payment.series_month).mark_paid!(by: by || payment.created_by, now: now) if payment.for_series_period?
+        payment.package_purchase.activate!(now) if payment.for_package? && payment.package_purchase.awaiting?
         bookings
       end
       return false unless bookings

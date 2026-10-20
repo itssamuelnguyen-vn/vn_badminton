@@ -7,7 +7,7 @@ module Api
 
       def show
         deletion = Accounts::Deletion.new(current_user)
-        render json: { user: ApiJson.user(current_user), can_delete: deletion.allowed?,
+        render json: { user: ApiJson.user(current_user), can_delete: deletion.allowed?, loyalty: ApiJson.loyalty(current_user, Venue.main),
                        bookings_to_play: deletion.pending_bookings.map { |booking| ApiJson.booking(booking) },
                        deleted_after: deletion.finishes_at&.iso8601 }
       end

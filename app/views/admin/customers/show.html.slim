@@ -13,6 +13,13 @@ div class="mx-auto max-w-3xl space-y-6"
             = " (#{t(".unverified")})"
         - else
           = " · #{t(".no_account")}"
+      - if customer.user
+        - tier = Loyalty::Tier.for(customer.user)
+        - packages = customer.user.package_purchases.usable
+        p class="mt-1 text-sm text-slate-600"
+          = t(".tier", tier: tier.name, hours: number_with_precision(tier.hours, precision: 1, strip_insignificant_zeros: true))
+          - packages.each do |purchase|
+            = " · #{t(".package_left", name: purchase.name, left: format_duration(purchase.minutes_left), until: l(purchase.expires_at.to_date, format: :day_month_year))}"
     = link_to t(".back"), admin_customers_path, class: "btn-secondary"
 
   - if customer.blocked?

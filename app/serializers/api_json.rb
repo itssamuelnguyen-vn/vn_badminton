@@ -34,7 +34,8 @@ module ApiJson
     {
       code: booking.code, court: { id: booking.court_id, name: booking.court.display_name },
       starts_at: booking.starts_at.iso8601, ends_at: booking.ends_at.iso8601,
-      status: booking.status, payment_status: booking.payment_status,
+      status: booking.status, payment_status: booking.payment_status, discount_vnd: booking.discount_vnd,
+      paid_with_package: booking.package_purchase_id.present?,
       # The court's price; total_vnd adds the products picked with it (items).
       amount_vnd: booking.total_amount_vnd, items_amount_vnd: booking.items_amount_vnd, total_vnd: booking.charged_vnd,
       items: booking.items.map { |item| { name: item.display_name, quantity: item.quantity, unit_price_vnd: item.unit_price_vnd } },
@@ -51,6 +52,24 @@ module ApiJson
       can_review: booking.persisted? && booking.user && booking.review.nil? && Review.allowed?(booking, booking.user, now),
       review: (review(booking.review) if booking.review)
     }
+  end
+
+  def loyalty(user, venue)
+    tier = Loyalty::Tier.for(user, venue: venue)
+    { tier: tier.key, name: tier.name, percent: tier.percent, hours: tier.hours.round(1), enabled: venue.loyalty_enabled?,
+      next: (tier.next && { tier: tier.next[:key], name: I18n.t("loyalty.tiers.#{tier.next[:key]}"), hours: tier.next[:hours] }),
+      tiers: Loyalty::Tier.thresholds(venue).map { |key, (hours, percent)| { tier: key, name: I18n.t("loyalty.tiers.#{key}"), hours: hours, percent: percent } } }
+  end
+
+  def package(package)
+    { id: package.id, name: package.display_name, minutes: package.minutes, price_vnd: package.price_vnd, valid_days: package.valid_days,
+      start_minute: package.start_minute, end_minute: package.end_minute }
+  end
+
+  def package_purchase(purchase)
+    { id: purchase.id, name: purchase.display_name, status: purchase.status, minutes_total: purchase.minutes_total,
+      minutes_left: purchase.minutes_left, expires_at: purchase.expires_at&.iso8601, start_minute: purchase.start_minute,
+      end_minute: purchase.end_minute, payment_token: (purchase.payment&.token if purchase.awaiting?) }
   end
 
   def product(product)
@@ -96,7 +115,8 @@ module ApiJson
     received = payment.received_vnd
     {
       token: payment.token, code: payment.code, status: payment.status, open: payment.open?(now),
-      amount_vnd: payment.amount_vnd, received_vnd: received, remaining_vnd: [ payment.amount_vnd - received, 0 ].max,
+      amount_vnd: payment.amount_vnd, discount_vnd: payment.discount_vnd, offer: payment.offer, purpose: payment.purpose,
+      received_vnd: received, remaining_vnd: [ payment.amount_vnd - received, 0 ].max,
       expires_at: payment.expires_at&.iso8601, paid_at: payment.paid_at&.iso8601,
       bank: { code: venue.bank_code, account_number: venue.bank_account_number, account_name: venue.bank_account_name },
       qr_image_url: payment.qr_url(venue),

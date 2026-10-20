@@ -25,7 +25,8 @@ module Api
       end
 
       def create
-        batch = BookingBatch.new(user: current_user, slots: slots_param, note: params[:note], items: items_param)
+        batch = BookingBatch.new(user: current_user, slots: slots_param, note: params[:note], items: items_param, voucher_code: params[:voucher_code])
+        return create_with_package(batch) if params[:package_purchase_id].present?
         return render_error(:payments_unavailable, [ t("bookings.create.payments_unavailable") ], status: :unprocessable_content) unless batch.venue.payments_enabled?
 
         if (payment = batch.reserve_for_payment)
@@ -80,6 +81,18 @@ module Api
       end
 
       private
+
+      # Paid with prepaid hours: booked and confirmed at once, no transfer. Answers { bookings } (no payment).
+      def create_with_package(batch)
+        purchase = current_user.package_purchases.find(params[:package_purchase_id])
+        if batch.reserve_with_package(purchase)
+          current_user.remember_locale(I18n.locale)
+          BookingMailer.with(bookings: batch.bookings, locale: I18n.locale).confirmed.deliver_later
+          render json: { bookings: batch.bookings.map { |booking| ApiJson.booking(booking) } }, status: :created
+        else
+          render_error :not_bookable, ApiJson.errors(batch), status: :unprocessable_content
+        end
+      end
 
       # items: [{ product_id, quantity }], the products picked with the booking.
       def items_param

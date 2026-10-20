@@ -28,6 +28,8 @@ class Booking < ApplicationRecord
   belongs_to :series_refund_period, class_name: "BookingSeriesPeriod", optional: true
   belongs_to :payment, optional: true
   belongs_to :refunded_by, class_name: "User", optional: true
+  # Paid with prepaid hours (PackagePurchase): package_minutes were taken off it.
+  belongs_to :package_purchase, optional: true
 
   # Why a booking was cancelled, besides a plain cancellation (see also BookingSeries reasons).
   PAYMENT_EXPIRED = "payment_expired" # the transfer did not arrive in time
@@ -194,9 +196,16 @@ class Booking < ApplicationRecord
     ACTIVE_STATUSES.include?(status) && !(pending? && expires_at && expires_at <= now)
   end
 
-  # What the customer pays for the booking: the court and the products picked with it.
+  # What the customer pays for the booking: the court less its discount (tier, voucher, prepaid hours) and the
+  # products picked with it.
   def charged_vnd
-    total_amount_vnd + items_amount_vnd
+    total_amount_vnd - discount_vnd + items_amount_vnd
+  end
+
+  # Prices the booking without saving it (for a quote before booking).
+  def quote_price
+    apply_price if needs_pricing?
+    self
   end
 
   def duration_minutes
@@ -251,6 +260,8 @@ class Booking < ApplicationRecord
       paid = payment_paid?
       cancel!(by: by, reason: VENUE_FAULT, now: now)
       update!(refund_vnd: charged_vnd) if paid && charged_vnd.positive?
+      # Prepaid hours go back to the package (even past its expiry date, the hours stay recorded).
+      package_purchase.with_lock { package_purchase.update!(minutes_left: package_purchase.minutes_left + package_minutes) } if package_purchase && package_minutes
     end
   end
 

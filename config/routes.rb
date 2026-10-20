@@ -54,6 +54,8 @@ Rails.application.routes.draw do
         patch :decline, on: :member
       end
       resources :products, except: %i[show destroy]
+      resources :vouchers, except: %i[show destroy]
+      resources :packages, except: %i[show destroy]
       resources :announcements, except: :show
       resources :reviews, only: :index
       get "reports", to: "reports#show", as: :reports
@@ -108,6 +110,10 @@ Rails.application.routes.draw do
         end
       end
       resources :payments, only: :show, param: :token
+      resource :quote, only: :create
+      resources :packages, only: :index do
+        post :buy, on: :member
+      end
       resources :announcements, only: :index
       resources :waitlist_entries, path: "waitlist", only: %i[index create destroy]
       resources :series_requests, only: %i[index create destroy]

@@ -58,6 +58,11 @@ module Reports
       open.keys.sort.map { |hour| Hour.new(hour: hour, booked_minutes: booked[hour], open_minutes: open[hour]) }
     end
 
+    # Prepaid hours sold in the month (paid then); the bookings paid with them count 0 in the revenue above.
+    def packages_sold_vnd
+      PackagePurchase.where.not(paid_at: nil).where(paid_at: range).sum(:price_vnd)
+    end
+
     # Every reservation of the month, for the CSV export.
     def reservations
       @reservations ||= Booking.kind_reservation.where.not(status: :pending)

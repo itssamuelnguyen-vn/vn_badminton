@@ -7,6 +7,8 @@ class Venue < ApplicationRecord
   has_many :bookings, through: :courts
   has_many :products, dependent: :restrict_with_error
   has_many :announcements, dependent: :delete_all
+  has_many :vouchers, dependent: :restrict_with_error
+  has_many :packages, dependent: :restrict_with_error
 
   normalizes :phone, :zalo_phone, with: ->(phone) { PhoneNumber.normalize(phone) }
   # The page's username or id, also when its whole address is pasted (facebook.com/..., m.me/...).
@@ -33,6 +35,9 @@ class Venue < ApplicationRecord
   validates :cancellation_lock_threshold, numericality: { only_integer: true, in: 1..20 }
   validates :cancellation_lock_days, numericality: { only_integer: true, in: 1..90 }
   validate :booking_minutes_on_slot_grid
+  validates :silver_hours, :gold_hours, :diamond_hours, numericality: { only_integer: true, greater_than: 0 }
+  validates :silver_percent, :gold_percent, :diamond_percent, numericality: { only_integer: true, in: 0..50 }
+  validate :tier_hours_ascending
 
   # The app serves a single venue; customer pages always use it.
   def self.main
@@ -71,6 +76,13 @@ class Venue < ApplicationRecord
   end
 
   private
+
+  def tier_hours_ascending
+    return unless silver_hours && gold_hours && diamond_hours
+
+    errors.add(:gold_hours, :more_than_silver) unless gold_hours > silver_hours
+    errors.add(:diamond_hours, :more_than_gold) unless diamond_hours > gold_hours
+  end
 
   def booking_minutes_on_slot_grid
     %i[min_booking_minutes max_booking_minutes].each do |attr|
