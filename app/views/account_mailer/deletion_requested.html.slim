@@ -1,0 +1,15 @@
+p = t("booking_mailer.confirmed.greeting", name: @name)
+
+p = @by_owner ? t(".intro_by_owner") : t(".intro_by_customer")
+
+p = t(".locked")
+
+- if @bookings.any?
+  p = t(".bookings_kept")
+  ul
+    - @bookings.each do |booking|
+      li = "#{booking[:code]} · #{booking[:court]} · #{l(booking[:starts_at].to_date, format: :day_month_year)} #{time_range(booking[:starts_at], booking[:ends_at])}"
+- if @finishes_at
+  p = t(".finishes_at", time: l(@finishes_at, format: :slot))
+
+p = t(".contact")

@@ -28,11 +28,17 @@ en:
         password_confirmation: Confirm password
         current_password: Current password
         privacy_consent: Privacy consent
+        birth_year: Year of birth
+        gender: Gender
+        skill_level: Badminton level
+        avatar: Profile photo
       venue:
         name: Name
         slug: Slug
         address: Address
         phone: Phone number
+        zalo_phone: Zalo number
+        facebook_page: Facebook page
         time_zone: Time zone
         min_booking_minutes: Minimum booking duration
         max_booking_minutes: Maximum booking duration
@@ -94,6 +100,9 @@ en:
           attributes:
             password_confirmation:
               confirmation: "doesn't match the password"
+            avatar:
+              invalid_type: "must be a JPG, PNG or WebP image"
+              too_big: "must not be larger than %{size} MB"
 
         venue:
           not_multiple_of_30: "must be a multiple of 30"
@@ -145,6 +154,11 @@ en:
         label: Language
       footer:
         privacy: Privacy policy
+      contact:
+        label: Contact
+        zalo: Chat on Zalo
+        messenger: Chat on Messenger
+        phone: "Call %{phone}"
       unverified_notice:
         message: "Please open the verification email sent to %{email} to start booking."
         resend: Resend email
@@ -190,6 +204,22 @@ en:
         current_password_hint: Required to save any changes
         submit: Save changes
         pending_reconfirmation: "Waiting for verification of your new email: %{email}. Your current email is used until you open the verification link."
+        profile: Profile (optional)
+        profile_hint: "Your photo, year of birth, gender and level are only shown in your account; leave them empty if you prefer."
+        export:
+          title: Download my data
+          text: "A JSON file with your account details, every booking with its history, your payments and transfers."
+          password: Current password
+          submit: Download my data (JSON)
+        delete:
+          title: Delete my account
+          text: "Your account is locked and signed out at once. Your personal details (name, email, phone) are removed; past bookings and payments are kept for the venue's books, without your name."
+          pending: "You still have %{count} bookings to play or waiting for a transfer:"
+          pending_kept: "These stay as they are. Your account is deleted after the last one ends (around %{time}). To cancel one, cancel it first under the cancellation rules."
+          confirm: Delete your account? You will be signed out at once and the account cannot be restored.
+          password: Current password
+          submit: Delete my account
+          owner: The owner's account cannot be deleted.
     passwords:
       new:
         title: Forgot your password?
@@ -412,6 +442,36 @@ en:
       closed_text: This code no longer holds the court. If you just transferred, the booking is confirmed automatically while the slot is still free; otherwise the venue will contact you for a refund.
       book_again: Book another court
 
+  users:
+    registrations:
+      destroy:
+        not_allowed: This account cannot be deleted.
+        wrong_password: Wrong password.
+        scheduled: "Your account is locked and will be deleted after your last booking ends (around %{time}). We have sent you an email."
+        deleted: Your account has been deleted. We have sent you a confirmation email.
+
+  api:
+    unauthorized: Please sign in again.
+    avatar_missing: Please choose a photo.
+  account_mailer:
+    deletion_requested:
+      subject: Your VN Badminton account will be deleted
+      intro_by_customer: We have received your request to delete your account.
+      intro_by_owner: The venue has deleted your account.
+      locked: The account is locked and signed out on every device.
+      bookings_kept: "These bookings stay as they are; you can come and play as planned:"
+      finishes_at: "The account will be deleted for good after the last one ends (around %{time}). We will email you when it is done."
+      contact: If you did not ask for this, please contact the venue.
+    deleted:
+      subject: Your VN Badminton account has been deleted
+      intro: Your account has been deleted. Your name, email and phone number are no longer kept in the account.
+      kept: Past bookings and payments are kept by the venue for its books, without your personal details.
+      sign_up_again: Create a new account
+    deletion_cancelled:
+      subject: Your VN Badminton account will not be deleted
+      intro: The deletion of your account has been cancelled. You can sign in again as usual.
+      sign_in: Sign in
+
   booking_mailer:
     confirmed:
       subject: "Booking confirmed: %{codes}"
@@ -499,6 +559,40 @@ en:
         undo_payment_confirm: "Mark %{amount} as not collected?"
         cancel_venue_fault: Cancel (venue problem)
         cancel_venue_fault_confirm: "Cancel because of a venue problem (power cut, broken court...)? A refund of %{amount} will be recorded for the customer."
+      history:
+        title: History
+        empty: Nothing recorded yet (booking made before this feature).
+        system: System
+        deleted_customer: Customer who deleted their account
+        by_former_staff: "%{name} (former staff)"
+        by_customer: "Customer %{name}"
+        by_staff: "%{name} (staff)"
+        by_admin: "%{name} (owner)"
+        created:
+          made: "Booked (%{source}): %{slot} · %{amount}"
+          held: "Held until the transfer (%{source}): %{slot} · %{amount}"
+        rescheduled: "Moved: %{from} → %{to}"
+        price_changed: "Price changed: %{from} → %{to}"
+        cancelled:
+          plain: Cancelled
+          venue_fault: Cancelled because of a venue problem
+          payment_replaced: Cancelled, replaced by a new payment
+          series_skip: Session skipped
+          venue_closed: Cancelled, venue closed
+          series_ended: Cancelled, regular booking ended
+        payment_expired: Transfer not received in time, slot released
+        confirmed: Booking confirmed
+        checked_in: Checked in
+        check_in_undone: Check-in undone
+        no_show: Marked as no-show
+        no_show_undone: No-show undone
+        paid:
+          transfer: "%{amount} received by transfer, booking confirmed"
+          cash: "%{amount} received in cash"
+          series: "%{amount} received (regular booking's month)"
+        payment_undone: "Payment of %{amount} undone"
+        refund_due: "%{amount} to refund to the customer"
+        refunded: "%{amount} refunded to the customer"
       show:
         title: "Booking %{code}"
         customer: Customer
@@ -618,11 +712,28 @@ en:
           other: "A customer who cancels %{count} times in one day cannot book online for %{days} days. You can unlock them early from the booking page."
         bank: Receiving account
         bank_hint: "Customers transfer to this account (VietQR code). It must be connected to SePay for bookings to be confirmed automatically. Bank code as in VietQR, e.g. MBBank, VCB, TCB, ACB."
+        contact: Contact channels
+        contact_hint: "Shown in the “Contact” button at the bottom of customer pages, with a call button for the phone number above. Channels left empty are not shown."
       update:
         success: Settings saved.
     users:
       unlock_booking:
         success: The customer can book online again.
+      destroy:
+        scheduled: "The account is locked and will be deleted after its last booking ends (around %{time}). The customer has been emailed."
+        deleted: Account deleted. The customer has been emailed.
+      cancel_deletion:
+        success: Deletion cancelled, the account works again. The customer has been emailed.
+      deletion:
+        title: Delete account
+        explanation: "The account is locked and signed out at once. Personal details are removed once no booking is left to play; bookings, payments and their history are kept. The customer is emailed."
+        pending: "%{count} bookings still to play or waiting for a transfer:"
+        pending_kept: "These stay as they are; the account is deleted after the last one ends (around %{time})."
+        confirm: "Delete %{name}'s account? It is locked and signed out at once."
+        submit: Delete account
+        requested: "Account waiting to be deleted (asked at %{time}), locked."
+        finishes_at: "It will be deleted after its last booking ends (around %{time})."
+        cancel: Cancel the deletion
     owner_only: Only the owner can open this page.
     roles:
       customer: Customer
@@ -823,3 +934,15 @@ en:
         not_found: "No payment or booking with the code %{code}."
         confirmed: Transfer assigned and booking confirmed.
         assigned: Transfer assigned to the booking; it still needs review.
+
+  # The optional profile (User#gender, User#skill_level), TK-10.
+  profile:
+    genders:
+      male: Male
+      female: Female
+      other: Other
+    skill_levels:
+      beginner: Beginner
+      intermediate: Intermediate
+      advanced: Advanced
+      expert: Expert

@@ -17,6 +17,9 @@ div class="mx-auto max-w-2xl space-y-6"
             = button_to t(".remove"), admin_staff_member_path(member), method: :delete,
                 class: "btn bg-white px-2.5 py-1 text-xs text-red-700 ring-1 ring-red-200 hover:bg-red-50",
                 form: { data: { turbo_confirm: t(".remove_confirm", name: member.full_name) } }
+        - if member.staff?
+          div class="w-full"
+            = render "admin/users/deletion", user: member
 
   = form_with url: admin_staff_members_path, class: "card space-y-3" do |f|
     h2 class="text-lg font-semibold" = t(".add")

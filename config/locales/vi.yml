@@ -28,11 +28,17 @@ vi:
         password_confirmation: Xác nhận mật khẩu
         current_password: Mật khẩu hiện tại
         privacy_consent: Đồng ý chính sách bảo mật
+        birth_year: Năm sinh
+        gender: Giới tính
+        skill_level: Trình độ cầu lông
+        avatar: Ảnh đại diện
       venue:
         name: Tên
         slug: Đường dẫn
         address: Địa chỉ
         phone: Số điện thoại
+        zalo_phone: Số Zalo
+        facebook_page: Fanpage Facebook
         time_zone: Múi giờ
         min_booking_minutes: Thời lượng đặt tối thiểu
         max_booking_minutes: Thời lượng đặt tối đa
@@ -94,6 +100,9 @@ vi:
           attributes:
             password_confirmation:
               confirmation: "không khớp với mật khẩu"
+            avatar:
+              invalid_type: "phải là ảnh JPG, PNG hoặc WebP"
+              too_big: "không được lớn hơn %{size} MB"
 
         venue:
           not_multiple_of_30: "phải là bội số của 30"
@@ -144,6 +153,11 @@ vi:
         label: Ngôn ngữ
       footer:
         privacy: Chính sách bảo mật
+      contact:
+        label: Liên hệ
+        zalo: Chat Zalo
+        messenger: Chat Messenger
+        phone: "Gọi %{phone}"
       unverified_notice:
         message: "Vui lòng mở email xác minh đã gửi tới %{email} để có thể đặt sân."
         resend: Gửi lại email
@@ -188,6 +202,22 @@ vi:
         current_password_hint: Cần nhập để lưu thay đổi
         submit: Lưu thay đổi
         pending_reconfirmation: "Đang chờ xác minh email mới: %{email}. Email cũ vẫn được dùng cho tới khi bạn mở đường dẫn xác minh."
+        profile: Hồ sơ (không bắt buộc)
+        profile_hint: "Ảnh đại diện, năm sinh, giới tính và trình độ chỉ để hiển thị trong tài khoản của bạn; để trống nếu không muốn cung cấp."
+        export:
+          title: Tải dữ liệu của tôi
+          text: "Một file JSON gồm thông tin tài khoản, mọi lượt đặt kèm lịch sử, các khoản thanh toán và chuyển khoản của bạn."
+          password: Mật khẩu hiện tại
+          submit: Tải file dữ liệu (JSON)
+        delete:
+          title: Xoá tài khoản
+          text: "Tài khoản bị khoá và đăng xuất ngay. Thông tin cá nhân (họ tên, email, số điện thoại) được xoá; các lượt đặt và khoản thanh toán cũ được giữ lại cho sổ sách của sân nhưng không còn tên bạn."
+          pending: "Bạn còn %{count} lượt chưa chơi hoặc đang chờ chuyển khoản:"
+          pending_kept: "Các lượt này vẫn giữ nguyên. Tài khoản sẽ được xoá sau khi lượt cuối kết thúc (khoảng %{time}). Muốn huỷ lượt nào, hãy huỷ trước theo quy định huỷ sân."
+          confirm: Xoá tài khoản? Bạn sẽ bị đăng xuất ngay và không thể khôi phục tài khoản.
+          password: Mật khẩu hiện tại
+          submit: Xoá tài khoản
+          owner: Tài khoản chủ sân không thể xoá.
     passwords:
       new:
         title: Quên mật khẩu?
@@ -401,6 +431,36 @@ vi:
       closed_text: Không còn giữ sân cho mã này. Nếu bạn vừa chuyển khoản, sân được xác nhận tự động khi giờ đó vẫn còn trống; nếu không, sân sẽ liên hệ để hoàn tiền.
       book_again: Đặt sân khác
 
+  users:
+    registrations:
+      destroy:
+        not_allowed: Không thể xoá tài khoản này.
+        wrong_password: Mật khẩu không đúng.
+        scheduled: "Tài khoản đã được khoá và sẽ bị xoá sau khi lượt chơi cuối kết thúc (khoảng %{time}). Chúng tôi đã gửi email cho bạn."
+        deleted: Tài khoản của bạn đã được xoá. Chúng tôi đã gửi email xác nhận.
+
+  api:
+    unauthorized: Vui lòng đăng nhập lại.
+    avatar_missing: Vui lòng chọn một ảnh.
+  account_mailer:
+    deletion_requested:
+      subject: Tài khoản VN Badminton của bạn sẽ được xoá
+      intro_by_customer: Chúng tôi đã nhận yêu cầu xoá tài khoản của bạn.
+      intro_by_owner: Sân đã xoá tài khoản của bạn.
+      locked: Tài khoản đã bị khoá và đăng xuất trên mọi thiết bị.
+      bookings_kept: "Các lượt đặt sau vẫn giữ nguyên, bạn vẫn đến chơi bình thường:"
+      finishes_at: "Tài khoản sẽ được xoá hẳn sau khi lượt cuối kết thúc (khoảng %{time}). Chúng tôi sẽ gửi email khi xoá xong."
+      contact: Nếu bạn không yêu cầu việc này, vui lòng liên hệ sân.
+    deleted:
+      subject: Tài khoản VN Badminton của bạn đã được xoá
+      intro: Tài khoản của bạn đã được xoá. Họ tên, email và số điện thoại của bạn không còn được lưu trong tài khoản.
+      kept: Các lượt đặt và khoản thanh toán cũ được sân giữ lại cho sổ sách, không kèm thông tin cá nhân của bạn.
+      sign_up_again: Tạo tài khoản mới
+    deletion_cancelled:
+      subject: Tài khoản VN Badminton của bạn không bị xoá nữa
+      intro: Yêu cầu xoá tài khoản của bạn đã được huỷ. Bạn có thể đăng nhập lại như bình thường.
+      sign_in: Đăng nhập
+
   booking_mailer:
     confirmed:
       subject: "Xác nhận đặt sân %{codes}"
@@ -486,6 +546,40 @@ vi:
         undo_payment_confirm: "Đánh dấu chưa thu %{amount}?"
         cancel_venue_fault: Huỷ do sự cố của sân
         cancel_venue_fault_confirm: "Huỷ vì sân có sự cố (cúp điện, sân hỏng...)? Hệ thống sẽ ghi nhận cần hoàn %{amount} cho khách."
+      history:
+        title: Lịch sử
+        empty: Chưa có thao tác nào được ghi lại (lượt đặt tạo trước khi có tính năng này).
+        system: Hệ thống
+        deleted_customer: Khách đã xoá tài khoản
+        by_former_staff: "%{name} (nhân viên, đã nghỉ)"
+        by_customer: "Khách %{name}"
+        by_staff: "%{name} (nhân viên)"
+        by_admin: "%{name} (chủ sân)"
+        created:
+          made: "Tạo lượt đặt (%{source}): %{slot} · %{amount}"
+          held: "Giữ chỗ chờ chuyển khoản (%{source}): %{slot} · %{amount}"
+        rescheduled: "Đổi giờ: %{from} → %{to}"
+        price_changed: "Đổi giá: %{from} → %{to}"
+        cancelled:
+          plain: Huỷ lượt đặt
+          venue_fault: Huỷ do sự cố của sân
+          payment_replaced: Huỷ, thay bằng lần thanh toán mới
+          series_skip: Báo nghỉ buổi này
+          venue_closed: Huỷ vì sân nghỉ
+          series_ended: Huỷ vì lịch cố định kết thúc
+        payment_expired: Hết hạn chuyển khoản, giờ đó được mở lại
+        confirmed: Xác nhận lượt đặt
+        checked_in: Nhận sân
+        check_in_undone: Huỷ nhận sân
+        no_show: Đánh dấu không đến
+        no_show_undone: Huỷ “không đến”
+        paid:
+          transfer: "Đã nhận %{amount} chuyển khoản, lượt đặt được xác nhận"
+          cash: "Đã thu %{amount} tiền mặt"
+          series: "Đã thu %{amount} (tiền tháng của lịch cố định)"
+        payment_undone: "Huỷ “đã thu” %{amount}"
+        refund_due: "Ghi nhận cần hoàn %{amount} cho khách"
+        refunded: "Đã hoàn %{amount} cho khách"
       show:
         title: "Lượt đặt %{code}"
         customer: Khách
@@ -604,11 +698,28 @@ vi:
           other: "Khách tự huỷ %{count} lần trong cùng một ngày sẽ không thể đặt online trong %{days} ngày. Bạn có thể mở khoá sớm trong trang chi tiết lượt đặt."
         bank: Tài khoản nhận tiền
         bank_hint: "Khách chuyển khoản vào tài khoản này (mã VietQR). Tài khoản phải được kết nối với SePay để sân được xác nhận tự động. Mã ngân hàng theo VietQR, ví dụ: MBBank, VCB, TCB, ACB."
+        contact: Kênh liên hệ
+        contact_hint: "Hiện ở nút “Liên hệ” góc dưới các trang của khách, cùng nút gọi theo số điện thoại ở trên. Kênh nào để trống thì không hiện."
       update:
         success: Đã lưu cài đặt.
     users:
       unlock_booking:
         success: Đã mở khoá đặt online cho khách.
+      destroy:
+        scheduled: "Tài khoản đã bị khoá và sẽ được xoá sau khi lượt chơi cuối kết thúc (khoảng %{time}). Đã gửi email cho khách."
+        deleted: Đã xoá tài khoản. Đã gửi email cho khách.
+      cancel_deletion:
+        success: Đã huỷ yêu cầu xoá, tài khoản dùng lại được. Đã gửi email cho khách.
+      deletion:
+        title: Xoá tài khoản
+        explanation: "Tài khoản bị khoá và đăng xuất ngay. Thông tin cá nhân được xoá khi không còn lượt nào chưa chơi; lượt đặt, thanh toán và lịch sử thao tác được giữ lại. Khách nhận email thông báo."
+        pending: "Còn %{count} lượt chưa chơi hoặc đang chờ chuyển khoản:"
+        pending_kept: "Các lượt này vẫn giữ nguyên; tài khoản sẽ được xoá sau khi lượt cuối kết thúc (khoảng %{time})."
+        confirm: "Xoá tài khoản của %{name}? Tài khoản bị khoá và đăng xuất ngay."
+        submit: Xoá tài khoản
+        requested: "Tài khoản đang chờ xoá (yêu cầu lúc %{time}), đã bị khoá."
+        finishes_at: "Sẽ được xoá sau khi lượt cuối kết thúc (khoảng %{time})."
+        cancel: Huỷ yêu cầu xoá
     owner_only: Chỉ chủ sân mới vào được trang này.
     roles:
       customer: Khách
@@ -800,3 +911,15 @@ vi:
         not_found: "Không tìm thấy mã %{code}."
         confirmed: Đã gán giao dịch và xác nhận đơn.
         assigned: Đã gán giao dịch vào đơn; giao dịch vẫn cần xử lý.
+
+  # The optional profile (User#gender, User#skill_level), TK-10.
+  profile:
+    genders:
+      male: Nam
+      female: Nữ
+      other: Khác
+    skill_levels:
+      beginner: Mới chơi
+      intermediate: Trung bình
+      advanced: Khá
+      expert: Giỏi

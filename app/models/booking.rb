@@ -57,6 +57,10 @@ class Booking < ApplicationRecord
   normalizes :customer_name, with: ->(name) { name.squish.presence }
 
   after_commit :refresh_live_schedules
+  # The booking's history, oldest first (see #record_events).
+  has_many :events, -> { order(:id) }, class_name: "BookingEvent", inverse_of: :booking
+  after_create :record_creation
+  after_update :record_events
 
   before_validation :assign_code, on: :create
   before_validation :assign_block_source, on: :create, if: :kind_block?
@@ -65,7 +69,8 @@ class Booking < ApplicationRecord
 
   validates :starts_at, :ends_at, presence: true
   validates :customer_name, presence: true, length: { maximum: 100 }, if: :kind_reservation?
-  validates :customer_phone, presence: true, format: { with: PhoneNumber::FORMAT }, if: :kind_reservation?
+  # Without a phone only once its customer deleted their account (Accounts::Deletion).
+  validates :customer_phone, presence: true, format: { with: PhoneNumber::FORMAT }, if: -> { kind_reservation? && !user&.deleted_at }
   validates :user, presence: true, if: :source_online?
   validates :total_amount_vnd, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :expires_at, presence: true, if: :pending?
@@ -293,6 +298,57 @@ class Booking < ApplicationRecord
   end
 
   private
+
+  def record_creation
+    record(:created, source: source, status: status, **slot_details(court, starts_at, ends_at), amount: total_amount_vnd)
+  end
+
+  # One event per change that matters, by Current.user (nil: the system). Paid and confirmed in the same
+  # update (a transfer arriving) is one "paid" event.
+  def record_events
+    changes = saved_changes
+    if (changes.keys & %w[court_id starts_at ends_at]).any?
+      record(:rescheduled, from: slot_details(Court.find_by(id: court_id_before_last_save), starts_at_before_last_save, ends_at_before_last_save),
+                           to: slot_details(court, starts_at, ends_at),
+                           amount_from: total_amount_vnd_before_last_save, amount: total_amount_vnd)
+    elsif changes.key?("total_amount_vnd")
+      record(:price_changed, amount_from: total_amount_vnd_before_last_save, amount: total_amount_vnd)
+    end
+
+    paid_now = changes["payment_status"] == %w[unpaid paid]
+    if (action = status_event(changes["status"], paid_now))
+      record(action, **({ reason: cancellation_reason } if action == :cancelled).to_h)
+    end
+    case changes["payment_status"]
+    when %w[unpaid paid] then record(:paid, amount: total_amount_vnd, via: payment_id ? "transfer" : (series_id ? "series" : "cash"))
+    when %w[paid unpaid] then record(:payment_undone, amount: total_amount_vnd)
+    when %w[paid refunded] then record(:refunded, amount: refund_vnd)
+    end
+    record(:refund_due, amount: refund_vnd) if changes["refund_vnd"]&.first.nil? && refund_vnd
+  end
+
+  def status_event((from, to), paid_now)
+    return unless to
+    return if to == "confirmed" && paid_now # told by the "paid" event
+
+    case [ from, to ]
+    in [ _, "cancelled" ] then cancellation_reason == PAYMENT_EXPIRED ? :payment_expired : :cancelled
+    in [ "confirmed", "checked_in" ] then :checked_in
+    in [ "checked_in", "confirmed" ] then :check_in_undone
+    in [ "confirmed", "no_show" ] then :no_show
+    in [ "no_show", "confirmed" ] then :no_show_undone
+    in [ _, "confirmed" ] then :confirmed
+    else nil
+    end
+  end
+
+  def record(action, **details)
+    events.create!(action: action, actor: Current.user, details: details)
+  end
+
+  def slot_details(court, starts_at, ends_at)
+    { court: court&.display_name, starts_at: starts_at&.iso8601, ends_at: ends_at&.iso8601 }
+  end
 
   # Any change shows on the schedules of the dates involved, including where the booking was before a move.
   def refresh_live_schedules

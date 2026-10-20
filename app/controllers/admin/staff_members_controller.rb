@@ -5,7 +5,7 @@ module Admin
     before_action :require_owner
 
     def index
-      @members = User.where(role: %w[admin staff]).order(:role, :full_name)
+      @members = User.where(role: %w[admin staff], deleted_at: nil).order(:role, :full_name)
     end
 
     # login: the email or phone number of the account.

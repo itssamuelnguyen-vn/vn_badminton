@@ -7,7 +7,7 @@ Test là bản mô tả chính xác nhất: nếu tài liệu và test khác nha
 **Cách giữ tài liệu luôn đúng:** PR nào thay đổi một quy tắc thì sửa luôn mục tương ứng ở đây trong cùng PR
 (xem `CLAUDE.md`). Các con số có thể chỉnh trong **Quản lý → Cài đặt** được đánh dấu ⚙️ và ghi giá trị mặc định.
 
-> Cập nhật: 18/10/2026, theo `main` sau PR #15 + thanh toán online (PR mở). Mục đánh dấu ⏳ (nhánh `deploy-config`) là quy tắc chưa có trên `main`;
+> Cập nhật: 19/10/2026, theo `main` sau PR #22, cộng lịch sử lượt đặt (VH-11), xoá tài khoản / tải dữ liệu (TK-07…09), API app (AP-01…03) và hồ sơ không bắt buộc (TK-10) đang chờ PR. Mục đánh dấu ⏳ (nhánh `deploy-config`) là quy tắc chưa có trên `main`;
 > khi merge, bỏ dấu ⏳.
 
 ---
@@ -20,6 +20,7 @@ Test là bản mô tả chính xác nhất: nếu tài liệu và test khác nha
 | CS-02 | **10 sân**, lưu tên là số (`1`…`10`), hiển thị "Sân N" / "Court N" theo ngôn ngữ; sân đặt tên khác (vd "VIP") hiển thị nguyên tên. Sân `inactive` không đặt được.  | `app/models/court.rb`, `test/models/court_test.rb`                                        |
 | CS-03 | **Giờ mở cửa theo từng ngày trong tuần** (mặc định 05:00–22:00 mọi ngày); ngày không có giờ mở cửa = ngày nghỉ. Đổi giờ mở cửa **không ảnh hưởng** lượt đã đặt. ⚙️ | `app/models/admin/venue_settings.rb`, `test/integration/admin_test.rb`                    |
 | CS-04 | Thời gian chia theo **khung 30 phút**; mọi giờ bắt đầu/kết thúc phải tròn :00 hoặc :30 (kiểm tra cả ở database).                                                   | `app/models/booking.rb` (`time_range_on_slot_grid`), ràng buộc `bookings_aligned_to_slot` |
+| CS-05 | Nút **"Liên hệ"** góc dưới bên phải các trang của khách (không có ở khu quản lý): **Chat Zalo** (`zalo.me/<số>`), **Chat Messenger** (`m.me/<fanpage>`), **Gọi** số điện thoại của sân. Chủ sân nhập số Zalo và Fanpage trong **Cài đặt**; kênh để trống thì không hiện. Chỉ là link, không nhúng script của Facebook/Zalo. | `app/views/layouts/application/_contact.html.slim`, `test/integration/admin_test.rb`, `test/models/venue_test.rb` |
 
 ## 2. Giá
 
@@ -42,6 +43,10 @@ Test là bản mô tả chính xác nhất: nếu tài liệu và test khác nha
 | TK-04 | **Ngôn ngữ email** theo ngôn ngữ khách dùng lúc đăng ký, cập nhật mỗi lần khách tự đặt/huỷ.                                                                                                                          | `app/models/user.rb` (`remember_locale`)                                                   |
 | TK-05 | **Vai trò**: `customer` (khách), `staff` (nhân viên), `admin` (chủ sân). Xem mục 9.                                                                                                                                  | `app/models/user.rb`                                                                       |
 | TK-06 | **Tự đăng xuất sau 30 phút không thao tác**, áp dụng cho mọi vai trò; **không còn "Ghi nhớ đăng nhập"**. Lịch tự cập nhật không tính là thao tác; trang tự chuyển về đăng nhập khi hết phiên.                        | `config/initializers/devise.rb` (`timeout_in`), `test/integration/session_timeout_test.rb` |
+| TK-07 | **Tải dữ liệu của tôi** (trang cài đặt tài khoản, nhập lại mật khẩu, tối đa 5 lần/giờ): file **JSON** gồm thông tin tài khoản (cả hồ sơ TK-10), mọi lượt đặt kèm lịch sử thao tác (người làm ghi là bạn / sân / hệ thống), các khoản thanh toán và chuyển khoản. Không gồm ghi chú nội bộ của sân. | `app/services/accounts/data_export.rb`, `test/integration/account_deletion_test.rb`        |
+| TK-08 | **Xoá tài khoản**: khách tự xoá (nhập lại mật khẩu) hoặc **chủ sân** xoá tài khoản khách/nhân viên; **nhân viên không xoá được**; tài khoản chủ sân không xoá được. Trước khi xoá: **cảnh báo** liệt kê các lượt chưa chơi / đang chờ chuyển khoản. | `app/services/accounts/deletion.rb`, `app/controllers/users/registrations_controller.rb`, `app/controllers/admin/users_controller.rb` |
+| TK-09 | Khi yêu cầu xoá: tài khoản **bị khoá và đăng xuất ngay trên mọi thiết bị** (trang đang mở tự tải lại về trang đăng nhập; trang thanh toán vẫn hiện mã QR); bỏ giữ chỗ ở trang xác nhận; email **"sẽ được xoá"**. Lượt chưa chơi và mã chuyển khoản đang chờ **giữ nguyên** (tiền đến vẫn xác nhận lượt). **Xoá hẳn** (job 15 phút) khi không còn lượt chưa chơi/chờ chuyển khoản: xoá họ tên (khách), email, số điện thoại, mật khẩu, hồ sơ và ảnh đại diện (TK-10); lượt đặt cũ còn tên "Khách đã xoá tài khoản", không số điện thoại; giữ thanh toán, giao dịch, lịch sử; nhân viên giữ tên trong lịch sử ("đã nghỉ"); xoá ghi chú nội bộ **trừ khi khách đang bị chặn** (giữ để không lách danh sách đen); email **"đã được xoá"**. Chủ sân **huỷ yêu cầu xoá** được khi chưa xoá hẳn (email cho khách). | `app/services/accounts/deletion.rb`, `app/jobs/account_deletion_job.rb`, `test/integration/account_deletion_test.rb` |
+| TK-10 | **Hồ sơ không bắt buộc**: ảnh đại diện (JPG/PNG/WebP, ≤ 2 MB, loại ảnh đọc từ nội dung file), năm sinh (1900…năm nay), giới tính (nam/nữ/khác), trình độ cầu lông (mới chơi/trung bình/khá/giỏi). Sửa ở trang tài khoản web hoặc trong app; có trong file tải dữ liệu (TK-07); **xoá cùng tài khoản** (TK-09). Không thu thập thêm dữ liệu cá nhân nào khác (chiều cao, cân nặng…). | `app/models/user.rb`, `app/controllers/api/v1/avatars_controller.rb`, `test/integration/api/v1_test.rb`, `test/integration/authentication_test.rb` |
 
 ## 4. Đặt sân online (khách)
 
@@ -101,6 +106,7 @@ Chủ sân **không** nhận email (xem trên Lịch trong ngày). Nguồn: `app
 | VH-08 | **Lịch tự cập nhật** (trang Đặt sân và Lịch trong ngày) khi có giữ chỗ/đặt/huỷ/đổi; giữ nguyên ô khách đang chọn.                                                                                                                                                                                              | `app/services/schedule/live.rb`, `test/integration/live_schedule_test.rb`                                             |
 | VH-09 | **Sau giờ kết thúc** của lượt đặt: **không Huỷ, không Đổi giờ** được nữa (kể cả buổi của lịch cố định khi huỷ cả đợt); vẫn **Nhận sân** (ghi bù), **Không đến**, thu tiền, hoàn tác. **Huỷ do sự cố của sân** chỉ **trong ngày** của lượt đặt. Lượt đã qua giờ chưa nhận sân/không đến hiện nhãn **"Đã qua giờ – chưa ghi nhận"**. Khoá sân: không đổi (VH-03). | `app/models/booking.rb` (`ended?`, `venue_fault_cancellable?`), `test/integration/admin_test.rb`                      |
 | VH-10 | Trang **Đặt sân**, với chủ sân và nhân viên: mục **"Khách đang giữ chỗ"** của ngày đang xem — giờ, sân, tên, **số điện thoại** (bấm để gọi), đang xác nhận hay chờ chuyển khoản, **giữ đến** mấy giờ; tự cập nhật cùng lịch. Khách không thấy mục này.                                                         | `app/views/schedules/_holds.html.slim`, `test/integration/booking_hold_test.rb`                                       |
+| VH-11 | **Lịch sử lượt đặt** (trang chi tiết, chỉ chủ sân/nhân viên): mọi thay đổi — tạo, giữ chỗ, đổi giờ (giờ cũ → mới), đổi giá, xác nhận, nhận sân, không đến, đã thu (tiền mặt/chuyển khoản/tiền tháng), huỷ (lý do), hết hạn chuyển khoản, cần hoàn, đã hoàn và **mọi thao tác hoàn tác** — kèm **ai làm** (khách, tên nhân viên/chủ sân, hoặc "Hệ thống") và **lúc nào**. Ghi tự động khi lượt đặt thay đổi, không sửa/xoá được. | `app/models/booking.rb` (`record_events`), `test/integration/booking_history_test.rb`                                 |
 
 ## 9. Phân quyền
 
@@ -111,6 +117,9 @@ Chủ sân **không** nhận email (xem trên Lịch trong ngày). Nguồn: `app
 | Khách hàng (ghi chú, danh sách đen, mở khoá)                                  |       | ✓ (không thấy doanh thu) | ✓       |
 | Lịch cố định                                                                  |       | ✓                        | ✓       |
 | Báo cáo, bảng giá, cài đặt, quản lý nhân viên                                 |       |                          | ✓       |
+| Tải dữ liệu của mình (TK-07)                                                  | ✓     | ✓                        | ✓       |
+| Xoá tài khoản của mình (TK-08)                                                | ✓     | ✓                        |         |
+| Xoá tài khoản khách và nhân viên, huỷ yêu cầu xoá                             |       |                          | ✓       |
 
 Cấp quyền nhân viên: nhân viên **tự đăng ký** tài khoản, chủ sân nhập email/số điện thoại của họ ở trang Nhân viên. Nguồn: `app/models/user.rb` (`manager?`, `owner?`), `test/integration/staff_test.rb`.
 
@@ -165,6 +174,14 @@ Nguồn: `config/recurring.yml`.
 | TT-08 | "Lượt đặt của tôi" hiện các **lượt đang chờ chuyển khoản** kèm nút chuyển khoản.                                                                                                                                                                                                                                             | `app/views/bookings/index.html.slim`                                             |
 | TT-09 | **Chuyển trễ** (sau 15 phút + 2 phút ân hạn): nếu **giờ đó vẫn còn trống** và chưa bắt đầu → **tự xác nhận lại** lượt đặt; nếu đã có người đặt hoặc đã qua giờ → "Cần xử lý", **hoàn tiền**. Xác nhận tay (TT-06) theo cùng quy tắc.                                                                                         | `app/services/payments/confirm.rb`, `test/integration/payments_test.rb`          |
 | TT-10 | **Nội dung sai / thiếu mã** → "Cần xử lý"; chủ sân **gán giao dịch vào đơn** bằng mã thanh toán (VNB…) hoặc mã đặt sân, rồi giao dịch được xử lý như có mã đúng.                                                                                                                                                             | `app/controllers/admin/bank_transactions_controller.rb`, `test/integration/payments_test.rb` |
+
+## 14. Ứng dụng di động (API cho app Flutter, Android)
+
+| Mã    | Quy tắc | Nguồn |
+|-------|---------|-------|
+| AP-01 | App **chỉ dành cho khách**. API `/api/v1` **không có** thao tác quản lý nào: mọi việc của chủ sân/nhân viên **chỉ làm trên web**. | `config/routes.rb`, `test/integration/api/v1_test.rb` |
+| AP-02 | Đăng nhập bằng email/số điện thoại + mật khẩu → **token** (chỉ lưu mã băm). Token hết hạn sau **90 ngày không dùng**; bị xoá khi đăng xuất, **đổi mật khẩu**, yêu cầu **xoá tài khoản**. Giới hạn thử mật khẩu như web (BM-01). | `app/models/api_token.rb`, `app/controllers/api/v1/sessions_controller.rb` |
+| AP-03 | Mọi quy tắc đặt sân, thanh toán, huỷ, xoá tài khoản, tải dữ liệu **giống hệt web** (dùng chung model/service); thông báo theo `Accept-Language` (vi/en). Lịch và thông tin sân xem được khi chưa đăng nhập. | `app/controllers/api/v1/`, `docs/api.md` |
 
 ---
 

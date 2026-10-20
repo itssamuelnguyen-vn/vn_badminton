@@ -10,11 +10,50 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_19_000007) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_19_000014) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "citext"
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "active_storage_attachments", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "record_type", null: false
+    t.bigint "record_id", null: false
+    t.bigint "blob_id", null: false
+    t.datetime "created_at", precision: 0, null: false
+    t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
+    t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
+  end
+
+  create_table "active_storage_blobs", force: :cascade do |t|
+    t.string "key", null: false
+    t.string "filename", null: false
+    t.string "content_type"
+    t.text "metadata"
+    t.string "service_name", null: false
+    t.bigint "byte_size", null: false
+    t.string "checksum"
+    t.datetime "created_at", precision: 0, null: false
+    t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
+  end
+
+  create_table "active_storage_variant_records", force: :cascade do |t|
+    t.bigint "blob_id", null: false
+    t.string "variation_digest", null: false
+    t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "api_tokens", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "token_digest", null: false
+    t.string "device_name"
+    t.datetime "last_used_at", precision: 0, null: false
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
+    t.index ["token_digest"], name: "index_api_tokens_on_token_digest", unique: true
+    t.index ["user_id"], name: "index_api_tokens_on_user_id"
+  end
 
   create_table "bank_transactions", force: :cascade do |t|
     t.bigint "sepay_id", null: false
@@ -40,6 +79,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000007) do
     t.index ["status"], name: "index_bank_transactions_on_status"
     t.check_constraint "direction::text = ANY (ARRAY['in'::character varying, 'out'::character varying]::text[])", name: "bank_transactions_direction_valid"
     t.check_constraint "status::text = ANY (ARRAY['matched'::character varying, 'needs_review'::character varying, 'ignored'::character varying, 'resolved'::character varying]::text[])", name: "bank_transactions_status_valid"
+  end
+
+  create_table "booking_events", force: :cascade do |t|
+    t.bigint "booking_id", null: false
+    t.bigint "actor_id"
+    t.string "action", null: false
+    t.jsonb "details", default: {}, null: false
+    t.datetime "created_at", precision: 0, null: false
+    t.index ["actor_id"], name: "index_booking_events_on_actor_id"
+    t.index ["booking_id", "id"], name: "index_booking_events_on_booking_id_and_id"
+    t.index ["booking_id"], name: "index_booking_events_on_booking_id"
   end
 
   create_table "booking_series", force: :cascade do |t|
@@ -135,7 +185,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000007) do
     t.check_constraint "customer_phone::text ~ '^\\+84[0-9]{9}$'::text", name: "bookings_customer_phone_format"
     t.check_constraint "ends_at > starts_at", name: "bookings_ends_after_starts"
     t.check_constraint "jsonb_typeof(price_breakdown) = 'array'::text", name: "bookings_price_breakdown_array"
-    t.check_constraint "kind::text = 'reservation'::text AND customer_name IS NOT NULL AND length(btrim(customer_name::text)) > 0 AND customer_phone IS NOT NULL OR kind::text = 'block'::text AND user_id IS NULL AND customer_name IS NULL AND customer_phone IS NULL AND total_amount_vnd = 0 AND payment_status::text = 'unpaid'::text AND source::text = 'staff'::text", name: "bookings_kind_fields"
+    t.check_constraint "kind::text = 'reservation'::text AND customer_name IS NOT NULL AND length(btrim(customer_name::text)) > 0 OR kind::text = 'block'::text AND user_id IS NULL AND customer_name IS NULL AND customer_phone IS NULL AND total_amount_vnd = 0 AND payment_status::text = 'unpaid'::text AND source::text = 'staff'::text", name: "bookings_kind_fields"
     t.check_constraint "kind::text = ANY (ARRAY['reservation'::character varying, 'block'::character varying]::text[])", name: "bookings_kind_valid"
     t.check_constraint "mod(EXTRACT(epoch FROM starts_at), 1800::numeric) = 0::numeric AND mod(EXTRACT(epoch FROM ends_at), 1800::numeric) = 0::numeric", name: "bookings_aligned_to_slot"
     t.check_constraint "payment_status::text = ANY (ARRAY['unpaid'::character varying, 'paid'::character varying, 'refunded'::character varying]::text[])", name: "bookings_payment_status_valid"
@@ -264,15 +314,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000007) do
     t.datetime "confirmed_at", precision: 0
     t.datetime "confirmation_sent_at", precision: 0
     t.string "unconfirmed_email"
+    t.datetime "deletion_requested_at", precision: 0
+    t.bigint "deletion_requested_by_id"
+    t.datetime "deleted_at", precision: 0
+    t.integer "birth_year"
+    t.string "gender"
+    t.string "skill_level"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
+    t.index ["deletion_requested_at"], name: "index_users_on_deletion_requested_at", where: "((deletion_requested_at IS NOT NULL) AND (deleted_at IS NULL))"
+    t.index ["deletion_requested_by_id"], name: "index_users_on_deletion_requested_by_id"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["phone"], name: "index_users_on_phone", unique: true, where: "(phone IS NOT NULL)"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+    t.check_constraint "birth_year >= 1900 AND birth_year <= 2100", name: "users_birth_year_range"
     t.check_constraint "email ~ '^[^@[:space:]]+@[^@[:space:]]+\\.[^@[:space:]]+$'::citext", name: "users_email_format"
+    t.check_constraint "gender::text = ANY (ARRAY['male'::character varying, 'female'::character varying, 'other'::character varying]::text[])", name: "users_gender_valid"
     t.check_constraint "length(btrim(full_name::text)) >= 1 AND length(btrim(full_name::text)) <= 100", name: "users_full_name_length"
     t.check_constraint "locale::text = ANY (ARRAY['vi'::character varying, 'en'::character varying]::text[])", name: "users_locale_valid"
     t.check_constraint "phone::text ~ '^\\+84[0-9]{9}$'::text", name: "users_phone_format"
     t.check_constraint "role::text = ANY (ARRAY['customer'::character varying, 'staff'::character varying, 'admin'::character varying]::text[])", name: "users_role_valid"
+    t.check_constraint "skill_level::text = ANY (ARRAY['beginner'::character varying, 'intermediate'::character varying, 'advanced'::character varying, 'expert'::character varying]::text[])", name: "users_skill_level_valid"
   end
 
   create_table "venues", force: :cascade do |t|
@@ -294,6 +355,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000007) do
     t.string "bank_code"
     t.string "bank_account_number"
     t.string "bank_account_name"
+    t.string "zalo_phone"
+    t.string "facebook_page"
     t.index ["slug"], name: "index_venues_on_slug", unique: true
     t.check_constraint "booking_horizon_days >= 1 AND booking_horizon_days <= 365", name: "venues_booking_horizon_valid"
     t.check_constraint "cancellation_cutoff_hours >= 0 AND cancellation_cutoff_hours <= 168", name: "venues_cancellation_cutoff_valid"
@@ -309,8 +372,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000007) do
     t.check_constraint "status::text = ANY (ARRAY['active'::character varying, 'inactive'::character varying]::text[])", name: "venues_status_valid"
   end
 
+  add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "api_tokens", "users", on_delete: :cascade
   add_foreign_key "bank_transactions", "payments"
   add_foreign_key "bank_transactions", "users", column: "resolved_by_id"
+  add_foreign_key "booking_events", "bookings", on_delete: :cascade
+  add_foreign_key "booking_events", "users", column: "actor_id"
   add_foreign_key "booking_series", "users"
   add_foreign_key "booking_series", "users", column: "created_by_id"
   add_foreign_key "booking_series_periods", "booking_series", column: "series_id"
@@ -332,4 +400,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000007) do
   add_foreign_key "payments", "users", column: "created_by_id"
   add_foreign_key "price_rules", "courts", column: ["court_id", "venue_id"], primary_key: ["id", "venue_id"], name: "fk_price_rules_court_venue"
   add_foreign_key "price_rules", "venues"
+  add_foreign_key "users", "users", column: "deletion_requested_by_id"
 end

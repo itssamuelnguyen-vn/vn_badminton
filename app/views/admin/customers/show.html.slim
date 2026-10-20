@@ -23,6 +23,9 @@ div class="mx-auto max-w-3xl space-y-6"
       p = t("admin.bookings.show.locked", until: l(customer.user.booking_locked_until, format: :slot))
       = button_to t("admin.bookings.show.unlock"), unlock_booking_admin_user_path(customer.user), method: :patch, class: "btn-secondary px-3 py-1.5 text-xs"
 
+  - if customer.user && current_user.owner?
+    = render "admin/users/deletion", user: customer.user
+
   dl class="grid grid-cols-2 gap-3 sm:grid-cols-4"
     - stats = [ [ t(".stats.bookings"), customer.bookings_count ], [ t(".stats.upcoming"), customer.upcoming_count ],
                 [ t(".stats.no_shows"), customer.no_shows ], [ t(".stats.self_cancellations"), customer.self_cancellations ] ]

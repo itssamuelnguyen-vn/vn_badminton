@@ -20,6 +20,27 @@ div class="card mx-auto max-w-md"
       - if resource.pending_reconfirmation?
         p class="form-hint text-amber-700" = t(".pending_reconfirmation", email: resource.unconfirmed_email)
 
+    / The optional profile (TK-10), also edited in the app.
+    fieldset class="space-y-5 border-t border-slate-200 pt-5"
+      legend class="text-sm font-semibold text-slate-700" = t(".profile")
+      p.form-hint = t(".profile_hint")
+      div class="flex items-center gap-4"
+        - if resource.avatar.attached? && resource.avatar.persisted?
+          = image_tag url_for(resource.avatar), alt: "", class: "size-16 rounded-full object-cover ring-1 ring-slate-200"
+        div class="flex-1"
+          = f.label :avatar, class: "form-label"
+          = f.file_field :avatar, accept: User::AVATAR_TYPES.join(","), class: "form-input"
+      div class="grid grid-cols-2 gap-4"
+        div
+          = f.label :birth_year, class: "form-label"
+          = f.number_field :birth_year, min: 1900, max: Date.current.year, inputmode: "numeric", class: "form-input"
+        div
+          = f.label :gender, class: "form-label"
+          = f.select :gender, User.genders.keys.map { |key| [ t("profile.genders.#{key}"), key ] }, { include_blank: true }, class: "form-input"
+      div
+        = f.label :skill_level, class: "form-label"
+        = f.select :skill_level, User.skill_levels.keys.map { |key| [ t("profile.skill_levels.#{key}"), key ] }, { include_blank: true }, class: "form-input"
+
     fieldset class="space-y-5 border-t border-slate-200 pt-5"
       legend.sr-only = t(".change_password")
       div
@@ -37,3 +58,33 @@ div class="card mx-auto max-w-md"
       p.form-hint = t(".current_password_hint")
 
     = f.submit t(".submit"), class: "btn-primary w-full"
+
+/ The customer's rights over their data: a copy (JSON), and deleting the account (Accounts::Deletion).
+- deletion = Accounts::Deletion.new(resource)
+section class="card mx-auto mt-6 max-w-md" aria-labelledby="export-title"
+  h2#export-title class="mb-1 text-lg font-semibold" = t(".export.title")
+  p class="mb-4 text-sm text-slate-600" = t(".export.text")
+  = form_with url: account_data_path, method: :post, data: { turbo: false }, class: "space-y-3" do |f|
+    = f.label :current_password, t(".export.password"), for: "export_password", class: "form-label"
+    = f.password_field :current_password, id: "export_password", required: true, autocomplete: "current-password", class: "form-input"
+    = f.submit t(".export.submit"), class: "btn-secondary w-full"
+
+section class="card mx-auto mt-6 max-w-md ring-red-200" aria-labelledby="delete-title"
+  h2#delete-title class="mb-1 text-lg font-semibold text-red-700" = t(".delete.title")
+  - if deletion.allowed?
+    p class="mb-3 text-sm text-slate-600" = t(".delete.text")
+    - pending = deletion.pending_bookings
+    - if pending.any?
+      div class="mb-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900 ring-1 ring-amber-200" role="alert"
+        p class="font-medium" = t(".delete.pending", count: pending.size)
+        ul class="my-2 list-disc pl-5"
+          - pending.each do |booking|
+            li = "#{booking.court.display_name} · #{l(booking.starts_at.to_date, format: :day_month_year)} #{time_range(booking.starts_at, booking.ends_at)}"
+        p = t(".delete.pending_kept", time: l(deletion.finishes_at, format: :slot))
+    = form_with model: resource, scope: resource_name, url: registration_path(resource_name), method: :delete, class: "space-y-3",
+        data: { turbo_confirm: t(".delete.confirm") } do |f|
+      = f.label :current_password, t(".delete.password"), for: "delete_password", class: "form-label"
+      = f.password_field :current_password, id: "delete_password", required: true, autocomplete: "current-password", class: "form-input"
+      = f.submit t(".delete.submit"), class: "btn w-full bg-white text-red-700 ring-1 ring-red-300 hover:bg-red-50"
+  - else
+    p class="text-sm text-slate-600" = t(".delete.owner")

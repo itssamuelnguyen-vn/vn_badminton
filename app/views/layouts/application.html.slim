@@ -25,6 +25,9 @@ html lang=I18n.locale class="h-full bg-slate-50"
 
   / Signed in: the page reloads itself after the session timeout (session_timeout_controller.js).
   body class="flex min-h-full flex-col text-slate-900 antialiased" data-controller=("session-timeout" if user_signed_in?) data-session-timeout-seconds-value=(Devise.timeout_in.to_i if user_signed_in?)
+    / Reloads every open page of the account when its deletion is asked, which signs it out (Accounts::Deletion).
+    - if user_signed_in?
+      = turbo_stream_from current_user, :account
     = render "layouts/application/header"
     = render "layouts/application/unverified_notice"
 
@@ -32,6 +35,9 @@ html lang=I18n.locale class="h-full bg-slate-50"
       = render "layouts/application/flash"
       / Nested layouts (layouts/admin) pass their page in :content.
       = content_for?(:content) ? yield(:content) : yield
+
+    - unless controller_path.start_with?("admin/")
+      = render "layouts/application/contact", venue: contact_venue
 
     footer class="border-t border-slate-200 bg-white"
       div class="mx-auto flex max-w-5xl flex-wrap justify-between gap-2 px-4 py-4 text-xs text-slate-500 sm:px-6"

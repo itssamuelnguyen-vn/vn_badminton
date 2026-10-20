@@ -5,6 +5,9 @@ Rails.application.routes.draw do
     devise_for :users, controllers: { sessions: "users/sessions", registrations: "users/registrations",
                                       passwords: "users/passwords", confirmations: "users/confirmations" }
 
+    # "Tải dữ liệu của tôi" on the account page.
+    resource :account_data, only: :create, path: "account/data", controller: "accounts/data_exports"
+
     resources :bookings, only: %i[index show new create], param: :code do
       member do
         patch :cancel
@@ -52,8 +55,11 @@ Rails.application.routes.draw do
         patch :assign, on: :member
       end
       resources :price_rules, except: :show
-      resources :users, only: [] do
-        patch :unlock_booking, on: :member
+      resources :users, only: :destroy do
+        member do
+          patch :unlock_booking
+          patch :cancel_deletion
+        end
       end
       resource :settings, only: %i[edit update]
       resources :staff_members, path: "staff", only: %i[index create destroy]
@@ -73,6 +79,26 @@ Rails.application.routes.draw do
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.
+  # The customer mobile app (Api::V1). No locale prefix: the language comes from Accept-Language.
+  namespace :api, defaults: { format: :json } do
+    namespace :v1 do
+      resource :session, only: %i[create destroy]
+      resource :registration, only: :create
+      resource :account, only: %i[show update destroy] do
+        post :export
+        post :resend_verification
+        resource :avatar, only: %i[update destroy]
+      end
+      resource :venue, only: :show
+      resource :schedule, only: :show
+      resource :hold, only: %i[create destroy]
+      resources :bookings, only: %i[index show create], param: :code do
+        patch :cancel, on: :member
+      end
+      resources :payments, only: :show, param: :token
+    end
+  end
+
   get "up" => "rails/health#show", as: :rails_health_check
 
   # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)

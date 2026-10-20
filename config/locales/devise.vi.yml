@@ -8,6 +8,7 @@ vi:
       send_paranoid_instructions: "Nếu địa chỉ email của bạn có trong hệ thống, trong vài phút nữa bạn sẽ nhận được email hướng dẫn xác nhận địa chỉ email."
     failure:
       already_authenticated: "Bạn đã đăng nhập rồi."
+      account_deleted: "Tài khoản này đã bị xoá hoặc đang chờ xoá. Liên hệ sân nếu bạn cần hỗ trợ."
       inactive: "Tài khoản của bạn chưa được kích hoạt."
       invalid: "Email/số điện thoại hoặc mật khẩu không đúng."
       locked: "Tài khoản của bạn đã bị khóa."

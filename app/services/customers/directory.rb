@@ -44,8 +44,9 @@ module Customers
 
     private
 
+    # Those of deleted accounts have no phone any more (Accounts::Deletion).
     def reservations
-      Booking.kind_reservation.where.not(status: :pending)
+      Booking.kind_reservation.where.not(status: :pending).where.not(customer_phone: nil)
     end
 
     def filtered_bookings
