@@ -1,5 +1,6 @@
 - tabs = [ [ t(".board"), admin_root_path, controller_name.in?(%w[boards bookings]) ],
            [ t(".series"), admin_series_index_path, controller_name == "series" ],
+           [ t(".play_sessions"), admin_play_sessions_path, controller_name == "play_sessions" ],
            [ t(".customers"), admin_customers_path, controller_name == "customers" ],
            [ t(".reviews"), admin_reviews_path, controller_name == "reviews" ] ]
 / Prices, settings and staff are for the owner only.

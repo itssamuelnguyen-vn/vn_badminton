@@ -25,7 +25,9 @@ module Accounts
         reviews: reviews,
         waitlist: waitlist,
         packages: packages,
-        vouchers_used: vouchers_used
+        vouchers_used: vouchers_used,
+        play_session_tickets: play_session_tickets,
+        groups: groups
       }
     end
 
@@ -103,6 +105,20 @@ module Accounts
     def vouchers_used
       VoucherRedemption.where(user: @user).includes(:voucher, :payment).order(:created_at).map do |redemption|
         { code: redemption.voucher.code, discount_vnd: redemption.discount_vnd, payment: redemption.payment.code, at: redemption.created_at.iso8601 }
+      end
+    end
+
+    def play_session_tickets
+      @user.play_session_tickets.includes(:play_session).order(:created_at).map do |ticket|
+        { session: ticket.play_session.title, starts_at: ticket.play_session.starts_at.iso8601, quantity: ticket.quantity,
+          amount_vnd: ticket.amount_vnd, status: ticket.status, refund_vnd: ticket.refund_vnd }
+      end
+    end
+
+    def groups
+      @user.groups.includes(shares: :booking).order(:name).map do |group|
+        { name: group.name, owner: group.owner_id == @user.id,
+          shared_bookings: group.shares.select { |share| share.shared_by_id == @user.id }.map { |share| share.booking.code } }
       end
     end
 

@@ -22,6 +22,8 @@ dl class="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4"
 
 - if (packages_vnd = report.packages_sold_vnd).positive?
   p class="-mt-5 mb-8 text-sm text-slate-600" = t(".packages_sold", amount: format_vnd(packages_vnd))
+- if (tickets_vnd = report.tickets_sold_vnd).positive?
+  p class="-mt-5 mb-8 text-sm text-slate-600" = t(".tickets_sold", amount: format_vnd(tickets_vnd))
 
 section class="mb-8" aria-labelledby="hours-title"
   h2#hours-title class="mb-1 text-lg font-semibold" = t(".by_hour")

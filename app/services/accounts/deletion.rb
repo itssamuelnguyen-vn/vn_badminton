@@ -83,6 +83,7 @@ module Accounts
         user.bookings.update_all(customer_name: ANONYMOUS_NAME, customer_phone: nil, updated_at: now)
         BookingSeries.where(user: user).update_all(user_id: nil, updated_at: now)
         user.series_requests.delete_all
+        user.groups.to_a.each { |group| group.remove(user) }
         user.reviews.update_all(comment: nil, updated_at: now) # the ratings stay, without the customer's words
         if user.phone && (profile = CustomerProfile.find_by(phone: user.phone)) && !profile.blocked?
           profile.destroy!

@@ -21,4 +21,16 @@ class NoticeMailer < ApplicationMailer
       mail to: user.email, subject: t(".subject_#{@series_request.status}")
     end
   end
+
+  # The venue cancelled an open play session the customer had places in (paid ones are refunded).
+  def play_session_cancelled
+    @ticket = params[:ticket]
+    @session = @ticket.play_session
+    user = @ticket.user
+    return if user.deleted_at
+
+    I18n.with_locale(user.locale) do
+      mail to: user.email, subject: t(".subject", title: @session.display_title, time: l(@session.starts_at.in_time_zone(@session.venue.zone), format: :slot))
+    end
+  end
 end

@@ -9,6 +9,7 @@ class Venue < ApplicationRecord
   has_many :announcements, dependent: :delete_all
   has_many :vouchers, dependent: :restrict_with_error
   has_many :packages, dependent: :restrict_with_error
+  has_many :play_sessions, dependent: :restrict_with_error
 
   normalizes :phone, :zalo_phone, with: ->(phone) { PhoneNumber.normalize(phone) }
   # The page's username or id, also when its whole address is pasted (facebook.com/..., m.me/...).

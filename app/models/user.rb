@@ -34,6 +34,9 @@ class User < ApplicationRecord
   has_many :waitlist_entries, dependent: :delete_all
   has_many :reviews, dependent: :delete_all
   has_many :package_purchases, dependent: :restrict_with_error
+  has_many :play_session_tickets, dependent: :restrict_with_error
+  has_many :group_memberships, dependent: :delete_all
+  has_many :groups, through: :group_memberships
 
   # A new password signs the mobile app out too (the web sessions already are, by Devise).
   after_update { api_tokens.delete_all if saved_change_to_encrypted_password? }

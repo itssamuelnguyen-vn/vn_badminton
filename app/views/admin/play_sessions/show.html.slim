@@ -1,0 +1,40 @@
+- content_for :title, @session.title
+- session = @session
+
+div class="mx-auto max-w-3xl space-y-6"
+  div class="flex flex-wrap items-start justify-between gap-4"
+    div
+      p class="text-sm text-slate-500" = t(".kicker")
+      h1 class="text-2xl font-bold" = session.title
+      p class="mt-1 text-sm text-slate-600"
+        = "#{l(session.starts_at.to_date, format: :full)} · #{time_range(session.starts_at, session.ends_at)} · #{session.courts.map(&:display_name).join(", ")}"
+      p class="mt-1 text-sm text-slate-600"
+        = t(".summary", price: format_vnd(session.price_vnd), taken: session.seats_taken, capacity: session.capacity)
+        - if session.level
+          = " · #{t("play_sessions.levels.#{session.level}")}"
+      - if session.cancelled?
+        p class="mt-2 inline-flex rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800" = t(".cancelled")
+    = link_to t(".back"), admin_play_sessions_path, class: "btn-secondary"
+
+  - if @tickets.any?
+    div class="divide-y divide-slate-100 rounded-xl bg-white ring-1 ring-slate-200"
+      - @tickets.each do |ticket|
+        div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm"
+          div
+            p class="font-medium" = "#{ticket.user.full_name} × #{ticket.quantity}"
+            p class="text-slate-600"
+              = [ PhoneNumber.to_local(ticket.user.phone), format_vnd(ticket.amount_vnd), t(".statuses.#{ticket.status}") ].compact.join(" · ")
+              - if ticket.refund_vnd
+                = " · #{ticket.refunded_at ? t(".refunded") : t(".refund_due", amount: format_vnd(ticket.refund_vnd))}"
+          div class="flex gap-2"
+            - if ticket.confirmed?
+              = button_to (ticket.checked_in? ? t(".undo_check_in") : t(".check_in")), check_in_admin_play_session_path(session, ticket_id: ticket.id), method: :patch, class: "btn-secondary px-3 py-1.5 text-xs"
+            - if ticket.refund_vnd && !ticket.refunded_at && current_user.owner?
+              = button_to t(".mark_refunded"), mark_refunded_admin_play_session_path(session, ticket_id: ticket.id), method: :patch, class: "btn-secondary px-3 py-1.5 text-xs"
+  - else
+    p class="card text-center text-sm text-slate-600" = t(".no_tickets")
+
+  - if session.open? && session.ends_at > Time.current
+    = button_to t(".cancel"), cancel_admin_play_session_path(session), method: :patch,
+        class: "btn bg-white text-red-700 ring-1 ring-red-200 hover:bg-red-50",
+        form: { data: { turbo_confirm: t(".cancel_confirm") } }

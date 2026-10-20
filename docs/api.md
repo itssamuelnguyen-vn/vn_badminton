@@ -91,3 +91,27 @@ Nội dung chuyển khoản phải là `code`; số tiền là `remaining_vnd` (
 | `GET /api/v1/packages` | | `{ packages: [{ id, name, minutes, price_vnd, valid_days, start_minute, end_minute }], purchases: [{ id, name, status (awaiting/active), minutes_total, minutes_left, expires_at, start_minute, end_minute, payment_token }] }` |
 | `POST /api/v1/packages/:id/buy` | | 201 `payment` (purpose `package`) |
 
+## Giao lưu (GL-01…03)
+
+| Gọi | Vào | Ra |
+|---|---|---|
+| `GET /api/v1/play_sessions` | (đăng nhập tuỳ chọn) | `{ sessions: [{ id, title, description, courts, starts_at, ends_at, capacity, seats_left, price_vnd, level, status, bookable, my_tickets: [ticket] }] }` |
+| `POST /api/v1/play_sessions/:id/tickets` | `quantity` (1–10) | 201 `payment` (purpose `tickets`) |
+| `DELETE /api/v1/tickets/:id` | | `ticket` (`cancelled`) |
+
+`ticket`: `{ id, quantity, amount_vnd, status (pending/confirmed/cancelled), can_cancel, cancel_without_refund, payment_token }`.
+
+## Nhóm (NH-01…03)
+
+| Gọi | Vào | Ra |
+|---|---|---|
+| `GET /api/v1/groups` | | `{ groups: [group] }` |
+| `POST /api/v1/groups` | `name` | 201 `group` |
+| `POST /api/v1/groups/join` | `code` | `group` (404 khi sai mã) |
+| `DELETE /api/v1/groups/:id/leave` | | 204 |
+| `DELETE /api/v1/groups/:id` | | 204 (chủ nhóm) |
+| `POST /api/v1/groups/:id/shares` | `booking_code`, `players` | 201 `group` |
+| `DELETE /api/v1/groups/:id/shares/:share_id` | | 204 (người chia sẻ hoặc chủ nhóm) |
+
+`group`: `{ id, name, invite_code, owner (mình là chủ), members: [{ id, name, owner }], shares: [{ id, shared_by, mine, players, per_player_vnd, total_vnd, court, starts_at, ends_at, code }] }`.
+

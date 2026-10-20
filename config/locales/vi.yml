@@ -9,6 +9,10 @@ vi:
 
   activerecord:
     models:
+      play_session: Buổi giao lưu
+      play_session_ticket: Chỗ giao lưu
+      group: Nhóm
+      group_share: Lượt đặt chia sẻ
       voucher: Mã giảm giá
       package: Gói giờ
       package_purchase: Gói giờ đã mua
@@ -27,6 +31,25 @@ vi:
       booking_series: Lịch cố định
 
     attributes:
+      play_session:
+        title: Tên buổi
+        title_en: Tên tiếng Anh
+        description: Mô tả
+        court_ids: Sân
+        starts_at: Giờ bắt đầu
+        ends_at: Giờ kết thúc
+        date: Ngày
+        capacity: Số người tối đa
+        price_vnd: Giá mỗi người
+        level: Trình độ
+      play_session_ticket:
+        quantity: Số người
+      group:
+        name: Tên nhóm
+      group_share:
+        players: Số người chơi
+        booking: Lượt đặt
+        group: Nhóm
       voucher:
         code: Mã
         description: Mô tả
@@ -166,6 +189,21 @@ vi:
 
     errors:
       models:
+        play_session:
+          after_start: "phải sau giờ bắt đầu"
+          off_slot_grid: "Giờ phải tròn 30 phút"
+          not_in_future: "phải ở tương lai"
+          invalid: "không hợp lệ"
+        play_session_ticket:
+          not_bookable: Buổi này không còn nhận đăng ký.
+          blacklisted: Tài khoản của bạn hiện không thể đặt online. Vui lòng liên hệ sân.
+          full: "Buổi này chỉ còn %{left} chỗ."
+        group:
+          too_many: "Mỗi người tham gia tối đa %{count} nhóm."
+          full: "Nhóm đã đủ %{count} người."
+        group_share:
+          not_yours: "không phải của bạn"
+          not_member: "bạn không ở trong nhóm này"
         voucher:
           before_valid_from: "phải sau ngày bắt đầu"
           after_start: "phải sau giờ bắt đầu"
@@ -268,6 +306,7 @@ vi:
         resend: Gửi lại email
     admin:
       nav:
+        play_sessions: Giao lưu
         vouchers: Mã giảm giá
         packages: Gói giờ
         reviews: Đánh giá
@@ -531,6 +570,15 @@ vi:
       gold: Vàng
       diamond: Kim cương
 
+  play_sessions:
+    block_note: "Giao lưu: %{title}"
+    levels:
+      any: Mọi trình độ
+      beginner: Mới chơi
+      intermediate: Trung bình
+      advanced: Khá
+      expert: Giỏi
+
   booking_batch:
     errors:
       package_no_items: Khi trả bằng gói giờ, đồ thuê thêm vui lòng thuê tại quầy.
@@ -584,6 +632,8 @@ vi:
         deleted: Tài khoản của bạn đã được xoá. Chúng tôi đã gửi email xác nhận.
 
   api:
+    groups:
+      wrong_code: Mã nhóm không đúng.
     series:
       nothing_due: Tháng này không còn tiền cần đóng.
     unauthorized: Vui lòng đăng nhập lại.
@@ -633,6 +683,10 @@ vi:
       before: "Trước đây:"
 
   notice_mailer:
+    play_session_cancelled:
+      subject: "Sân huỷ buổi %{title} lúc %{time}"
+      intro: "Sân đã huỷ buổi giao lưu %{title} lúc %{time} mà bạn đã đăng ký."
+      refund: "Sân sẽ hoàn lại %{amount} bạn đã chuyển khoản."
     slot_freed:
       subject: "Có sân trống lúc %{time}"
       intro: "Khung giờ bạn đang chờ (%{from} – %{to}) vừa có sân trống."
@@ -947,6 +1001,7 @@ vi:
         success: Đã lưu thông tin khách.
     reports:
       show:
+        tickets_sold: "Bán chỗ giao lưu trong tháng: %{amount}."
         packages_sold: "Bán gói giờ trong tháng: %{amount} (lượt đặt bằng gói tính 0đ ở trên)."
         title: Báo cáo
         explanation: Doanh thu và tỷ lệ lấp đầy theo tháng. Không tính lượt đã huỷ.
@@ -1198,6 +1253,45 @@ vi:
         success: Đã tạo gói.
       update:
         success: Đã lưu.
+    play_sessions:
+      index:
+        title: Giao lưu / vãng lai
+        explanation: Giữ một số sân trong vài giờ và bán chỗ theo người; khách đăng ký và chuyển khoản trong app. Sân của buổi hiện là sân khoá trên Lịch trong ngày.
+        new: Tạo buổi
+        upcoming: Sắp tới
+        past: Đã qua
+        seats: "%{taken}/%{capacity} chỗ"
+        empty: Chưa có buổi nào.
+      new:
+        title: Tạo buổi giao lưu
+        explanation: Các sân chọn sẽ bị khoá trong khung giờ này (sân đang có người đặt thì không tạo được).
+        title_placeholder: Giao lưu tối thứ Sáu
+        date: Ngày
+        back: Quay lại
+        submit: Tạo buổi
+      create:
+        success: Đã tạo buổi giao lưu.
+      show:
+        kicker: Giao lưu
+        summary: "%{price}/người · %{taken}/%{capacity} chỗ"
+        cancelled: Đã huỷ
+        statuses:
+          pending: Chờ chuyển khoản
+          confirmed: Đã thanh toán
+          cancelled: Đã huỷ
+        refunded: Đã hoàn tiền
+        refund_due: "Cần hoàn %{amount}"
+        check_in: Đã đến
+        undo_check_in: Huỷ "đã đến"
+        mark_refunded: Đã hoàn tiền
+        no_tickets: Chưa có ai đăng ký.
+        cancel: Huỷ buổi
+        cancel_confirm: Huỷ buổi này? Sân được mở lại, chỗ đã thanh toán cần hoàn tiền cho khách.
+        back: Tất cả buổi
+      cancel:
+        success: Đã huỷ buổi; khách đã nhận email.
+      mark_refunded:
+        success: Đã ghi nhận hoàn tiền.
   profile:
     genders:
       male: Nam

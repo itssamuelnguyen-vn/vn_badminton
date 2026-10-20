@@ -1,0 +1,12 @@
+- session = @session
+
+p = t("booking_mailer.confirmed.greeting", name: @ticket.user.full_name)
+
+p = t(".intro", title: session.display_title, time: l(session.starts_at.in_time_zone(session.venue.zone), format: :slot))
+
+- if @ticket.refund_vnd
+  p = t(".refund", amount: format_vnd(@ticket.refund_vnd))
+
+p = t("booking_mailer.cancelled.sorry")
+- if session.venue.phone
+  p = t("booking_mailer.cancelled.contact", phone: PhoneNumber.to_local(session.venue.phone))

@@ -11,6 +11,8 @@ module Payments
 
         bookings = payment.for_bookings? ? payable_bookings(payment, now) : []
         raise ActiveRecord::Rollback unless bookings
+        # Places in an open play session: late, only while places are left.
+        raise ActiveRecord::Rollback if payment.for_tickets? && !payment.play_session_ticket.confirm!(now)
 
         payment.update!(status: :paid, paid_at: now, bank_transaction: transaction)
         bookings.each do |booking|

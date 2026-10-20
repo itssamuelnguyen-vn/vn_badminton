@@ -58,6 +58,13 @@ Rails.application.routes.draw do
       resources :packages, except: %i[show destroy]
       resources :announcements, except: :show
       resources :reviews, only: :index
+      resources :play_sessions, only: %i[index new create show] do
+        member do
+          patch :cancel
+          patch :check_in
+          patch :mark_refunded
+        end
+      end
       get "reports", to: "reports#show", as: :reports
       resources :bank_transactions, path: "transactions", only: %i[index update] do
         patch :assign, on: :member
@@ -115,6 +122,15 @@ Rails.application.routes.draw do
         post :buy, on: :member
       end
       resources :announcements, only: :index
+      resources :play_sessions, only: :index do
+        post :tickets, on: :member, action: :buy
+      end
+      resources :tickets, only: :destroy, controller: :play_session_tickets
+      resources :groups, only: %i[index create destroy] do
+        post :join, on: :collection
+        delete :leave, on: :member
+        resources :shares, only: %i[create destroy], controller: :group_shares
+      end
       resources :waitlist_entries, path: "waitlist", only: %i[index create destroy]
       resources :series_requests, only: %i[index create destroy]
       resources :series, only: :index do

@@ -72,6 +72,32 @@ module ApiJson
       end_minute: purchase.end_minute, payment_token: (purchase.payment&.token if purchase.awaiting?) }
   end
 
+  def play_session(session, mine = [], now: Time.current)
+    { id: session.id, title: session.display_title, description: session.description, courts: session.courts.map(&:display_name),
+      starts_at: session.starts_at.iso8601, ends_at: session.ends_at.iso8601, capacity: session.capacity, seats_left: session.seats_left(now),
+      price_vnd: session.price_vnd, level: session.level, status: session.status, bookable: session.bookable?(now),
+      my_tickets: mine.map { |ticket| ticket(ticket, now: now) } }
+  end
+
+  def ticket(ticket, now: Time.current)
+    { id: ticket.id, quantity: ticket.quantity, amount_vnd: ticket.amount_vnd, status: ticket.status,
+      can_cancel: ticket.cancellable_by_customer?(now), cancel_without_refund: ticket.confirmed?,
+      payment_token: (ticket.payment&.token if ticket.pending? && ticket.payment&.open?(now)) }
+  end
+
+  # Upcoming shared bookings only; members are shown by name.
+  def group(group, viewer, now: Time.current)
+    { id: group.id, name: group.name, invite_code: group.invite_code, owner: group.owner_id == viewer.id,
+      members: group.members.sort_by(&:full_name).map { |member| { id: member.id, name: member.full_name, owner: member.id == group.owner_id } },
+      shares: group.shares.select { |share| share.booking.ends_at > now && share.booking.status.in?(%w[confirmed checked_in]) }
+                   .sort_by { |share| share.booking.starts_at }.map do |share|
+        booking = share.booking
+        { id: share.id, shared_by: share.shared_by.full_name, mine: share.shared_by_id == viewer.id, players: share.players,
+          per_player_vnd: share.per_player_vnd, total_vnd: booking.charged_vnd, court: booking.court.display_name,
+          starts_at: booking.starts_at.iso8601, ends_at: booking.ends_at.iso8601, code: booking.code }
+      end }
+  end
+
   def product(product)
     { id: product.id, name: product.display_name, price_vnd: product.price_vnd }
   end

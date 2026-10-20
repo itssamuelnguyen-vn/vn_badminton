@@ -1,0 +1,21 @@
+- content_for :title, t(".title")
+
+div class="mb-4 flex flex-wrap items-end justify-between gap-4"
+  div
+    h1 class="text-2xl font-bold sm:text-3xl" = t(".title")
+    p class="mt-1 max-w-2xl text-sm text-slate-600" = t(".explanation")
+  = link_to t(".new"), new_admin_play_session_path, class: "btn-primary"
+
+- [ [ t(".upcoming"), @upcoming ], [ t(".past"), @past ] ].each do |heading, sessions|
+  - next if sessions.empty?
+  h2 class="mt-6 mb-2 text-lg font-semibold" = heading
+  div class="divide-y divide-slate-100 rounded-xl bg-white ring-1 ring-slate-200"
+    - sessions.each do |session|
+      = link_to admin_play_session_path(session), class: [ "flex flex-wrap items-center justify-between gap-3 px-4 py-3 hover:bg-slate-50", ("text-slate-400 line-through" if session.cancelled?) ] do
+        div
+          p class="font-semibold" = session.title
+          p class="text-sm text-slate-600"
+            = "#{l(session.starts_at.to_date, format: :full)} · #{time_range(session.starts_at, session.ends_at)} · #{session.courts.map(&:display_name).join(", ")}"
+        p class="text-sm tabular-nums" = t(".seats", taken: session.seats_taken, capacity: session.capacity)
+- if @upcoming.empty? && @past.empty?
+  p class="card text-center text-sm text-slate-600" = t(".empty")

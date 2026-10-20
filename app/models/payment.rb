@@ -20,6 +20,7 @@ class Payment < ApplicationRecord
   belongs_to :series, class_name: "BookingSeries", optional: true
   belongs_to :bank_transaction, optional: true
   belongs_to :package_purchase, optional: true
+  belongs_to :play_session_ticket, optional: true
   has_one :voucher_redemption, dependent: :destroy
   has_many :bookings, dependent: :nullify
   # The transfers carrying this payment's code (or assigned to it by the owner).

@@ -7,7 +7,7 @@ Test là bản mô tả chính xác nhất: nếu tài liệu và test khác nha
 **Cách giữ tài liệu luôn đúng:** PR nào thay đổi một quy tắc thì sửa luôn mục tương ứng ở đây trong cùng PR
 (xem `CLAUDE.md`). Các con số có thể chỉnh trong **Quản lý → Cài đặt** được đánh dấu ⚙️ và ghi giá trị mặc định.
 
-> Cập nhật: 20/10/2026, theo `main` sau PR #24, cộng tiện ích của app (đổi giờ trong app DOI-05, yêu cầu lịch cố định CD-09…10, mục 15: TI-01…04) và ưu đãi (mục 16: UD-01…06) đang chờ PR. Mục đánh dấu ⏳ (nhánh `deploy-config`) là quy tắc chưa có trên `main`;
+> Cập nhật: 20/10/2026, theo `main` sau PR #24, cộng tiện ích của app (đổi giờ trong app DOI-05, yêu cầu lịch cố định CD-09…10, mục 15: TI-01…04) ưu đãi (mục 16: UD-01…06), giao lưu và nhóm (mục 17: GL-01…04, NH-01…03) đang chờ PR. Mục đánh dấu ⏳ (nhánh `deploy-config`) là quy tắc chưa có trên `main`;
 > khi merge, bỏ dấu ⏳.
 
 ---
@@ -92,6 +92,7 @@ Test là bản mô tả chính xác nhất: nếu tài liệu và test khác nha
 | EM-06 | Đặt lại mật khẩu | Khách yêu cầu                                                                       | Chủ tài khoản                        |
 | EM-07 | **Có sân trống**     | Khung giờ khách đang chờ có sân trống lại (TI-04)                                   | Khách đang chờ                       |
 | EM-08 | **Trả lời yêu cầu lịch cố định** | Sân tạo lịch hoặc từ chối (CD-09)                                     | Khách gửi yêu cầu                    |
+| EM-09 | **Sân huỷ buổi giao lưu** | GL-03 | Khách có chỗ trong buổi |
 
 Chủ sân **không** nhận email (xem trên Lịch trong ngày). Nguồn: `app/mailers/`, `app/jobs/booking_reminder_job.rb`, `app/jobs/waitlist_job.rb`, `test/jobs/booking_reminder_job_test.rb`.
 
@@ -120,6 +121,8 @@ Chủ sân **không** nhận email (xem trên Lịch trong ngày). Nguồn: `app
 | Khách hàng (ghi chú, danh sách đen, mở khoá)                                  |       | ✓ (không thấy doanh thu) | ✓       |
 | Lịch cố định                                                                  |       | ✓                        | ✓       |
 | Yêu cầu lịch cố định của khách (tạo lịch / từ chối), xem đánh giá             |       | ✓                        | ✓       |
+| Buổi giao lưu (tạo, huỷ, ghi nhận đến)                                        |       | ✓                        | ✓       |
+| Ghi nhận đã hoàn tiền chỗ giao lưu                                            |       |                          | ✓       |
 | Báo cáo, bảng giá, cài đặt, quản lý nhân viên                                 |       |                          | ✓       |
 | Đồ thuê thêm, bảng tin, mã giảm giá, gói giờ, hạng thành viên                 |       |                          | ✓       |
 | Tải dữ liệu của mình (TK-07)                                                  | ✓     | ✓                        | ✓       |
@@ -210,6 +213,18 @@ Nguồn: `config/recurring.yml`.
 | UD-04 | **Gói giờ** (chủ sân tạo, **Quản lý → Gói giờ**): số giờ (tròn 30 phút), giá, **dùng trong N ngày** (1–730) kể từ lúc trả tiền (hết hạn cuối ngày), tuỳ chọn **chỉ dùng trong khung giờ**. Khách **mua trong app** bằng **chuyển khoản** (mã thanh toán riêng, 30 phút); tiền về → gói **có hiệu lực**. Gói đã bán thì **tắt** chứ không xoá. **Báo cáo tháng** ghi tiền bán gói riêng (lượt đặt bằng gói tính 0đ trong doanh thu). | `app/models/package_purchase.rb`, `app/services/payments/confirm.rb`, `test/integration/api/offers_test.rb` |
 | UD-05 | **Đặt bằng gói giờ** (trong app): lượt được **xác nhận và thanh toán ngay**, trừ số phút vào gói (khoá gói khi trừ để hai lượt không dùng trùng giờ). Cần: gói còn hạn, **đủ giờ**, ngày chơi **trước hạn gói**, đúng khung giờ của gói. Đồ thuê thêm **không chọn được** khi trả bằng gói (thuê tại quầy). Không cộng ưu đãi hạng/mã. Email xác nhận như DAT-07. | `app/models/booking_batch.rb` (`reserve_with_package`) |
 | UD-06 | **Giờ trong gói không hoàn tiền**. Khách **tự huỷ** lượt đặt bằng gói: **không trả lại giờ** (giống HUY-01). Sân **huỷ do sự cố** (VH-04): **trả lại giờ** vào gói, không hoàn tiền. | `app/models/booking.rb` (`cancel_for_venue_fault!`) |
+
+## 17. Giao lưu (vãng lai) và nhóm
+
+| Mã    | Quy tắc | Nguồn |
+|-------|---------|-------|
+| GL-01 | **Buổi giao lưu** (chủ sân/nhân viên tạo, **Quản lý → Giao lưu**): tên (vi/en), mô tả, **các sân**, ngày, giờ (tròn 30 phút, ở tương lai), **số người tối đa** (1–200), **giá mỗi người** (bội số 1.000đ), trình độ (tuỳ chọn). Tạo buổi = **khoá các sân** trong khung đó (hiện "Giao lưu: …" trên Lịch trong ngày); sân đã có người đặt thì **không tạo được**. | `app/models/play_session.rb`, `test/integration/api/community_test.rb` |
+| GL-02 | Khách **đăng ký trong app** cho mình và bạn (**1–10 chỗ**), **chuyển khoản trong 15 phút** (+2 phút ân hạn, như DAT-07); chỗ được **giữ** trong lúc chờ, hết hạn thì trả lại. Không vượt số người tối đa (khoá buổi khi đăng ký); khách trong danh sách đen không đăng ký được. Tiền về trễ: nhận nếu còn chỗ, nếu không thì cần hoàn (như TT-04). Danh sách buổi xem được khi chưa đăng nhập. | `app/models/play_session_ticket.rb`, `app/services/payments/confirm.rb` |
+| GL-03 | Khách **tự huỷ chỗ** trước giờ bắt đầu **theo hạn huỷ** (HUY-01): chỗ trả lại, chỗ **đã trả không hoàn**. **Sân huỷ buổi**: mở lại các sân, chỗ đã trả ghi **cần hoàn đủ** (chủ sân chuyển trả rồi bấm **Đã hoàn tiền**), khách nhận **email** (EM-09). Nhân viên bấm **Đã đến** cho từng khách. **Báo cáo tháng** ghi tiền bán chỗ giao lưu riêng. | `app/controllers/admin/play_sessions_controller.rb` |
+| GL-04 | Buổi giao lưu không áp dụng ưu đãi hạng, mã giảm giá hay gói giờ (mục 16). | `app/models/play_session_ticket.rb` |
+| NH-01 | **Nhóm** (trong app): khách tạo nhóm (tên), mời bằng **mã nhóm 6 ký tự**; tối đa **20 người** mỗi nhóm, mỗi người tối đa **10 nhóm**. Thành viên thấy **họ tên** của nhau (không thấy số điện thoại, email). | `app/models/group.rb`, `test/integration/api/community_test.rb` |
+| NH-02 | Thành viên **chia sẻ lượt đặt của mình** vào nhóm kèm **số người chơi** (mặc định số thành viên): cả nhóm thấy sân, giờ, tổng tiền và **mỗi người góp** = tổng ÷ số người, **làm tròn lên nghìn đồng**. App **không thu hộ**. Chỉ hiện lượt **chưa chơi xong, chưa huỷ**. Người chia sẻ hoặc chủ nhóm gỡ được. | `app/models/group_share.rb` |
+| NH-03 | **Rời nhóm**: các lượt mình chia sẻ bị gỡ; chủ nhóm rời thì nhóm chuyển cho **thành viên vào sớm nhất**, không còn ai thì nhóm bị xoá. Chủ nhóm xoá được nhóm. Xoá tài khoản (TK-09) = rời mọi nhóm. | `app/models/group.rb`, `app/services/accounts/deletion.rb` |
 
 ---
 

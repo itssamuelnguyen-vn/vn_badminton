@@ -63,6 +63,12 @@ module Reports
       PackagePurchase.where.not(paid_at: nil).where(paid_at: range).sum(:price_vnd)
     end
 
+    # Places sold in open play sessions held in the month (paid, less what is owed back).
+    def tickets_sold_vnd
+      tickets = PlaySessionTicket.joins(:play_session).where(play_sessions: { venue_id: venue.id, starts_at: range })
+      tickets.where(status: :confirmed).sum(:amount_vnd)
+    end
+
     # Every reservation of the month, for the CSV export.
     def reservations
       @reservations ||= Booking.kind_reservation.where.not(status: :pending)

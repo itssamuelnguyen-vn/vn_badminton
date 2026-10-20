@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_20_000022) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_20_000024) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "citext"
@@ -202,12 +202,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_20_000022) do
     t.bigint "discount_vnd", default: 0, null: false
     t.bigint "package_purchase_id"
     t.integer "package_minutes"
+    t.bigint "play_session_id"
     t.index ["code"], name: "index_bookings_on_code", unique: true
     t.index ["court_id", "starts_at"], name: "index_bookings_on_court_id_and_starts_at"
     t.index ["created_by_id"], name: "index_bookings_on_created_by_id"
     t.index ["expires_at"], name: "index_bookings_on_expires_at", where: "((status)::text = 'pending'::text)"
     t.index ["package_purchase_id"], name: "index_bookings_on_package_purchase_id"
     t.index ["payment_id"], name: "index_bookings_on_payment_id"
+    t.index ["play_session_id"], name: "index_bookings_on_play_session_id"
     t.index ["refunded_by_id"], name: "index_bookings_on_refunded_by_id"
     t.index ["series_id"], name: "index_bookings_on_series_id"
     t.index ["series_refund_period_id"], name: "index_bookings_on_series_refund_period_id"
@@ -264,6 +266,40 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_20_000022) do
     t.index ["phone"], name: "index_customer_profiles_on_phone", unique: true
     t.check_constraint "(blocked_at IS NULL) = (blocked_by_id IS NULL)", name: "customer_profiles_blocked_consistent"
     t.check_constraint "phone::text ~ '^\\+84[0-9]{9}$'::text", name: "customer_profiles_phone_format"
+  end
+
+  create_table "group_memberships", force: :cascade do |t|
+    t.bigint "group_id", null: false
+    t.bigint "user_id", null: false
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
+    t.index ["group_id", "user_id"], name: "index_group_memberships_on_group_id_and_user_id", unique: true
+    t.index ["group_id"], name: "index_group_memberships_on_group_id"
+    t.index ["user_id"], name: "index_group_memberships_on_user_id"
+  end
+
+  create_table "group_shares", force: :cascade do |t|
+    t.bigint "group_id", null: false
+    t.bigint "booking_id", null: false
+    t.bigint "shared_by_id", null: false
+    t.integer "players", null: false
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
+    t.index ["booking_id"], name: "index_group_shares_on_booking_id"
+    t.index ["group_id", "booking_id"], name: "index_group_shares_on_group_id_and_booking_id", unique: true
+    t.index ["group_id"], name: "index_group_shares_on_group_id"
+    t.index ["shared_by_id"], name: "index_group_shares_on_shared_by_id"
+    t.check_constraint "players >= 1 AND players <= 50", name: "group_shares_players_valid"
+  end
+
+  create_table "groups", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "invite_code", null: false
+    t.bigint "owner_id", null: false
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
+    t.index ["invite_code"], name: "index_groups_on_invite_code", unique: true
+    t.index ["owner_id"], name: "index_groups_on_owner_id"
   end
 
   create_table "opening_hours", force: :cascade do |t|
@@ -340,10 +376,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_20_000022) do
     t.bigint "discount_vnd", default: 0, null: false
     t.string "offer"
     t.bigint "package_purchase_id"
+    t.bigint "play_session_ticket_id"
     t.index ["bank_transaction_id"], name: "index_payments_on_bank_transaction_id"
     t.index ["code"], name: "index_payments_on_code", unique: true
     t.index ["created_by_id"], name: "index_payments_on_created_by_id"
     t.index ["package_purchase_id"], name: "index_payments_on_package_purchase_id"
+    t.index ["play_session_ticket_id"], name: "index_payments_on_play_session_ticket_id"
     t.index ["series_id"], name: "index_payments_on_series_id"
     t.index ["token"], name: "index_payments_on_token", unique: true
     t.index ["user_id"], name: "index_payments_on_user_id"
@@ -354,6 +392,52 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_20_000022) do
     t.check_constraint "purpose::text <> 'series_period'::text OR series_id IS NOT NULL AND series_month IS NOT NULL", name: "payments_series_period_target"
     t.check_constraint "purpose::text = ANY (ARRAY['bookings'::character varying, 'series_period'::character varying, 'package'::character varying, 'tickets'::character varying]::text[])", name: "payments_purpose_valid"
     t.check_constraint "status::text = ANY (ARRAY['awaiting'::character varying, 'paid'::character varying, 'expired'::character varying, 'cancelled'::character varying]::text[])", name: "payments_status_valid"
+  end
+
+  create_table "play_session_tickets", force: :cascade do |t|
+    t.bigint "play_session_id", null: false
+    t.bigint "user_id", null: false
+    t.bigint "payment_id"
+    t.integer "quantity", null: false
+    t.bigint "amount_vnd", null: false
+    t.string "status", default: "pending", null: false
+    t.datetime "checked_in_at", precision: 0
+    t.datetime "cancelled_at", precision: 0
+    t.bigint "refund_vnd"
+    t.datetime "refunded_at", precision: 0
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
+    t.index ["payment_id"], name: "index_play_session_tickets_on_payment_id"
+    t.index ["play_session_id"], name: "index_play_session_tickets_on_play_session_id"
+    t.index ["user_id"], name: "index_play_session_tickets_on_user_id"
+    t.check_constraint "quantity >= 1 AND quantity <= 10", name: "play_session_tickets_quantity_valid"
+    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying, 'confirmed'::character varying, 'cancelled'::character varying]::text[])", name: "play_session_tickets_status_valid"
+  end
+
+  create_table "play_sessions", force: :cascade do |t|
+    t.bigint "venue_id", null: false
+    t.bigint "created_by_id", null: false
+    t.string "title", null: false
+    t.string "title_en"
+    t.text "description"
+    t.bigint "court_ids", null: false, array: true
+    t.datetime "starts_at", precision: 0, null: false
+    t.datetime "ends_at", precision: 0, null: false
+    t.integer "capacity", null: false
+    t.bigint "price_vnd", null: false
+    t.string "level"
+    t.string "status", default: "open", null: false
+    t.datetime "cancelled_at", precision: 0
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
+    t.index ["created_by_id"], name: "index_play_sessions_on_created_by_id"
+    t.index ["starts_at"], name: "index_play_sessions_on_starts_at"
+    t.index ["venue_id"], name: "index_play_sessions_on_venue_id"
+    t.check_constraint "capacity >= 1 AND capacity <= 200", name: "play_sessions_capacity_valid"
+    t.check_constraint "cardinality(court_ids) >= 1", name: "play_sessions_courts_present"
+    t.check_constraint "ends_at > starts_at", name: "play_sessions_range_valid"
+    t.check_constraint "price_vnd > 0 AND (price_vnd % 1000::bigint) = 0", name: "play_sessions_price_valid"
+    t.check_constraint "status::text = ANY (ARRAY['open'::character varying, 'cancelled'::character varying]::text[])", name: "play_sessions_status_valid"
   end
 
   create_table "price_rules", force: :cascade do |t|
@@ -585,12 +669,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_20_000022) do
   add_foreign_key "bookings", "courts"
   add_foreign_key "bookings", "package_purchases"
   add_foreign_key "bookings", "payments"
+  add_foreign_key "bookings", "play_sessions"
   add_foreign_key "bookings", "users"
   add_foreign_key "bookings", "users", column: "cancelled_by_id"
   add_foreign_key "bookings", "users", column: "created_by_id"
   add_foreign_key "bookings", "users", column: "refunded_by_id"
   add_foreign_key "courts", "venues"
   add_foreign_key "customer_profiles", "users", column: "blocked_by_id"
+  add_foreign_key "group_memberships", "groups", on_delete: :cascade
+  add_foreign_key "group_memberships", "users", on_delete: :cascade
+  add_foreign_key "group_shares", "bookings", on_delete: :cascade
+  add_foreign_key "group_shares", "groups", on_delete: :cascade
+  add_foreign_key "group_shares", "users", column: "shared_by_id", on_delete: :cascade
+  add_foreign_key "groups", "users", column: "owner_id"
   add_foreign_key "opening_hours", "venues", on_delete: :cascade
   add_foreign_key "package_purchases", "packages"
   add_foreign_key "package_purchases", "payments"
@@ -599,8 +690,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_20_000022) do
   add_foreign_key "payments", "bank_transactions"
   add_foreign_key "payments", "booking_series", column: "series_id"
   add_foreign_key "payments", "package_purchases"
+  add_foreign_key "payments", "play_session_tickets"
   add_foreign_key "payments", "users"
   add_foreign_key "payments", "users", column: "created_by_id"
+  add_foreign_key "play_session_tickets", "payments"
+  add_foreign_key "play_session_tickets", "play_sessions"
+  add_foreign_key "play_session_tickets", "users"
+  add_foreign_key "play_sessions", "users", column: "created_by_id"
+  add_foreign_key "play_sessions", "venues"
   add_foreign_key "price_rules", "courts", column: ["court_id", "venue_id"], primary_key: ["id", "venue_id"], name: "fk_price_rules_court_venue"
   add_foreign_key "price_rules", "venues"
   add_foreign_key "products", "venues"

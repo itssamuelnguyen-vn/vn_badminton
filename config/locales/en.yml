@@ -9,6 +9,10 @@ en:
 
   activerecord:
     models:
+      play_session: Open play session
+      play_session_ticket: Open play place
+      group: Group
+      group_share: Shared booking
       voucher: Voucher
       package: Prepaid hours
       package_purchase: Prepaid hours bought
@@ -27,6 +31,25 @@ en:
       booking_series: Regular booking
 
     attributes:
+      play_session:
+        title: Title
+        title_en: English title
+        description: Description
+        court_ids: Courts
+        starts_at: Start time
+        ends_at: End time
+        date: Date
+        capacity: Places
+        price_vnd: Price per player
+        level: Level
+      play_session_ticket:
+        quantity: Players
+      group:
+        name: Group name
+      group_share:
+        players: Players
+        booking: Booking
+        group: Group
       voucher:
         code: Code
         description: Description
@@ -166,6 +189,21 @@ en:
 
     errors:
       models:
+        play_session:
+          after_start: "must be after the start time"
+          off_slot_grid: "Times must be on the half hour"
+          not_in_future: "must be in the future"
+          invalid: "is invalid"
+        play_session_ticket:
+          not_bookable: This session no longer takes players.
+          blacklisted: Your account cannot book online at the moment. Please contact the venue.
+          full: "Only %{left} places left in this session."
+        group:
+          too_many: "You can be in at most %{count} groups."
+          full: "The group already has %{count} members."
+        group_share:
+          not_yours: "is not yours"
+          not_member: "you are not in this group"
         voucher:
           before_valid_from: "must be after the start date"
           after_start: "must be after the start time"
@@ -271,6 +309,7 @@ en:
         resend: Resend email
     admin:
       nav:
+        play_sessions: Open play
         vouchers: Vouchers
         packages: Prepaid hours
         reviews: Reviews
@@ -542,6 +581,15 @@ en:
       gold: Gold
       diamond: Diamond
 
+  play_sessions:
+    block_note: "Open play: %{title}"
+    levels:
+      any: All levels
+      beginner: Beginner
+      intermediate: Intermediate
+      advanced: Advanced
+      expert: Expert
+
   booking_batch:
     errors:
       package_no_items: When paying with prepaid hours, please rent extras at the counter.
@@ -597,6 +645,8 @@ en:
         deleted: Your account has been deleted. We have sent you a confirmation email.
 
   api:
+    groups:
+      wrong_code: This group code is not valid.
     series:
       nothing_due: Nothing left to pay for this month.
     unauthorized: Please sign in again.
@@ -647,6 +697,10 @@ en:
       before: "Before:"
 
   notice_mailer:
+    play_session_cancelled:
+      subject: "The venue cancelled %{title} at %{time}"
+      intro: "The venue cancelled the open play session %{title} at %{time} you signed up for."
+      refund: "The venue will refund the %{amount} you transferred."
     slot_freed:
       subject: "A court is free at %{time}"
       intro: "The time you were waiting for (%{from} – %{to}) has a free court now."
@@ -966,6 +1020,7 @@ en:
         success: Customer saved.
     reports:
       show:
+        tickets_sold: "Open play places sold this month: %{amount}."
         packages_sold: "Prepaid hours sold this month: %{amount} (bookings paid with them count 0 above)."
         title: Reports
         explanation: Monthly revenue and occupancy. Cancelled bookings are not counted.
@@ -1226,6 +1281,45 @@ en:
         success: Package created.
       update:
         success: Saved.
+    play_sessions:
+      index:
+        title: Open play
+        explanation: Keep some courts for a few hours and sell places per player; customers sign up and pay in the app. The session's courts show as blocked on the day board.
+        new: New session
+        upcoming: Coming
+        past: Past
+        seats: "%{taken}/%{capacity} places"
+        empty: No sessions yet.
+      new:
+        title: New open play session
+        explanation: The courts picked are blocked for these times (a court already booked cannot be used).
+        title_placeholder: Friday night open play
+        date: Date
+        back: Back
+        submit: Create
+      create:
+        success: Open play session created.
+      show:
+        kicker: Open play
+        summary: "%{price} per player · %{taken}/%{capacity} places"
+        cancelled: Cancelled
+        statuses:
+          pending: Awaiting transfer
+          confirmed: Paid
+          cancelled: Cancelled
+        refunded: Refunded
+        refund_due: "%{amount} to refund"
+        check_in: Arrived
+        undo_check_in: Undo arrived
+        mark_refunded: Refunded
+        no_tickets: Nobody signed up yet.
+        cancel: Cancel session
+        cancel_confirm: Cancel this session? The courts open again; paid places must be refunded.
+        back: All sessions
+      cancel:
+        success: Session cancelled; the players were emailed.
+      mark_refunded:
+        success: Refund recorded.
   profile:
     genders:
       male: Male
