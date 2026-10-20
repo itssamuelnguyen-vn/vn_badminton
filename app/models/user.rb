@@ -13,6 +13,15 @@ class User < ApplicationRecord
   # admin: the owner (everything). staff: runs the day-to-day, without money (reports), prices, settings or staff.
   enum :role, { customer: "customer", staff: "staff", admin: "admin" }, default: :customer, validate: true
 
+  # The optional profile (TK-10): shown in the app and on the account page, never required.
+  enum :gender, { male: "male", female: "female", other: "other" }, prefix: true, validate: { allow_nil: true }
+  enum :skill_level, { beginner: "beginner", intermediate: "intermediate", advanced: "advanced", expert: "expert" },
+       prefix: :skill, validate: { allow_nil: true }
+
+  AVATAR_TYPES = %w[image/jpeg image/png image/webp].freeze
+  AVATAR_MAX_BYTES = 2.megabytes
+  has_one_attached :avatar
+
   has_many :bookings, dependent: :restrict_with_error
   has_many :created_bookings, class_name: "Booking", foreign_key: :created_by_id,
                               inverse_of: :created_by, dependent: :restrict_with_error
@@ -43,6 +52,9 @@ class User < ApplicationRecord
   validate :privacy_consent_given, on: :create
   # The language of emails sent outside of a request (reminders, cancellations by the owner).
   validates :locale, inclusion: { in: -> { I18n.available_locales.map(&:to_s) } }
+  validates :birth_year, numericality: { only_integer: true, greater_than_or_equal_to: 1900,
+                                         less_than_or_equal_to: ->(_) { Date.current.year } }, allow_nil: true
+  validate :avatar_is_a_small_image
 
   # Called by Devise on sign-in. "@" means an email; anything else is treated as a phone number,
   # so "0901 234 567", "84901234567" and "+84901234567" all find the same user.
@@ -107,6 +119,26 @@ class User < ApplicationRecord
   # A base error, so the message reads as a sentence instead of starting with the field name.
   def privacy_consent_given
     errors.add(:base, :privacy_consent_required) if !privacy_consent.nil? && privacy_consent != "1"
+  end
+
+  # The type is read from the first bytes of the file, not from its name or what the browser or app says.
+  def avatar_is_a_small_image
+    return unless avatar.attached? && (change = attachment_changes["avatar"])
+
+    if AVATAR_TYPES.exclude?(sniffed_content_type(change.attachable) || avatar.blob.content_type)
+      errors.add(:avatar, :invalid_type)
+    elsif avatar.blob.byte_size > AVATAR_MAX_BYTES
+      errors.add(:avatar, :too_big, size: AVATAR_MAX_BYTES / 1.megabyte)
+    end
+  end
+
+  def sniffed_content_type(attachable)
+    io = attachable.is_a?(Hash) ? attachable[:io] : (attachable.to_io if attachable.respond_to?(:to_io))
+    return unless io
+
+    head = io.read(64).to_s
+    io.rewind
+    Marcel::MimeType.for(StringIO.new(head))
   end
 
   # Devise emails go through the job queue like the other emails (the job keeps the current locale).

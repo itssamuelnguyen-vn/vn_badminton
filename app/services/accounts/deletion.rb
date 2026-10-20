@@ -86,8 +86,9 @@ module Accounts
         user.update_columns(
           full_name: user.manager? ? user.full_name : ANONYMOUS_NAME, email: "deleted-#{user.id}@deleted.invalid", phone: nil,
           encrypted_password: "", unconfirmed_email: nil, confirmation_token: nil, reset_password_token: nil,
-          booking_locked_until: nil, deleted_at: now, updated_at: now
+          booking_locked_until: nil, birth_year: nil, gender: nil, skill_level: nil, deleted_at: now, updated_at: now
         )
+        user.avatar.purge_later if user.avatar.attached?
       end
       mail.deleted.deliver_later
       self

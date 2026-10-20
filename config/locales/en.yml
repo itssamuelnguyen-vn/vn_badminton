@@ -28,6 +28,10 @@ en:
         password_confirmation: Confirm password
         current_password: Current password
         privacy_consent: Privacy consent
+        birth_year: Year of birth
+        gender: Gender
+        skill_level: Badminton level
+        avatar: Profile photo
       venue:
         name: Name
         slug: Slug
@@ -96,6 +100,9 @@ en:
           attributes:
             password_confirmation:
               confirmation: "doesn't match the password"
+            avatar:
+              invalid_type: "must be a JPG, PNG or WebP image"
+              too_big: "must not be larger than %{size} MB"
 
         venue:
           not_multiple_of_30: "must be a multiple of 30"
@@ -197,6 +204,8 @@ en:
         current_password_hint: Required to save any changes
         submit: Save changes
         pending_reconfirmation: "Waiting for verification of your new email: %{email}. Your current email is used until you open the verification link."
+        profile: Profile (optional)
+        profile_hint: "Your photo, year of birth, gender and level are only shown in your account; leave them empty if you prefer."
         export:
           title: Download my data
           text: "A JSON file with your account details, every booking with its history, your payments and transfers."
@@ -443,6 +452,7 @@ en:
 
   api:
     unauthorized: Please sign in again.
+    avatar_missing: Please choose a photo.
   account_mailer:
     deletion_requested:
       subject: Your VN Badminton account will be deleted
@@ -924,3 +934,15 @@ en:
         not_found: "No payment or booking with the code %{code}."
         confirmed: Transfer assigned and booking confirmed.
         assigned: Transfer assigned to the booking; it still needs review.
+
+  # The optional profile (User#gender, User#skill_level), TK-10.
+  profile:
+    genders:
+      male: Male
+      female: Female
+      other: Other
+    skill_levels:
+      beginner: Beginner
+      intermediate: Intermediate
+      advanced: Advanced
+      expert: Expert

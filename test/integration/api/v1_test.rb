@@ -98,6 +98,36 @@ class Api::V1Test < ActionDispatch::IntegrationTest
     assert_response :unauthorized, "the app is signed out with the account"
   end
 
+  test "edits the optional profile and the profile photo (TK-10)" do
+    token = sign_in_api(users(:an))
+
+    patch api_v1_account_path, params: { birth_year: 1995, gender: "female", skill_level: "advanced" }, headers: auth(token), as: :json
+    assert_response :success
+    assert_equal [ 1995, "female", "advanced", nil ], response.parsed_body["user"].values_at("birth_year", "gender", "skill_level", "avatar_path")
+
+    patch api_v1_account_path, params: { gender: "robot" }, headers: auth(token), as: :json
+    assert_response :unprocessable_content
+    patch api_v1_account_path, params: { birth_year: 2030 }, headers: auth(token), as: :json
+    assert_response :unprocessable_content
+
+    put api_v1_account_avatar_path, params: { avatar: fixture_file_upload("avatar.png", "image/png") }, headers: auth(token)
+    assert_response :success
+    assert_match %r{\A/rails/active_storage/blobs/}, response.parsed_body.dig("user", "avatar_path")
+    assert users(:an).reload.avatar.attached?
+
+    # The type comes from the file itself, not from what the app says.
+    text = Rack::Test::UploadedFile.new(StringIO.new("not an image"), "image/png", original_filename: "fake.png")
+    put api_v1_account_avatar_path, params: { avatar: text }, headers: auth(token)
+    assert_response :unprocessable_content
+    assert_equal [ "Ảnh đại diện phải là ảnh JPG, PNG hoặc WebP" ], response.parsed_body["messages"]
+    assert_equal "avatar.png", users(:an).reload.avatar.filename.to_s, "the refused photo replaces nothing"
+
+    delete api_v1_account_avatar_path, headers: auth(token)
+    assert_response :success
+    assert_nil response.parsed_body.dig("user", "avatar_path")
+    assert_not users(:an).reload.avatar.attached?
+  end
+
   test "a new password signs the app out; English messages with Accept-Language" do
     token = sign_in_api(users(:an))
     users(:an).update!(password: "newpassword1")

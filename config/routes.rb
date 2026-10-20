@@ -87,6 +87,7 @@ Rails.application.routes.draw do
       resource :account, only: %i[show update destroy] do
         post :export
         post :resend_verification
+        resource :avatar, only: %i[update destroy]
       end
       resource :venue, only: :show
       resource :schedule, only: :show

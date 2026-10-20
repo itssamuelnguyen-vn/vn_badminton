@@ -20,6 +20,27 @@ div class="card mx-auto max-w-md"
       - if resource.pending_reconfirmation?
         p class="form-hint text-amber-700" = t(".pending_reconfirmation", email: resource.unconfirmed_email)
 
+    / The optional profile (TK-10), also edited in the app.
+    fieldset class="space-y-5 border-t border-slate-200 pt-5"
+      legend class="text-sm font-semibold text-slate-700" = t(".profile")
+      p.form-hint = t(".profile_hint")
+      div class="flex items-center gap-4"
+        - if resource.avatar.attached? && resource.avatar.persisted?
+          = image_tag url_for(resource.avatar), alt: "", class: "size-16 rounded-full object-cover ring-1 ring-slate-200"
+        div class="flex-1"
+          = f.label :avatar, class: "form-label"
+          = f.file_field :avatar, accept: User::AVATAR_TYPES.join(","), class: "form-input"
+      div class="grid grid-cols-2 gap-4"
+        div
+          = f.label :birth_year, class: "form-label"
+          = f.number_field :birth_year, min: 1900, max: Date.current.year, inputmode: "numeric", class: "form-input"
+        div
+          = f.label :gender, class: "form-label"
+          = f.select :gender, User.genders.keys.map { |key| [ t("profile.genders.#{key}"), key ] }, { include_blank: true }, class: "form-input"
+      div
+        = f.label :skill_level, class: "form-label"
+        = f.select :skill_level, User.skill_levels.keys.map { |key| [ t("profile.skill_levels.#{key}"), key ] }, { include_blank: true }, class: "form-input"
+
     fieldset class="space-y-5 border-t border-slate-200 pt-5"
       legend.sr-only = t(".change_password")
       div

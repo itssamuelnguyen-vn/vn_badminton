@@ -20,12 +20,15 @@ Quy tắc nghiệp vụ: `docs/business-rules.md`. Test: `test/integration/api/v
 | `DELETE /api/v1/session` | | 204 |
 | `POST /api/v1/registration` | `full_name`, `phone`, `email`, `password`, `privacy_consent: true`, `locale`, `device_name` | 201 `{ token, user }` (email xác minh được gửi) |
 | `GET /api/v1/account` | | `{ user, can_delete, bookings_to_play: [booking], deleted_after }` |
-| `PATCH /api/v1/account` | `full_name`, `phone`, `locale` | `{ user }` |
+| `PATCH /api/v1/account` | `full_name`, `phone`, `locale`, `birth_year`, `gender` (`male`/`female`/`other`), `skill_level` (`beginner`/`intermediate`/`advanced`/`expert`) | `{ user }` |
 | `POST /api/v1/account/resend_verification` | | 204 |
+| `PUT /api/v1/account/avatar` | `avatar` (multipart; JPG/PNG/WebP ≤ 2 MB) | `{ user }` |
+| `DELETE /api/v1/account/avatar` | | `{ user }` |
 | `POST /api/v1/account/export` | `password` | dữ liệu cá nhân (như file JSON trên web) |
 | `DELETE /api/v1/account` | `password` | `{ deleted_after }` (null: đã xoá ngay); token bị huỷ |
 
-`user`: `{ id, full_name, email, phone, locale, email_verified, booking_locked_until }`.
+`user`: `{ id, full_name, email, phone, locale, email_verified, booking_locked_until, birth_year, gender, skill_level, avatar_path }`.
+`avatar_path` là đường dẫn trên máy chủ (ghép với địa chỉ máy chủ), `null` khi chưa có ảnh. Hồ sơ không bắt buộc (TK-10).
 
 ## Sân và lịch (không cần đăng nhập)
 

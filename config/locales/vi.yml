@@ -28,6 +28,10 @@ vi:
         password_confirmation: Xác nhận mật khẩu
         current_password: Mật khẩu hiện tại
         privacy_consent: Đồng ý chính sách bảo mật
+        birth_year: Năm sinh
+        gender: Giới tính
+        skill_level: Trình độ cầu lông
+        avatar: Ảnh đại diện
       venue:
         name: Tên
         slug: Đường dẫn
@@ -96,6 +100,9 @@ vi:
           attributes:
             password_confirmation:
               confirmation: "không khớp với mật khẩu"
+            avatar:
+              invalid_type: "phải là ảnh JPG, PNG hoặc WebP"
+              too_big: "không được lớn hơn %{size} MB"
 
         venue:
           not_multiple_of_30: "phải là bội số của 30"
@@ -195,6 +202,8 @@ vi:
         current_password_hint: Cần nhập để lưu thay đổi
         submit: Lưu thay đổi
         pending_reconfirmation: "Đang chờ xác minh email mới: %{email}. Email cũ vẫn được dùng cho tới khi bạn mở đường dẫn xác minh."
+        profile: Hồ sơ (không bắt buộc)
+        profile_hint: "Ảnh đại diện, năm sinh, giới tính và trình độ chỉ để hiển thị trong tài khoản của bạn; để trống nếu không muốn cung cấp."
         export:
           title: Tải dữ liệu của tôi
           text: "Một file JSON gồm thông tin tài khoản, mọi lượt đặt kèm lịch sử, các khoản thanh toán và chuyển khoản của bạn."
@@ -432,6 +441,7 @@ vi:
 
   api:
     unauthorized: Vui lòng đăng nhập lại.
+    avatar_missing: Vui lòng chọn một ảnh.
   account_mailer:
     deletion_requested:
       subject: Tài khoản VN Badminton của bạn sẽ được xoá
@@ -901,3 +911,15 @@ vi:
         not_found: "Không tìm thấy mã %{code}."
         confirmed: Đã gán giao dịch và xác nhận đơn.
         assigned: Đã gán giao dịch vào đơn; giao dịch vẫn cần xử lý.
+
+  # The optional profile (User#gender, User#skill_level), TK-10.
+  profile:
+    genders:
+      male: Nam
+      female: Nữ
+      other: Khác
+    skill_levels:
+      beginner: Mới chơi
+      intermediate: Trung bình
+      advanced: Khá
+      expert: Giỏi

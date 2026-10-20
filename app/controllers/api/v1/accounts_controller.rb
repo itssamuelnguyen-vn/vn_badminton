@@ -13,7 +13,7 @@ module Api
       end
 
       def update
-        if current_user.update(params.permit(:full_name, :phone, :locale))
+        if current_user.update(params.permit(:full_name, :phone, :locale, :birth_year, :gender, :skill_level))
           render json: { user: ApiJson.user(current_user) }
         else
           render_error :invalid, current_user.errors.full_messages, status: :unprocessable_content

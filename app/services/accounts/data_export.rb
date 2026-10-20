@@ -34,7 +34,9 @@ module Accounts
       {
         full_name: @user.full_name, email: @user.email, phone: @user.phone, locale: @user.locale,
         created_at: @user.created_at&.iso8601, email_confirmed_at: @user.confirmed_at&.iso8601,
-        privacy_accepted_at: @user.privacy_accepted_at&.iso8601, booking_locked_until: @user.booking_locked_until&.iso8601
+        privacy_accepted_at: @user.privacy_accepted_at&.iso8601, booking_locked_until: @user.booking_locked_until&.iso8601,
+        birth_year: @user.birth_year, gender: @user.gender, skill_level: @user.skill_level,
+        avatar: (@user.avatar.filename.to_s if @user.avatar.attached?)
       }
     end
 

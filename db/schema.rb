@@ -10,11 +10,39 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_19_000012) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_19_000014) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "citext"
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "active_storage_attachments", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "record_type", null: false
+    t.bigint "record_id", null: false
+    t.bigint "blob_id", null: false
+    t.datetime "created_at", precision: 0, null: false
+    t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
+    t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
+  end
+
+  create_table "active_storage_blobs", force: :cascade do |t|
+    t.string "key", null: false
+    t.string "filename", null: false
+    t.string "content_type"
+    t.text "metadata"
+    t.string "service_name", null: false
+    t.bigint "byte_size", null: false
+    t.string "checksum"
+    t.datetime "created_at", precision: 0, null: false
+    t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
+  end
+
+  create_table "active_storage_variant_records", force: :cascade do |t|
+    t.bigint "blob_id", null: false
+    t.string "variation_digest", null: false
+    t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
 
   create_table "api_tokens", force: :cascade do |t|
     t.bigint "user_id", null: false
@@ -289,17 +317,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000012) do
     t.datetime "deletion_requested_at", precision: 0
     t.bigint "deletion_requested_by_id"
     t.datetime "deleted_at", precision: 0
+    t.integer "birth_year"
+    t.string "gender"
+    t.string "skill_level"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["deletion_requested_at"], name: "index_users_on_deletion_requested_at", where: "((deletion_requested_at IS NOT NULL) AND (deleted_at IS NULL))"
     t.index ["deletion_requested_by_id"], name: "index_users_on_deletion_requested_by_id"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["phone"], name: "index_users_on_phone", unique: true, where: "(phone IS NOT NULL)"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+    t.check_constraint "birth_year >= 1900 AND birth_year <= 2100", name: "users_birth_year_range"
     t.check_constraint "email ~ '^[^@[:space:]]+@[^@[:space:]]+\\.[^@[:space:]]+$'::citext", name: "users_email_format"
+    t.check_constraint "gender::text = ANY (ARRAY['male'::character varying, 'female'::character varying, 'other'::character varying]::text[])", name: "users_gender_valid"
     t.check_constraint "length(btrim(full_name::text)) >= 1 AND length(btrim(full_name::text)) <= 100", name: "users_full_name_length"
     t.check_constraint "locale::text = ANY (ARRAY['vi'::character varying, 'en'::character varying]::text[])", name: "users_locale_valid"
     t.check_constraint "phone::text ~ '^\\+84[0-9]{9}$'::text", name: "users_phone_format"
     t.check_constraint "role::text = ANY (ARRAY['customer'::character varying, 'staff'::character varying, 'admin'::character varying]::text[])", name: "users_role_valid"
+    t.check_constraint "skill_level::text = ANY (ARRAY['beginner'::character varying, 'intermediate'::character varying, 'advanced'::character varying, 'expert'::character varying]::text[])", name: "users_skill_level_valid"
   end
 
   create_table "venues", force: :cascade do |t|
@@ -338,6 +372,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000012) do
     t.check_constraint "status::text = ANY (ARRAY['active'::character varying, 'inactive'::character varying]::text[])", name: "venues_status_valid"
   end
 
+  add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "api_tokens", "users", on_delete: :cascade
   add_foreign_key "bank_transactions", "payments"
   add_foreign_key "bank_transactions", "users", column: "resolved_by_id"

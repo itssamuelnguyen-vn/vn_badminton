@@ -5,7 +5,10 @@ module ApiJson
   def user(user)
     {
       id: user.id, full_name: user.full_name, email: user.email, phone: user.phone, locale: user.locale,
-      email_verified: user.confirmed?, booking_locked_until: user.booking_locked_until&.iso8601
+      email_verified: user.confirmed?, booking_locked_until: user.booking_locked_until&.iso8601,
+      birth_year: user.birth_year, gender: user.gender, skill_level: user.skill_level,
+      # Relative to the server (a signed link that redirects to the file); null without a photo.
+      avatar_path: (Rails.application.routes.url_helpers.rails_blob_path(user.avatar, only_path: true) if user.avatar.attached?)
     }
   end
 

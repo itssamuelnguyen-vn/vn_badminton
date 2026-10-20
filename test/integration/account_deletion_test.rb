@@ -12,6 +12,8 @@ class AccountDeletionTest < ActionDispatch::IntegrationTest
 
   test "a customer with nothing booked deletes their account at once, with their password" do
     user = users(:an)
+    user.update!(birth_year: 1990, gender: "male", skill_level: "beginner",
+                 avatar: Rack::Test::UploadedFile.new(file_fixture("avatar.png"), "image/png"))
     sign_in user
 
     delete user_registration_path, params: { user: { current_password: "wrong" } }
@@ -27,6 +29,9 @@ class AccountDeletionTest < ActionDispatch::IntegrationTest
     user.reload
     assert user.deleted_at
     assert_equal [ Accounts::Deletion::ANONYMOUS_NAME, "deleted-#{user.id}@deleted.invalid", nil ], [ user.full_name, user.email, user.phone ]
+    assert_equal [ nil, nil, nil ], [ user.birth_year, user.gender, user.skill_level ], "the optional profile goes too (TK-10)"
+    perform_enqueued_jobs
+    assert_not user.reload.avatar.attached?
 
     post user_session_path, params: { user: { login: "an@example.com", password: "password123" } }
     assert_nil session["warden.user.user.key"]

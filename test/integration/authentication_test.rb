@@ -135,6 +135,21 @@ class AuthenticationTest < ActionDispatch::IntegrationTest
     assert_equal "+84911111111", users(:an).phone
   end
 
+  test "fills in the optional profile and photo on the account page (TK-10)" do
+    sign_in users(:an)
+    get edit_user_registration_path
+    assert_select "select#user_skill_level option", text: "Khá"
+
+    put user_registration_path, params: { user: { birth_year: "1992", gender: "male", skill_level: "intermediate",
+                                                  avatar: fixture_file_upload("avatar.png", "image/png"), current_password: "password123" } }
+    assert_redirected_to root_path
+    user = users(:an).reload
+    assert_equal [ 1992, "male", "intermediate", true ], [ user.birth_year, user.gender, user.skill_level, user.avatar.attached? ]
+
+    put user_registration_path, params: { user: { birth_year: "", gender: "", skill_level: "", current_password: "password123" } }
+    assert_equal [ nil, nil, nil ], users(:an).reload.values_at(:birth_year, :gender, :skill_level), "left empty: not given"
+  end
+
   test "sends a password reset email in the current locale and resets the password" do
     assert_emails 1 do
       post user_password_path(locale: :en), params: { user: { email: "an@example.com" } }
