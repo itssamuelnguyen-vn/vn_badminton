@@ -22,6 +22,7 @@ module ApiJson
         booking_horizon_days: venue.booking_horizon_days, cancellation_cutoff_hours: venue.cancellation_cutoff_hours,
         max_upcoming_bookings: venue.max_upcoming_bookings, slot_minutes: 30
       },
+      products: venue.products.active.ordered.map { |product| product(product) },
       prices: venue.price_rules.active.where(court_id: nil).order(:priority, :start_minute).map do |rule|
         { name: rule.display_name, days_of_week: rule.days_of_week, start_minute: rule.start_minute, end_minute: rule.end_minute,
           price_per_hour_vnd: rule.price_per_hour_vnd }
@@ -33,15 +34,61 @@ module ApiJson
     {
       code: booking.code, court: { id: booking.court_id, name: booking.court.display_name },
       starts_at: booking.starts_at.iso8601, ends_at: booking.ends_at.iso8601,
-      status: booking.status, payment_status: booking.payment_status, amount_vnd: booking.total_amount_vnd,
+      status: booking.status, payment_status: booking.payment_status,
+      # The court's price; total_vnd adds the products picked with it (items).
+      amount_vnd: booking.total_amount_vnd, items_amount_vnd: booking.items_amount_vnd, total_vnd: booking.charged_vnd,
+      items: booking.items.map { |item| { name: item.display_name, quantity: item.quantity, unit_price_vnd: item.unit_price_vnd } },
       note: booking.note, held_until: (booking.expires_at&.iso8601 if booking.pending?),
       cancellation_reason: booking.cancellation_reason, refund_vnd: booking.refund_vnd,
       series: booking.series_id.present?,
       # A series session is "skipped" rather than cancelled, with the same rule.
       can_cancel: booking.cancellable_by_customer?(now),
+      # Moved on the schedule in reschedule mode (GET /schedule?reschedule=CODE); not for series sessions.
+      can_reschedule: booking.persisted? && booking.reschedulable_by_customer?(now),
       # Cancelling a paid booking gives no refund (only a venue fault does).
       cancel_without_refund: booking.payment_paid?,
-      payment_token: (booking.payment&.token if booking.pending?)
+      payment_token: (booking.payment&.token if booking.pending?),
+      can_review: booking.persisted? && booking.user && booking.review.nil? && Review.allowed?(booking, booking.user, now),
+      review: (review(booking.review) if booking.review)
+    }
+  end
+
+  def product(product)
+    { id: product.id, name: product.display_name, price_vnd: product.price_vnd }
+  end
+
+  def review(review)
+    { rating: review.rating, comment: review.comment, created_at: review.created_at.iso8601 }
+  end
+
+  def announcement(announcement)
+    { id: announcement.id, title: announcement.display_title, body: announcement.display_body, tone: announcement.tone,
+      starts_on: announcement.starts_on.iso8601, ends_on: announcement.ends_on.iso8601 }
+  end
+
+  def waitlist_entry(entry)
+    { id: entry.id, starts_at: entry.starts_at.iso8601, ends_at: entry.ends_at.iso8601, notified_at: entry.notified_at&.iso8601 }
+  end
+
+  def series_request(request)
+    { id: request.id, court_ids: request.court_ids, courts: request.courts.map(&:display_name), days_of_week: request.days_of_week,
+      start_minute: request.start_minute, end_minute: request.end_minute, starts_on: request.starts_on.iso8601,
+      ends_on: request.ends_on.iso8601, note: request.note, status: request.status, decline_reason: request.decline_reason,
+      series_id: request.series_id, created_at: request.created_at.iso8601 }
+  end
+
+  # A regular customer's weekly booking, with each month's bill and the transfer waiting for it (if any).
+  def series(series, venue, today: venue.today)
+    awaiting = series.payments.awaiting.index_by(&:series_month)
+    {
+      id: series.id, courts: series.courts.map(&:display_name), days_of_week: series.days_of_week,
+      start_minute: series.start_minute, end_minute: series.end_minute, starts_on: series.starts_on.iso8601,
+      ends_on: series.ends_on.iso8601, price_per_hour_vnd: series.price_per_hour_vnd,
+      months: series.months.select { |month| month >= today.beginning_of_month.prev_month }.map do |month|
+        bill = series.billing(month)
+        { month: month.strftime("%Y-%m"), sessions: bill.billable.count, amount_vnd: bill.amount_vnd, credit_vnd: bill.credit_vnd,
+          due_vnd: bill.due_vnd, paid: bill.paid?, payment_token: awaiting[month]&.token }
+      end
     }
   end
 

@@ -1,0 +1,26 @@
+- content_for :title, t(".title")
+
+div class="mb-4"
+  h1 class="text-2xl font-bold sm:text-3xl" = t(".title")
+  p class="mt-1 max-w-2xl text-sm text-slate-600" = t(".explanation")
+
+- if @count.positive?
+  div class="mb-6 flex flex-wrap items-center gap-6 rounded-xl bg-white px-4 py-3 ring-1 ring-slate-200"
+    div
+      p class="text-3xl font-bold tabular-nums" = @average
+      p class="text-xs text-slate-500" = t(".count", count: @count)
+    div class="space-y-0.5 text-xs text-slate-600"
+      - 5.downto(1).each do |rating|
+        p class="tabular-nums" = "#{"★" * rating}#{"☆" * (5 - rating)} #{@by_rating.fetch(rating, 0)}"
+
+  div class="divide-y divide-slate-100 rounded-xl bg-white ring-1 ring-slate-200"
+    - @reviews.each do |review|
+      - booking = review.booking
+      div class="px-4 py-3"
+        div class="flex flex-wrap items-center justify-between gap-2"
+          p class="font-medium text-amber-600" = "#{"★" * review.rating}#{"☆" * (5 - review.rating)}"
+          = link_to "#{booking.customer_name} · #{booking.court.display_name} · #{l(booking.starts_at, format: :slot)}", admin_booking_path(booking), class: "link text-sm"
+        - if review.comment
+          p class="mt-1 text-sm whitespace-pre-line text-slate-700" = review.comment
+- else
+  p class="card text-center text-sm text-slate-600" = t(".empty")

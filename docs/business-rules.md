@@ -7,7 +7,7 @@ Test là bản mô tả chính xác nhất: nếu tài liệu và test khác nha
 **Cách giữ tài liệu luôn đúng:** PR nào thay đổi một quy tắc thì sửa luôn mục tương ứng ở đây trong cùng PR
 (xem `CLAUDE.md`). Các con số có thể chỉnh trong **Quản lý → Cài đặt** được đánh dấu ⚙️ và ghi giá trị mặc định.
 
-> Cập nhật: 19/10/2026, theo `main` sau PR #22, cộng lịch sử lượt đặt (VH-11), xoá tài khoản / tải dữ liệu (TK-07…09), API app (AP-01…03) và hồ sơ không bắt buộc (TK-10) đang chờ PR. Mục đánh dấu ⏳ (nhánh `deploy-config`) là quy tắc chưa có trên `main`;
+> Cập nhật: 20/10/2026, theo `main` sau PR #24, cộng tiện ích của app (đổi giờ trong app DOI-05, yêu cầu lịch cố định CD-09…10, mục 15: TI-01…04) đang chờ PR. Mục đánh dấu ⏳ (nhánh `deploy-config`) là quy tắc chưa có trên `main`;
 > khi merge, bỏ dấu ⏳.
 
 ---
@@ -43,7 +43,7 @@ Test là bản mô tả chính xác nhất: nếu tài liệu và test khác nha
 | TK-04 | **Ngôn ngữ email** theo ngôn ngữ khách dùng lúc đăng ký, cập nhật mỗi lần khách tự đặt/huỷ.                                                                                                                          | `app/models/user.rb` (`remember_locale`)                                                   |
 | TK-05 | **Vai trò**: `customer` (khách), `staff` (nhân viên), `admin` (chủ sân). Xem mục 9.                                                                                                                                  | `app/models/user.rb`                                                                       |
 | TK-06 | **Tự đăng xuất sau 30 phút không thao tác**, áp dụng cho mọi vai trò; **không còn "Ghi nhớ đăng nhập"**. Lịch tự cập nhật không tính là thao tác; trang tự chuyển về đăng nhập khi hết phiên.                        | `config/initializers/devise.rb` (`timeout_in`), `test/integration/session_timeout_test.rb` |
-| TK-07 | **Tải dữ liệu của tôi** (trang cài đặt tài khoản, nhập lại mật khẩu, tối đa 5 lần/giờ): file **JSON** gồm thông tin tài khoản (cả hồ sơ TK-10), mọi lượt đặt kèm lịch sử thao tác (người làm ghi là bạn / sân / hệ thống), các khoản thanh toán và chuyển khoản. Không gồm ghi chú nội bộ của sân. | `app/services/accounts/data_export.rb`, `test/integration/account_deletion_test.rb`        |
+| TK-07 | **Tải dữ liệu của tôi** (trang cài đặt tài khoản, nhập lại mật khẩu, tối đa 5 lần/giờ): file **JSON** gồm thông tin tài khoản (cả hồ sơ TK-10), mọi lượt đặt kèm lịch sử thao tác (người làm ghi là bạn / sân / hệ thống) và đồ thuê thêm, các khoản thanh toán và chuyển khoản, yêu cầu lịch cố định, đánh giá, các lần chờ sân trống. Không gồm ghi chú nội bộ của sân. | `app/services/accounts/data_export.rb`, `test/integration/account_deletion_test.rb`        |
 | TK-08 | **Xoá tài khoản**: khách tự xoá (nhập lại mật khẩu) hoặc **chủ sân** xoá tài khoản khách/nhân viên; **nhân viên không xoá được**; tài khoản chủ sân không xoá được. Trước khi xoá: **cảnh báo** liệt kê các lượt chưa chơi / đang chờ chuyển khoản. | `app/services/accounts/deletion.rb`, `app/controllers/users/registrations_controller.rb`, `app/controllers/admin/users_controller.rb` |
 | TK-09 | Khi yêu cầu xoá: tài khoản **bị khoá và đăng xuất ngay trên mọi thiết bị** (trang đang mở tự tải lại về trang đăng nhập; trang thanh toán vẫn hiện mã QR); bỏ giữ chỗ ở trang xác nhận; email **"sẽ được xoá"**. Lượt chưa chơi và mã chuyển khoản đang chờ **giữ nguyên** (tiền đến vẫn xác nhận lượt). **Xoá hẳn** (job 15 phút) khi không còn lượt chưa chơi/chờ chuyển khoản: xoá họ tên (khách), email, số điện thoại, mật khẩu, hồ sơ và ảnh đại diện (TK-10); lượt đặt cũ còn tên "Khách đã xoá tài khoản", không số điện thoại; giữ thanh toán, giao dịch, lịch sử; nhân viên giữ tên trong lịch sử ("đã nghỉ"); xoá ghi chú nội bộ **trừ khi khách đang bị chặn** (giữ để không lách danh sách đen); email **"đã được xoá"**. Chủ sân **huỷ yêu cầu xoá** được khi chưa xoá hẳn (email cho khách). | `app/services/accounts/deletion.rb`, `app/jobs/account_deletion_job.rb`, `test/integration/account_deletion_test.rb` |
 | TK-10 | **Hồ sơ không bắt buộc**: ảnh đại diện (JPG/PNG/WebP, ≤ 2 MB, loại ảnh đọc từ nội dung file), năm sinh (1900…năm nay), giới tính (nam/nữ/khác), trình độ cầu lông (mới chơi/trung bình/khá/giỏi). Sửa ở trang tài khoản web hoặc trong app; có trong file tải dữ liệu (TK-07); **xoá cùng tài khoản** (TK-09). Không thu thập thêm dữ liệu cá nhân nào khác (chiều cao, cân nặng…). | `app/models/user.rb`, `app/controllers/api/v1/avatars_controller.rb`, `test/integration/api/v1_test.rb`, `test/integration/authentication_test.rb` |
@@ -78,6 +78,7 @@ Test là bản mô tả chính xác nhất: nếu tài liệu và test khác nha
 | DOI-02 | Khách đổi trên lịch ở **chế độ đổi giờ** (giờ cũ chọn lại được, một sân), xem **giờ cũ / giờ mới / giá mới** rồi xác nhận.                                                                                                                                                                                            | `app/controllers/schedules_controller.rb`, `app/views/bookings/review_reschedule.html.slim`                    |
 | DOI-03 | **Chủ sân/nhân viên** đổi mọi lượt đặt hoặc khoá sân, **không** theo quy định online nhưng **vẫn** theo giờ mở cửa (với lượt đặt).                                                                                                                                                                                    | `app/controllers/admin/bookings_controller.rb` (`reschedule`)                                                  |
 | DOI-04 | Đổi giờ: **tính lại giá**, **gửi lại nhắc lịch** theo giờ mới, gửi **email đổi giờ** (giờ cũ → giờ mới) cho khách có tài khoản.                                                                                                                                                                                       | `app/models/booking.rb` (`reschedule`)                                                                         |
+| DOI-05 | **Trong app**: cùng quy tắc DOI-01. App mở lịch ở chế độ đổi giờ (giờ cũ chọn lại được), máy chủ **kiểm tra và tính giá** khung mới trước (không lưu), khách xác nhận mới đổi; email đổi giờ như DOI-04. | `app/controllers/api/v1/bookings_controller.rb` (`review_reschedule`, `reschedule`), `test/integration/api/app_extras_test.rb` |
 
 ## 7. Email tự động
 
@@ -89,8 +90,10 @@ Test là bản mô tả chính xác nhất: nếu tài liệu và test khác nha
 | EM-04 | **Nhắc lịch**    | **3 giờ trước giờ chơi**, mỗi lượt một lần; bỏ qua lượt đặt sát giờ (< 3 giờ trước) | Khách có tài khoản, lượt đã xác nhận |
 | EM-05 | Đổi giờ          | DOI-04                                                                              | Khách có tài khoản                   |
 | EM-06 | Đặt lại mật khẩu | Khách yêu cầu                                                                       | Chủ tài khoản                        |
+| EM-07 | **Có sân trống**     | Khung giờ khách đang chờ có sân trống lại (TI-04)                                   | Khách đang chờ                       |
+| EM-08 | **Trả lời yêu cầu lịch cố định** | Sân tạo lịch hoặc từ chối (CD-09)                                     | Khách gửi yêu cầu                    |
 
-Chủ sân **không** nhận email (xem trên Lịch trong ngày). Nguồn: `app/mailers/`, `app/jobs/booking_reminder_job.rb`, `test/jobs/booking_reminder_job_test.rb`.
+Chủ sân **không** nhận email (xem trên Lịch trong ngày). Nguồn: `app/mailers/`, `app/jobs/booking_reminder_job.rb`, `app/jobs/waitlist_job.rb`, `test/jobs/booking_reminder_job_test.rb`.
 
 ## 8. Vận hành của chủ sân / nhân viên
 
@@ -116,7 +119,9 @@ Chủ sân **không** nhận email (xem trên Lịch trong ngày). Nguồn: `app
 | Lịch trong ngày, đặt hộ, khoá sân, nhận sân, thu tiền, huỷ, hoàn tác, đổi giờ |       | ✓                        | ✓       |
 | Khách hàng (ghi chú, danh sách đen, mở khoá)                                  |       | ✓ (không thấy doanh thu) | ✓       |
 | Lịch cố định                                                                  |       | ✓                        | ✓       |
+| Yêu cầu lịch cố định của khách (tạo lịch / từ chối), xem đánh giá             |       | ✓                        | ✓       |
 | Báo cáo, bảng giá, cài đặt, quản lý nhân viên                                 |       |                          | ✓       |
+| Đồ thuê thêm, bảng tin                                                        |       |                          | ✓       |
 | Tải dữ liệu của mình (TK-07)                                                  | ✓     | ✓                        | ✓       |
 | Xoá tài khoản của mình (TK-08)                                                | ✓     | ✓                        |         |
 | Xoá tài khoản khách và nhân viên, huỷ yêu cầu xoá                             |       |                          | ✓       |
@@ -135,6 +140,8 @@ Cấp quyền nhân viên: nhân viên **tự đăng ký** tài khoản, chủ s
 | CD-06 | **Sân nghỉ** (lễ, sửa chữa): huỷ các buổi trong khoảng ngày, **hoàn đủ** (với tháng đã đóng). **Kết thúc lịch** từ một ngày: huỷ các buổi còn lại, **không hoàn**.                                                                                                                                                      | `app/controllers/admin/series_controller.rb`                          |
 | CD-07 | Tiền hoàn **trừ vào tháng kế tiếp chưa đóng**, cũ trước, **mỗi khoản một lần**.                                                                                                                                                                                                                                         | `app/services/series/billing.rb`                                      |
 | CD-08 | **Gia hạn** tới ngày mới (kiểm tra như CD-02). **Đổi giá riêng**: chỉ tính lại các buổi **chưa chơi thuộc tháng chưa đóng**. Đổi giờ cả lịch = kết thúc lịch cũ + tạo lịch mới. Khách không tự đổi giờ buổi cố định (nhân viên đổi hộ).                                                                                 | `test/integration/booking_series_test.rb`                             |
+| CD-09 | **Khách gửi yêu cầu lịch cố định trong app**: sân, các ngày trong tuần, khung giờ (tròn 30 phút), từ ngày (từ ngày mai) đến ngày (tối đa 1 năm), ghi chú; tối đa **3 yêu cầu đang chờ** mỗi khách, rút lại được khi còn chờ. Chủ sân/nhân viên thấy ở **Lịch cố định → Yêu cầu từ khách**: **Tạo lịch** (mở form tạo lịch điền sẵn, sửa được giá/ngày, rồi xem trước như CD-02) hoặc **Từ chối** kèm lý do. Khách nhận **email** cả hai trường hợp. Khách **không tự tạo** lịch (CD-01 giữ nguyên). | `app/models/series_request.rb`, `app/controllers/admin/series_controller.rb`, `test/integration/api/app_extras_test.rb` |
+| CD-10 | **Khách xem lịch cố định và đóng tiền tháng trong app**: mỗi tháng (từ tháng trước) có số buổi, tiền, trừ hoàn, cần đóng, đã đóng chưa; bấm đóng → **mã chuyển khoản** cho số cần đóng (như nút "Gửi mã chuyển khoản" của nhân viên, CD-03; mã cũ chưa trả của tháng đó bị thay). | `app/controllers/api/v1/series_controller.rb`, `test/integration/api/app_extras_test.rb` |
 
 ## 11. Bảo mật, quyền riêng tư, chống lạm dụng
 
@@ -156,6 +163,7 @@ Cấp quyền nhân viên: nhân viên **tự đăng ký** tài khoản, chủ s
 | `HoldExpiryJob`                  | đúng lúc giữ chỗ hết hạn | Nhả chỗ giữ, cập nhật lịch đang mở      |
 | `Booking.release_expired_holds!` | 15 phút/lần              | Dọn giữ chỗ hết hạn còn sót             |
 | `SeriesRefundJob`                | 15 phút/lần              | Xét hoàn tiền buổi lịch cố định (CD-05) |
+| `WaitlistJob`                    | khi một lượt đặt/giữ chỗ nhả sân | Báo khách đang chờ sân trống (TI-04) |
 | Dọn job đã xong                  | mỗi giờ (production)     | Solid Queue                             |
 
 Nguồn: `config/recurring.yml`.
@@ -182,6 +190,15 @@ Nguồn: `config/recurring.yml`.
 | AP-01 | App **chỉ dành cho khách**. API `/api/v1` **không có** thao tác quản lý nào: mọi việc của chủ sân/nhân viên **chỉ làm trên web**. | `config/routes.rb`, `test/integration/api/v1_test.rb` |
 | AP-02 | Đăng nhập bằng email/số điện thoại + mật khẩu → **token** (chỉ lưu mã băm). Token hết hạn sau **90 ngày không dùng**; bị xoá khi đăng xuất, **đổi mật khẩu**, yêu cầu **xoá tài khoản**. Giới hạn thử mật khẩu như web (BM-01). | `app/models/api_token.rb`, `app/controllers/api/v1/sessions_controller.rb` |
 | AP-03 | Mọi quy tắc đặt sân, thanh toán, huỷ, xoá tài khoản, tải dữ liệu **giống hệt web** (dùng chung model/service); thông báo theo `Accept-Language` (vi/en). Lịch và thông tin sân xem được khi chưa đăng nhập. | `app/controllers/api/v1/`, `docs/api.md` |
+
+## 15. Tiện ích trong app
+
+| Mã    | Quy tắc | Nguồn |
+|-------|---------|-------|
+| TI-01 | **Đồ thuê thêm** (thuê vợt, ống cầu, nước…): chủ sân tạo món (tên vi/en, giá bội số 1.000đ, thứ tự, đang bán) ở **Quản lý → Đồ thuê thêm**; món đã có người chọn thì **tắt** chứ không xoá. Khách chọn món và số lượng (1–20 mỗi món) ở bước xác nhận **trong app**; giá **chốt lúc chọn**; tiền **cộng vào khoản chuyển khoản** (DAT-07) và vào doanh thu báo cáo (VH-07). Đồ đi kèm **lượt sớm nhất** của lần đặt; **Lịch trong ngày** hiện "Chuẩn bị: …" để nhân viên giao khi nhận sân. Huỷ do khách: không hoàn (HUY-01); **sự cố của sân**: hoàn cả tiền đồ (VH-04). Món ngừng bán khi khách đang đặt → báo chọn lại, không đặt gì. Trên web chưa chọn được đồ. | `app/models/product.rb`, `app/models/booking_batch.rb` (`attach_items`), `test/integration/api/app_extras_test.rb`, `test/integration/admin_extras_test.rb` |
+| TI-02 | **Bảng tin**: chủ sân đăng tin (tiêu đề, nội dung, bản tiếng Anh tuỳ chọn, kiểu thông tin/ưu đãi/lưu ý) hiện **từ ngày – đến ngày** trên trang **Đặt sân** (web) và trong app. | `app/models/announcement.rb`, `app/views/schedules/_announcements.html.slim`, `test/integration/api/app_extras_test.rb` |
+| TI-03 | **Đánh giá buổi chơi** (trong app): khách đánh giá **1–5 sao** + góp ý tuỳ chọn cho lượt **của mình đã nhận sân**, **sau giờ kết thúc** và **trong 14 ngày**; **một lần** mỗi lượt. Chỉ chủ sân và nhân viên xem (**Quản lý → Đánh giá**: điểm trung bình, số đánh giá mỗi mức sao). Xoá tài khoản: giữ số sao, **xoá lời góp ý** (TK-09). | `app/models/review.rb`, `app/controllers/admin/reviews_controller.rb`, `test/integration/api/app_extras_test.rb` |
+| TI-04 | **Báo khi có sân trống** (trong app): khách chờ một khung giờ (tròn 30 phút, ở tương lai) **trên sân bất kỳ**; tối đa **5 khung đang chờ** mỗi khách. Khi một lượt đặt/giữ chỗ chồng khung đó bị **huỷ, hết hạn chuyển khoản, đổi giờ đi** hoặc **bỏ giữ chỗ**, nếu có **một sân trống trọn khung** thì **mọi người đang chờ** nhận email (EM-07), **mỗi khung một lần**; ai đặt trước được trước. Khung đã bắt đầu thì thôi chờ. | `app/models/waitlist_entry.rb`, `app/jobs/waitlist_job.rb`, `test/integration/api/app_extras_test.rb` |
 
 ---
 

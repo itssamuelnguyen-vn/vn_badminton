@@ -1,0 +1,24 @@
+- content_for :title, t(".title")
+
+div class="mb-4 flex flex-wrap items-end justify-between gap-4"
+  div
+    h1 class="text-2xl font-bold sm:text-3xl" = t(".title")
+    p class="mt-1 max-w-2xl text-sm text-slate-600" = t(".explanation")
+  = link_to t(".new"), new_admin_product_path, class: "btn-primary"
+
+- if @products.any?
+  div class="divide-y divide-slate-100 rounded-xl bg-white ring-1 ring-slate-200"
+    - @products.each do |product|
+      div class=[ "flex flex-wrap items-center justify-between gap-3 px-4 py-3", ("text-slate-400" unless product.active) ]
+        div
+          p class="font-medium"
+            = product.name
+            - unless product.active
+              span class="ml-2 text-xs font-normal" = "(#{t(".inactive")})"
+          - if product.name_en
+            p class="text-xs text-slate-500" = product.name_en
+        div class="flex items-center gap-4"
+          span class="tabular-nums" = format_vnd(product.price_vnd)
+          = link_to t(".edit"), edit_admin_product_path(product), class: "link"
+- else
+  p class="card text-center text-sm text-slate-600" = t(".empty")

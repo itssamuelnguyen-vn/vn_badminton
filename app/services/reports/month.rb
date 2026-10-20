@@ -31,8 +31,8 @@ module Reports
         list = bookings_by_date.fetch(date, [])
         counted = list.select { |b| COUNTED_STATUSES.include?(b.status) }
         Day.new(date: date, bookings: counted.size, booked_minutes: counted.sum(&:duration_minutes),
-                open_minutes: open_minutes(date), expected_vnd: counted.sum(&:total_amount_vnd),
-                collected_vnd: counted.select(&:payment_paid?).sum(&:total_amount_vnd),
+                open_minutes: open_minutes(date), expected_vnd: counted.sum(&:charged_vnd),
+                collected_vnd: counted.select(&:payment_paid?).sum(&:charged_vnd),
                 no_shows: counted.count(&:no_show?), cancelled: list.count(&:cancelled?))
       end
     end

@@ -20,7 +20,10 @@ module Accounts
         exported_at: @now.iso8601,
         account: account,
         bookings: bookings,
-        payments: payments
+        payments: payments,
+        series_requests: series_requests,
+        reviews: reviews,
+        waitlist: waitlist
       }
     end
 
@@ -41,7 +44,7 @@ module Accounts
     end
 
     def bookings
-      @user.bookings.includes(:court, events: :actor).order(:starts_at).map do |booking|
+      @user.bookings.includes(:court, :items, events: :actor).order(:starts_at).map do |booking|
         {
           code: booking.code, court: booking.court.display_name, starts_at: booking.starts_at.iso8601, ends_at: booking.ends_at.iso8601,
           status: booking.status, source: booking.source, customer_name: booking.customer_name, customer_phone: booking.customer_phone,
@@ -49,6 +52,7 @@ module Accounts
           checked_in_at: booking.checked_in_at&.iso8601, cancelled_at: booking.cancelled_at&.iso8601,
           cancellation_reason: booking.cancellation_reason, refund_vnd: booking.refund_vnd, refunded_at: booking.refunded_at&.iso8601,
           note: booking.note, created_at: booking.created_at.iso8601,
+          items: booking.items.map { |item| { name: item.name, quantity: item.quantity, unit_price_vnd: item.unit_price_vnd } },
           history: booking.events.map { |event| { at: event.created_at.iso8601, action: event.action, by: by(event), details: event.details } }
         }
       end
@@ -64,6 +68,26 @@ module Accounts
               reference: transfer.reference_code }
           end
         }
+      end
+    end
+
+    def series_requests
+      @user.series_requests.order(:created_at).map do |request|
+        { courts: request.courts.map(&:display_name), days_of_week: request.days_of_week, start_minute: request.start_minute,
+          end_minute: request.end_minute, starts_on: request.starts_on.iso8601, ends_on: request.ends_on.iso8601, note: request.note,
+          status: request.status, decline_reason: request.decline_reason, created_at: request.created_at.iso8601 }
+      end
+    end
+
+    def reviews
+      @user.reviews.includes(:booking).order(:created_at).map do |review|
+        { booking: review.booking.code, rating: review.rating, comment: review.comment, created_at: review.created_at.iso8601 }
+      end
+    end
+
+    def waitlist
+      @user.waitlist_entries.order(:starts_at).map do |entry|
+        { starts_at: entry.starts_at.iso8601, ends_at: entry.ends_at.iso8601, notified_at: entry.notified_at&.iso8601 }
       end
     end
 

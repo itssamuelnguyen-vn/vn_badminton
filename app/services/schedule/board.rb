@@ -31,7 +31,7 @@ module Schedule
     def bookings
       @bookings ||= Booking.where(court: courts)
                            .on_local_date(date, venue.zone)
-                           .includes(:court, :user)
+                           .includes(:court, :user, :items)
                            .order(:starts_at, :court_id)
                            .to_a
     end
@@ -70,11 +70,11 @@ module Schedule
     end
 
     def expected_vnd
-      reservations.sum(&:total_amount_vnd)
+      reservations.sum(&:charged_vnd)
     end
 
     def collected_vnd
-      reservations.select(&:payment_paid?).sum(&:total_amount_vnd)
+      reservations.select(&:payment_paid?).sum(&:charged_vnd)
     end
 
     def day_start

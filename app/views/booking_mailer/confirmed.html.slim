@@ -8,7 +8,7 @@ p = t(".intro", count: @bookings.size)
 
 p
   => t("bookings.details.total")
-  strong = format_vnd(@bookings.sum(&:total_amount_vnd))
+  strong = format_vnd(@bookings.sum(&:charged_vnd))
 
 p = @bookings.all?(&:payment_paid?) ? t(".paid") : t("bookings.new.pay_at_venue")
 

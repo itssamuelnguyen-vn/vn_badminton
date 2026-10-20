@@ -9,6 +9,12 @@ vi:
 
   activerecord:
     models:
+      product: Đồ thuê thêm
+      booking_item: Đồ thuê thêm của lượt đặt
+      announcement: Bảng tin
+      review: Đánh giá
+      waitlist_entry: Báo khi có sân trống
+      series_request: Yêu cầu lịch cố định
       user: Người dùng
       venue: Cơ sở
       opening_hour: Giờ mở cửa
@@ -18,6 +24,34 @@ vi:
       booking_series: Lịch cố định
 
     attributes:
+      product:
+        name: Tên (tiếng Việt)
+        name_en: Tên tiếng Anh
+        price_vnd: Giá
+        position: Thứ tự
+        active: Đang bán
+      announcement:
+        title: Tiêu đề
+        title_en: Tiêu đề tiếng Anh
+        body: Nội dung
+        body_en: Nội dung tiếng Anh
+        starts_on: Hiện từ ngày
+        ends_on: Đến ngày
+        tone: Kiểu
+      review:
+        rating: Số sao
+        comment: Góp ý
+      waitlist_entry:
+        starts_at: Giờ bắt đầu
+        ends_at: Giờ kết thúc
+      series_request:
+        court_ids: Sân
+        days_of_week: Các ngày trong tuần
+        start_minute: Giờ bắt đầu
+        end_minute: Giờ kết thúc
+        starts_on: Từ ngày
+        ends_on: Đến ngày
+        note: Ghi chú
       user:
         email: Email
         full_name: Họ tên
@@ -95,6 +129,28 @@ vi:
 
     errors:
       models:
+        product:
+          not_multiple_of_1000: "phải là bội số của 1.000đ"
+        announcement:
+          before_starts_on: "phải sau ngày bắt đầu"
+        review:
+          not_reviewable: "Chỉ đánh giá được buổi bạn đã chơi, trong vòng 14 ngày sau khi chơi"
+        waitlist_entry:
+          after_start: "phải sau giờ bắt đầu"
+          not_in_future: "phải ở tương lai"
+          off_slot_grid: "Giờ phải tròn 30 phút"
+          too_many:
+            other: "Bạn chỉ chờ được tối đa %{count} khung giờ cùng lúc"
+        series_request:
+          after_start: "phải sau giờ bắt đầu"
+          off_slot_grid: "Giờ phải tròn 30 phút"
+          invalid_days: "không hợp lệ"
+          invalid: "không hợp lệ"
+          not_in_future: "phải từ ngày mai trở đi"
+          before_starts_on: "phải sau ngày bắt đầu"
+          too_far: "tối đa 1 năm sau ngày bắt đầu"
+          too_many:
+            other: "Bạn đang có %{count} yêu cầu chờ sân trả lời, là số tối đa"
         user:
           privacy_consent_required: "Bạn cần đồng ý với chính sách bảo mật để đăng ký"
           attributes:
@@ -163,6 +219,9 @@ vi:
         resend: Gửi lại email
     admin:
       nav:
+        reviews: Đánh giá
+        products: Đồ thuê thêm
+        announcements: Bảng tin
         label: Quản lý
         board: Lịch trong ngày
         price_rules: Bảng giá
@@ -398,6 +457,8 @@ vi:
 
   booking_batch:
     errors:
+      product_unavailable: Có món thuê thêm không còn bán, vui lòng chọn lại.
+      quantity_invalid: "Số lượng mỗi món từ 1 đến %{max}."
       locked: "Tài khoản của bạn tạm thời không thể đặt sân online đến %{until} vì đã huỷ nhiều lần trong một ngày."
       limit_reached:
         other: "Bạn đang có %{count} lượt đặt sắp tới, là số tối đa. Vui lòng chơi xong hoặc huỷ bớt trước khi đặt thêm."
@@ -440,6 +501,8 @@ vi:
         deleted: Tài khoản của bạn đã được xoá. Chúng tôi đã gửi email xác nhận.
 
   api:
+    series:
+      nothing_due: Tháng này không còn tiền cần đóng.
     unauthorized: Vui lòng đăng nhập lại.
     avatar_missing: Vui lòng chọn một ảnh.
   account_mailer:
@@ -486,6 +549,20 @@ vi:
       intro: "Lượt đặt sân của bạn đã được đổi sang giờ mới:"
       before: "Trước đây:"
 
+  notice_mailer:
+    slot_freed:
+      subject: "Có sân trống lúc %{time}"
+      intro: "Khung giờ bạn đang chờ (%{from} – %{to}) vừa có sân trống."
+      hurry: Ai đặt trước được trước, bạn đặt sớm nhé!
+      book_now: Đặt sân ngay
+    series_request_decided:
+      subject_approved: Sân đã tạo lịch cố định cho bạn
+      subject_declined: Sân chưa nhận được lịch cố định bạn yêu cầu
+      intro: "Yêu cầu lịch cố định: %{courts} · %{days} %{time}."
+      approved: Sân đã tạo lịch cố định theo yêu cầu. Bạn xem lịch và đóng tiền tháng trong app, mục Lịch cố định.
+      declined: Rất tiếc, sân chưa nhận được lịch này.
+      reason: "Lý do: %{reason}"
+
   admin:
     not_authorized: Bạn không có quyền vào trang quản lý.
     block: Khoá sân
@@ -520,6 +597,7 @@ vi:
         label: "Lịch sân %{date}"
         book_slot: "Đặt %{court} lúc %{time}"
       list:
+        items: "Chuẩn bị: %{list}"
         title: Danh sách trong ngày
         empty: Chưa có lượt đặt nào trong ngày này.
         cancelled:
@@ -804,11 +882,18 @@ vi:
         price_placeholder: Để trống = theo bảng giá
         price_hint: Giá thoả thuận với khách cố định (bội số 1.000đ). Để trống thì tính theo bảng giá.
       index:
+        requests:
+          other: "Yêu cầu từ khách (%{count})"
+        create_from_request: Tạo lịch
+        decline: Từ chối
+        decline_reason: Lý do (khách sẽ thấy)
+        decline_submit: Gửi
         title: Lịch cố định
         explanation: Khách quen đặt cùng giờ hằng tuần, đóng tiền đầu mỗi tháng.
         new: Tạo lịch cố định
         empty: Chưa có lịch cố định nào.
       new:
+        from_request: "Theo yêu cầu của %{name} gửi ngày %{date}. Kiểm tra, sửa giá nếu cần rồi tạo lịch; khách sẽ nhận email."
         title: Tạo lịch cố định
         explanation: Bước tiếp theo sẽ hiện từng buổi để kiểm tra trước khi tạo; buổi trùng lịch hoặc sân nghỉ sẽ được bỏ qua.
         submit: Xem trước các buổi
@@ -913,6 +998,66 @@ vi:
         assigned: Đã gán giao dịch vào đơn; giao dịch vẫn cần xử lý.
 
   # The optional profile (User#gender, User#skill_level), TK-10.
+    series_requests:
+      decline:
+        success: Đã từ chối yêu cầu và báo cho khách.
+    products:
+      index:
+        title: Đồ thuê thêm
+        explanation: Khách chọn thêm khi đặt sân trên app (thuê vợt, ống cầu, nước uống...); tiền được cộng vào khoản chuyển khoản. Nhân viên thấy danh sách ở Lịch trong ngày để chuẩn bị.
+        new: Thêm món
+        empty: Chưa có món nào.
+        inactive: ngừng bán
+        edit: Sửa
+      form:
+        name_placeholder: Thuê vợt
+        position_hint: Số nhỏ hiện trước.
+        active: Đang bán (khách chọn được)
+        back: Quay lại
+        submit: Lưu
+      new:
+        title: Thêm món thuê thêm
+      edit:
+        title: Sửa món thuê thêm
+      create:
+        success: Đã thêm món.
+      update:
+        success: Đã lưu.
+    announcements:
+      index:
+        title: Bảng tin
+        explanation: Thông báo hiện trên trang Đặt sân và trong app trong khoảng ngày bạn chọn (nghỉ lễ, khuyến mãi giờ thấp điểm, giải đấu...).
+        new: Đăng tin
+        empty: Chưa có tin nào.
+        showing: Đang hiện
+      form:
+        title_placeholder: Nghỉ Tết từ 28/1 đến 2/2
+        english_hint: Để trống thì khách dùng tiếng Anh thấy bản tiếng Việt.
+        back: Quay lại
+        submit: Lưu
+      tones:
+        info: Thông tin (xanh dương)
+        offer: Ưu đãi (xanh lá)
+        warning: Lưu ý (vàng)
+      new:
+        title: Đăng tin
+      edit:
+        title: Sửa tin
+        destroy: Xoá tin
+        destroy_confirm: Xoá tin này?
+      create:
+        success: Đã đăng tin.
+      update:
+        success: Đã lưu.
+      destroy:
+        success: Đã xoá tin.
+    reviews:
+      index:
+        title: Đánh giá
+        explanation: Khách đánh giá buổi đã chơi trong app (1–5 sao và góp ý). Chỉ chủ sân và nhân viên xem được.
+        count:
+          other: "%{count} đánh giá"
+        empty: Chưa có đánh giá nào.
   profile:
     genders:
       male: Nam

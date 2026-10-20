@@ -9,6 +9,7 @@ div class="mb-6 flex flex-wrap items-end justify-between gap-4"
     p class="mt-1 text-sm text-slate-600" = "#{@venue.name} · #{@venue.address}"
 
 = render "bookings/lock_notice"
+= render "schedules/announcements", announcements: @venue.announcements.current(@venue.today)
 
 - if @rescheduling
   div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-sky-50 px-4 py-3 text-sm text-sky-900 ring-1 ring-sky-200" role="status"

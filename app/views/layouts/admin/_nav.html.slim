@@ -1,11 +1,14 @@
 - tabs = [ [ t(".board"), admin_root_path, controller_name.in?(%w[boards bookings]) ],
            [ t(".series"), admin_series_index_path, controller_name == "series" ],
-           [ t(".customers"), admin_customers_path, controller_name == "customers" ] ]
+           [ t(".customers"), admin_customers_path, controller_name == "customers" ],
+           [ t(".reviews"), admin_reviews_path, controller_name == "reviews" ] ]
 / Prices, settings and staff are for the owner only.
 - if current_user.owner?
   - tabs += [ [ t(".reports"), admin_reports_path, controller_name == "reports" ],
               [ t(".transactions"), admin_bank_transactions_path, controller_name == "bank_transactions" ],
               [ t(".price_rules"), admin_price_rules_path, controller_name == "price_rules" ],
+              [ t(".products"), admin_products_path, controller_name == "products" ],
+              [ t(".announcements"), admin_announcements_path, controller_name == "announcements" ],
               [ t(".settings"), edit_admin_settings_path, controller_name == "settings" ],
               [ t(".staff"), admin_staff_members_path, controller_name == "staff_members" ] ]
 

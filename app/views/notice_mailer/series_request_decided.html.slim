@@ -1,0 +1,13 @@
+- series_request = @series_request
+
+p = t("booking_mailer.confirmed.greeting", name: series_request.user.full_name)
+
+p = t(".intro", courts: series_request.courts.map(&:display_name).join(", "), days: format_days(series_request.days_of_week),
+                time: "#{OpeningHour.format_minute(series_request.start_minute)} – #{OpeningHour.format_minute(series_request.end_minute)}")
+
+- if series_request.approved?
+  p = t(".approved")
+- else
+  p = t(".declined")
+  - if series_request.decline_reason
+    p = t(".reason", reason: series_request.decline_reason)

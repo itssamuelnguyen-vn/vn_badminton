@@ -1,0 +1,9 @@
+p = t("booking_mailer.confirmed.greeting", name: @entry.user.full_name)
+
+p = t(".intro", from: l(@entry.starts_at.in_time_zone(@venue.zone), format: :slot), to: l(@entry.ends_at.in_time_zone(@venue.zone), format: :hour_minute))
+
+p = t(".hurry")
+
+p = link_to t(".book_now"), root_url(date: @entry.starts_at.in_time_zone(@venue.zone).to_date.iso8601, locale: (I18n.locale unless I18n.locale == I18n.default_locale))
+
+p = "#{@venue.name} · #{@venue.address}"

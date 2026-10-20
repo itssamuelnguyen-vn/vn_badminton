@@ -32,9 +32,11 @@ Quy tắc nghiệp vụ: `docs/business-rules.md`. Test: `test/integration/api/v
 
 ## Sân và lịch (không cần đăng nhập)
 
-- `GET /api/v1/venue`: `{ name, address, phone, contact_links: { zalo, messenger, phone }, payments_enabled, courts: [{ id, name }], policy: { min_booking_minutes, max_booking_minutes, booking_horizon_days, cancellation_cutoff_hours, max_upcoming_bookings, slot_minutes }, prices: [{ name, days_of_week, start_minute, end_minute, price_per_hour_vnd }] }`
+- `GET /api/v1/venue`: `{ name, address, phone, contact_links: { zalo, messenger, phone }, payments_enabled, courts: [{ id, name }], products: [{ id, name, price_vnd }], policy: { min_booking_minutes, max_booking_minutes, booking_horizon_days, cancellation_cutoff_hours, max_upcoming_bookings, slot_minutes }, prices: [{ name, days_of_week, start_minute, end_minute, price_per_hour_vnd }] }`
 - `GET /api/v1/schedule?date=YYYY-MM-DD`: `{ date, dates: [ngày chọn được], courts, times: [giờ bắt đầu các ô], slots: { "<court_id>": [{ starts_at, state, price_vnd }] } }`.
   `state`: `available`, `booked`, `held`, `mine` (khi đã đăng nhập), `blocked`, `unavailable`. Ô 30 phút; ngày không hợp lệ → ngày đầu tiên chọn được.
+  `&reschedule=<code>`: chế độ đổi giờ, các ô của lượt đó hiện `available` (DOI-05).
+- `GET /api/v1/announcements`: `{ announcements: [{ id, title, body, tone (info/offer/warning), starts_on, ends_on }] }` đang hiện hôm nay (TI-02).
 
 ## Đặt sân
 
@@ -44,13 +46,37 @@ Quy tắc nghiệp vụ: `docs/business-rules.md`. Test: `test/integration/api/v
 |---|---|---|
 | `POST /api/v1/hold` | `slots` | 201 `{ held_until, amount_vnd, bookings: [booking] }`: giữ chỗ 3 phút (bước xác nhận) |
 | `DELETE /api/v1/hold` | | 204 (chọn giờ khác) |
-| `POST /api/v1/bookings` | `slots`, `note` | 201 `payment`: giữ 15 phút chờ chuyển khoản |
+| `POST /api/v1/bookings` | `slots`, `note`, `items: [{ product_id, quantity }]` (tuỳ chọn, TI-01) | 201 `payment`: giữ 15 phút chờ chuyển khoản |
 | `GET /api/v1/payments/:token` | | `payment` (app hỏi lại vài giây một lần khi đang ở màn chuyển khoản) |
 | `GET /api/v1/bookings` | | `{ upcoming: [booking], past: [booking], awaiting_payments: [payment] }` |
 | `GET /api/v1/bookings/:code` | | `booking` |
 | `PATCH /api/v1/bookings/:code/cancel` | | `booking` |
+| `GET /api/v1/bookings/:code/reschedule` | `court_id`, `starts_at`, `ends_at` | `{ booking (giờ và giá mới), valid, messages }`, không lưu |
+| `PATCH /api/v1/bookings/:code/reschedule` | `court_id`, `starts_at`, `ends_at` | `booking` (DOI-05) |
+| `POST /api/v1/bookings/:code/review` | `rating` (1–5), `comment` | 201 `booking` (TI-03) |
 
-`booking`: `{ code, court: { id, name }, starts_at, ends_at, status, payment_status, amount_vnd, note, held_until, cancellation_reason, refund_vnd, series, can_cancel, cancel_without_refund, payment_token }`.
+`booking`: `{ code, court: { id, name }, starts_at, ends_at, status, payment_status, amount_vnd (tiền sân), items_amount_vnd, total_vnd (sân + đồ), items: [{ name, quantity, unit_price_vnd }], note, held_until, cancellation_reason, refund_vnd, series, can_cancel, can_reschedule, cancel_without_refund, payment_token, can_review, review: { rating, comment, created_at } }`.
 
 `payment`: `{ token, code, status (awaiting/paid/expired/cancelled), open, amount_vnd, received_vnd, remaining_vnd, expires_at, paid_at, bank: { code, account_number, account_name }, qr_image_url, bookings: [booking] }`.
 Nội dung chuyển khoản phải là `code`; số tiền là `remaining_vnd` (chuyển thiếu thì chuyển thêm cùng nội dung).
+
+## Báo khi có sân trống (TI-04)
+
+| Gọi | Vào | Ra |
+|---|---|---|
+| `GET /api/v1/waitlist` | | `{ entries: [{ id, starts_at, ends_at, notified_at }] }` (đang chờ) |
+| `POST /api/v1/waitlist` | `starts_at`, `ends_at` | 201 entry |
+| `DELETE /api/v1/waitlist/:id` | | 204 |
+
+## Lịch cố định (CD-09, CD-10)
+
+| Gọi | Vào | Ra |
+|---|---|---|
+| `GET /api/v1/series_requests` | | `{ requests: [request] }` |
+| `POST /api/v1/series_requests` | `court_ids: []`, `days_of_week: []` (0 = CN), `start_minute`, `end_minute`, `starts_on`, `ends_on`, `note` | 201 request |
+| `DELETE /api/v1/series_requests/:id` | | request (`cancelled`), chỉ khi còn `pending` |
+| `GET /api/v1/series` | | `{ series: [{ id, courts, days_of_week, start_minute, end_minute, starts_on, ends_on, price_per_hour_vnd, months: [{ month (YYYY-MM), sessions, amount_vnd, credit_vnd, due_vnd, paid, payment_token }] }] }` |
+| `POST /api/v1/series/:id/pay` | `month` (YYYY-MM) | `payment` cho số cần đóng |
+
+`request`: `{ id, court_ids, courts, days_of_week, start_minute, end_minute, starts_on, ends_on, note, status (pending/approved/declined/cancelled), decline_reason, series_id, created_at }`.
+

@@ -33,6 +33,9 @@ class Booking < ApplicationRecord
   PAYMENT_EXPIRED = "payment_expired" # the transfer did not arrive in time
   VENUE_FAULT = "venue_fault"         # the venue could not provide the court (outage, broken court): refunded
   has_one :venue, through: :court
+  # Products picked with the booking (racket, shuttlecocks...), paid with it; their sum is items_amount_vnd.
+  has_many :items, -> { order(:id) }, class_name: "BookingItem", inverse_of: :booking, dependent: :delete_all
+  has_one :review, dependent: :destroy
 
   # Expired holds no longer count, even before they are deleted (see release_expired_holds!).
   scope :holding_slot, ->(now = Time.current) {
@@ -57,6 +60,7 @@ class Booking < ApplicationRecord
   normalizes :customer_name, with: ->(name) { name.squish.presence }
 
   after_commit :refresh_live_schedules
+  after_commit :tell_waitlist, on: :update
   # The booking's history, oldest first (see #record_events).
   has_many :events, -> { order(:id) }, class_name: "BookingEvent", inverse_of: :booking
   after_create :record_creation
@@ -113,6 +117,7 @@ class Booking < ApplicationRecord
 
     deleted = holds.delete_all
     Schedule::Live.refresh(ranges)
+    WaitlistJob.enqueue_for(ranges)
     deleted
   end
 
@@ -189,6 +194,11 @@ class Booking < ApplicationRecord
     ACTIVE_STATUSES.include?(status) && !(pending? && expires_at && expires_at <= now)
   end
 
+  # What the customer pays for the booking: the court and the products picked with it.
+  def charged_vnd
+    total_amount_vnd + items_amount_vnd
+  end
+
   def duration_minutes
     ((ends_at - starts_at) / 60).to_i
   end
@@ -240,7 +250,7 @@ class Booking < ApplicationRecord
     transaction do
       paid = payment_paid?
       cancel!(by: by, reason: VENUE_FAULT, now: now)
-      update!(refund_vnd: total_amount_vnd) if paid && total_amount_vnd.positive?
+      update!(refund_vnd: charged_vnd) if paid && charged_vnd.positive?
     end
   end
 
@@ -357,6 +367,15 @@ class Booking < ApplicationRecord
       ranges << [ court_id_before_last_save, starts_at_before_last_save, ends_at_before_last_save ]
     end
     Schedule::Live.refresh(ranges.uniq)
+  end
+
+  # A slot freed by a cancellation or a move may be what someone waits for (WaitlistEntry).
+  def tell_waitlist
+    if saved_change_to_status? && cancelled?
+      WaitlistJob.enqueue_for([ [ court_id, starts_at, ends_at ] ])
+    elsif saved_change_to_court_id? || saved_change_to_starts_at? || saved_change_to_ends_at?
+      WaitlistJob.enqueue_for([ [ court_id_before_last_save, starts_at_before_last_save, ends_at_before_last_save ] ])
+    end
   end
 
   # A status change only counts when the booking starts holding the slot again (e.g. a cancelled

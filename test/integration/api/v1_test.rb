@@ -2,6 +2,8 @@ require "test_helper"
 
 # The customer mobile app's API: same rules as the web, signed in with a token.
 class Api::V1Test < ActionDispatch::IntegrationTest
+  include ApiTestHelpers
+
   setup do
     travel_to Time.zone.parse("2026-10-19 10:00")
     @slots = [ { court_id: courts(:court_one).id, starts_at: at("18:00").iso8601, ends_at: at("19:30").iso8601 } ]
@@ -148,14 +150,6 @@ class Api::V1Test < ActionDispatch::IntegrationTest
   end
 
   private
-
-  def sign_in_api(user)
-    post api_v1_session_path, params: { login: user.email, password: "password123", device_name: "Pixel" }, as: :json
-    assert_response :created
-    response.parsed_body["token"]
-  end
-
-  def auth(token) = { "Authorization" => "Bearer #{token}" }
 
   def at(time) = Time.zone.parse("2026-10-20 #{time}")
 end

@@ -16,4 +16,4 @@ table cellpadding="4" style="margin-bottom: 16px"
     td = time_range(booking.starts_at, booking.ends_at)
   tr
     td = t("bookings.details.price")
-    td = format_vnd(booking.total_amount_vnd)
+    td = format_vnd(booking.charged_vnd)

@@ -8,16 +8,20 @@ module Admin
 
     def index
       @series = BookingSeries.includes(:user).order(ends_on: :desc, customer_name: :asc)
+      @requests = SeriesRequest.pending.includes(:user).order(:created_at)
     end
 
+    # ?request_id=: filled in from a customer's request (SeriesRequest), approved when the series is created.
     def new
       today = venue.today
-      @series = BookingSeries.new(starts_on: today, ends_on: today.next_month.end_of_month, days_of_week: [ today.wday ],
-                                  start_minute: 1080, end_minute: 1200)
+      @request = SeriesRequest.pending.find_by(id: params[:request_id])
+      @series = BookingSeries.new(@request&.series_attributes || { starts_on: today, ends_on: today.next_month.end_of_month,
+                                                                     days_of_week: [ today.wday ], start_minute: 1080, end_minute: 1200 })
     end
 
     # Every session checked before anything is saved.
     def preview
+      @request = SeriesRequest.pending.find_by(id: params[:request_id])
       @series = build_series
       return render(:new, status: :unprocessable_content) unless @series.valid?
 
@@ -31,6 +35,10 @@ module Admin
       plan = Series::Planner.new(@series, from: @series.starts_on, to: @series.ends_on, by: current_user)
       created = plan.create!
       skipped = plan.sessions.size - created.size
+      if (series_request = SeriesRequest.pending.find_by(id: params[:request_id]))
+        series_request.approve!(@series, by: current_user)
+        NoticeMailer.with(series_request: series_request).series_request_decided.deliver_later
+      end
       redirect_to admin_series_path(@series), notice: t(".success", created: created.size, skipped: skipped)
     end
 

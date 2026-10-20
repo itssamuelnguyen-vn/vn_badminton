@@ -1,0 +1,8 @@
+/ The owner's news (Announcement), also shown in the app.
+- styles = { "info" => "bg-sky-50 text-sky-900 ring-sky-200", "offer" => "bg-emerald-50 text-emerald-900 ring-emerald-200",
+             "warning" => "bg-amber-50 text-amber-900 ring-amber-200" }
+- announcements.each do |announcement|
+  div class="mb-4 rounded-lg px-4 py-3 text-sm ring-1 #{styles.fetch(announcement.tone)}" role="note"
+    p class="font-semibold" = announcement.display_title
+    - if announcement.display_body
+      p class="mt-1 whitespace-pre-line" = announcement.display_body

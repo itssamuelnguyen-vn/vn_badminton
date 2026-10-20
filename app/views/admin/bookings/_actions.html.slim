@@ -6,12 +6,12 @@
   = button_to t("admin.bookings.actions.no_show"), no_show_admin_booking_path(booking), method: :patch, class: "btn-secondary #{size}",
       form: { data: { turbo_confirm: t("admin.bookings.actions.no_show_confirm") } }
 - if booking.kind_reservation? && booking.payment_unpaid? && !booking.cancelled? && !booking.no_show?
-  = button_to t("admin.bookings.actions.mark_paid", amount: format_vnd(booking.total_amount_vnd)), mark_paid_admin_booking_path(booking), method: :patch,
-      class: "btn-secondary #{size}", form: { data: { turbo_confirm: t("admin.bookings.actions.mark_paid_confirm", amount: format_vnd(booking.total_amount_vnd)) } }
+  = button_to t("admin.bookings.actions.mark_paid", amount: format_vnd(booking.charged_vnd)), mark_paid_admin_booking_path(booking), method: :patch,
+      class: "btn-secondary #{size}", form: { data: { turbo_confirm: t("admin.bookings.actions.mark_paid_confirm", amount: format_vnd(booking.charged_vnd)) } }
 - if booking.venue_fault_cancellable?
   = button_to t("admin.bookings.actions.cancel_venue_fault"), cancel_venue_fault_admin_booking_path(booking), method: :patch,
       class: "btn #{size} bg-white text-red-700 ring-1 ring-red-200 hover:bg-red-50",
-      form: { data: { turbo_confirm: t("admin.bookings.actions.cancel_venue_fault_confirm", amount: format_vnd(booking.total_amount_vnd)) } }
+      form: { data: { turbo_confirm: t("admin.bookings.actions.cancel_venue_fault_confirm", amount: format_vnd(booking.charged_vnd)) } }
 - if booking.kind_block? ? !booking.cancelled? : Booking::CUSTOMER_CANCELLABLE_STATUSES.include?(booking.status) && !booking.ended?
   = button_to t("admin.bookings.actions.cancel.#{booking.kind}"), cancel_admin_booking_path(booking), method: :patch,
       class: "btn #{size} bg-white text-red-700 ring-1 ring-red-200 hover:bg-red-50",
@@ -27,4 +27,4 @@
       form: { data: { turbo_confirm: t("admin.bookings.actions.undo_no_show_confirm") } }
 - if booking.kind_reservation? && booking.payment_paid?
   = button_to t("admin.bookings.actions.undo_payment"), undo_payment_admin_booking_path(booking), method: :patch, class: undo_class,
-      form: { data: { turbo_confirm: t("admin.bookings.actions.undo_payment_confirm", amount: format_vnd(booking.total_amount_vnd)) } }
+      form: { data: { turbo_confirm: t("admin.bookings.actions.undo_payment_confirm", amount: format_vnd(booking.charged_vnd)) } }
