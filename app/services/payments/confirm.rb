@@ -1,6 +1,7 @@
 module Payments
   # Records a payment as paid (by its transfers, or by hand by the owner/staff) and does what it pays for:
-  # confirms the held bookings, or marks a series month paid. Emails the booking confirmation.
+  # confirms the held bookings, or marks a series month paid. Emails the booking confirmation; the app is told by
+  # a push notification (Push) of the bookings confirmed or of the payment received.
   # Paid after its deadline, the bookings are taken back only if their courts are still free and they have not
   # started; otherwise nothing changes and it returns false (the money is to be refunded).
   module Confirm
@@ -27,6 +28,9 @@ module Payments
 
       if bookings.any? && bookings.first.user
         BookingMailer.with(bookings: bookings, locale: payment.user&.locale).confirmed.deliver_later
+        Push.booking_confirmed(bookings)
+      elsif bookings.none? && payment.user
+        Push.payment_received(payment)
       end
       payment
     rescue ActiveRecord::ExclusionViolation

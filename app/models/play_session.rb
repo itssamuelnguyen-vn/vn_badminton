@@ -82,7 +82,7 @@ class PlaySession < ApplicationRecord
   end
 
   # The venue cancels: the courts are freed, paid places are owed back in full (the owner transfers and marks
-  # them refunded), unpaid ones are dropped. Each customer gets an email.
+  # them refunded), unpaid ones are dropped. Each customer gets an email and a push notification (Push).
   def cancel!(by:, now: Time.current)
     raise ArgumentError, "Already cancelled" if cancelled?
 
@@ -95,7 +95,10 @@ class PlaySession < ApplicationRecord
         ticket.cancel_by_venue!(now: now)
       end
     end
-    affected.each { |ticket| NoticeMailer.with(ticket: ticket).play_session_cancelled.deliver_later }
+    affected.each do |ticket|
+      NoticeMailer.with(ticket: ticket).play_session_cancelled.deliver_later
+      Push.play_session_cancelled(ticket)
+    end
   end
 
   private

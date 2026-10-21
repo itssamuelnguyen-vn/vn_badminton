@@ -39,6 +39,7 @@ module Admin
       if (series_request = SeriesRequest.pending.find_by(id: params[:request_id]))
         series_request.approve!(@series, by: current_user)
         NoticeMailer.with(series_request: series_request).series_request_decided.deliver_later
+        Push.series_request_decided(series_request)
       end
       redirect_to admin_series_path(@series), notice: t(".success", created: created.size, skipped: skipped)
     end
@@ -129,13 +130,14 @@ module Admin
 
     private
 
-    # The customer hears which sessions moved, and how many stayed where they were (CD-11).
+    # The customer hears (email, and a push notification to the app) which sessions moved, and how many stayed where they were (CD-11).
     def notify_series_moved
       user = @series.user
       return if user.nil? || user.deleted_at || @move.moved_count.zero?
 
       NoticeMailer.with(series: @series, sessions: @move.moved_sessions, kept: @move.items.count { |item| item.status == :skipped })
                   .series_moved.deliver_later
+      Push.series_moved(@series, @move.moved_count)
     end
 
     def build_move

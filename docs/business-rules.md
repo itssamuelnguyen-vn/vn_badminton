@@ -95,7 +95,7 @@ Test là bản mô tả chính xác nhất: nếu tài liệu và test khác nha
 | EM-09 | **Sân huỷ buổi giao lưu** | GL-03 | Khách có chỗ trong buổi |
 | EM-10 | **Sân đổi giờ lịch cố định** (các buổi đã đổi, giờ cũ → giờ mới) | CD-11 | Khách của lịch cố định (có tài khoản) |
 
-Chủ sân **không** nhận email (xem trên Lịch trong ngày). Nguồn: `app/mailers/`, `app/jobs/booking_reminder_job.rb`, `app/jobs/waitlist_job.rb`, `test/jobs/booking_reminder_job_test.rb`.
+Chủ sân **không** nhận email (xem trên Lịch trong ngày). Khách dùng app nhận thêm **thông báo đẩy** cho các email do sân/hệ thống gửi (mục 18). Nguồn: `app/mailers/`, `app/jobs/booking_reminder_job.rb`, `app/jobs/waitlist_job.rb`, `test/jobs/booking_reminder_job_test.rb`.
 
 ## 8. Vận hành của chủ sân / nhân viên
 
@@ -173,6 +173,7 @@ Cấp quyền nhân viên: nhân viên **tự đăng ký** tài khoản, chủ s
 | `Booking.release_expired_holds!` | 15 phút/lần              | Dọn giữ chỗ hết hạn còn sót             |
 | `SeriesRefundJob`                | 15 phút/lần              | Xét hoàn tiền buổi lịch cố định (CD-05) |
 | `WaitlistJob`                    | khi một lượt đặt/giữ chỗ nhả sân | Báo khách đang chờ sân trống (TI-04) |
+| `PushNotificationJob`            | mỗi thông báo, mỗi máy   | Gửi thông báo đẩy qua Firebase (TB-04)  |
 | Dọn job đã xong                  | mỗi giờ (production)     | Solid Queue                             |
 
 Nguồn: `config/recurring.yml`.
@@ -200,6 +201,7 @@ Nguồn: `config/recurring.yml`.
 | AP-02 | Đăng nhập bằng email/số điện thoại + mật khẩu → **token** (chỉ lưu mã băm). Token hết hạn sau **90 ngày không dùng**; bị xoá khi đăng xuất, **đổi mật khẩu**, yêu cầu **xoá tài khoản**. Giới hạn thử mật khẩu như web (BM-01). | `app/models/api_token.rb`, `app/controllers/api/v1/sessions_controller.rb` |
 | AP-03 | Mọi quy tắc đặt sân, thanh toán, huỷ, xoá tài khoản, tải dữ liệu **giống hệt web** (dùng chung model/service); thông báo theo `Accept-Language` (vi/en). Lịch và thông tin sân xem được khi chưa đăng nhập. | `app/controllers/api/v1/`, `docs/api.md` |
 | AP-04 | **Link trong email mở thẳng app** (Android App Links): `/.well-known/assetlinks.json` cho phép app `com.vnbadminton.vn_badminton_mobile` mở link `/payments/<mã>` và `/bookings/<mã>` (cả `/en/...`); vân tay SHA-256 của khoá ký app lấy từ biến môi trường `ANDROID_CERT_SHA256` (nhiều giá trị cách nhau bởi dấu phẩy), trống thì không app nào được tin. Chỉ hoạt động trên tên miền thật có HTTPS. | `app/controllers/well_known/asset_links_controller.rb`, `test/integration/api/asset_links_test.rb` |
+| AP-05 | **Đăng nhập bằng Google** (chỉ trong app; web giữ nguyên): app gửi ID token của Google, server kiểm tra chữ ký, **web client ID** (biến `GOOGLE_WEB_CLIENT_ID`, nhiều giá trị cách nhau bởi dấu phẩy), nơi cấp, hạn và **email đã được Google xác minh**. Tìm tài khoản theo **Google ID**, rồi theo **email** (lúc đó gắn Google ID vào tài khoản, email coi như đã xác minh); email đã gắn với tài khoản Google khác → từ chối. Tài khoản đang chờ xoá → từ chối như đăng nhập mật khẩu. **Người mới** phải nhập **số điện thoại** (bắt buộc với khách, không trùng) và **đồng ý chính sách bảo mật** trong **15 phút**: tài khoản tạo với email đã xác minh và mật khẩu ngẫu nhiên (đặt mật khẩu bằng "Quên mật khẩu" trên web). Giới hạn như đăng nhập/đăng ký (BM-01). | `app/services/accounts/google_identity.rb`, `app/controllers/api/v1/sessions_controller.rb`, `app/controllers/api/v1/registrations_controller.rb`, `test/integration/api/google_sign_in_test.rb` |
 
 ## 15. Tiện ích cho khách (web và app)
 
@@ -232,6 +234,27 @@ Nguồn: `config/recurring.yml`.
 | NH-01 | **Nhóm** (web: **Lượt đặt của tôi → Nhóm**, và trong app): khách tạo nhóm (tên), mời bằng **mã nhóm 6 ký tự**; tối đa **20 người** mỗi nhóm, mỗi người tối đa **10 nhóm**. Thành viên thấy **họ tên** của nhau (không thấy số điện thoại, email). | `app/models/group.rb`, `test/integration/api/community_test.rb`, `test/integration/customer_community_test.rb` |
 | NH-02 | Thành viên **chia sẻ lượt đặt của mình** vào nhóm (trang Nhóm hoặc trang lượt đặt trên web, hoặc trong app) kèm **số người chơi** (mặc định số thành viên): cả nhóm thấy sân, giờ, tổng tiền và **mỗi người góp** = tổng ÷ số người, **làm tròn lên nghìn đồng**. Web và app **không thu hộ**. Chỉ hiện lượt **chưa chơi xong, chưa huỷ**. Người chia sẻ hoặc chủ nhóm gỡ được. | `app/models/group_share.rb` |
 | NH-03 | **Rời nhóm**: các lượt mình chia sẻ bị gỡ; chủ nhóm rời thì nhóm chuyển cho **thành viên vào sớm nhất**, không còn ai thì nhóm bị xoá. Chủ nhóm xoá được nhóm. Xoá tài khoản (TK-09) = rời mọi nhóm. | `app/models/group.rb`, `app/services/accounts/deletion.rb` |
+
+## 18. Thông báo đẩy (app)
+
+| Mã    | Quy tắc | Nguồn |
+|-------|---------|-------|
+| TB-01 | App gửi **token Firebase (FCM)** của máy sau khi đăng nhập và mỗi khi Firebase đổi token; token **gắn với lần đăng nhập** của app: **đăng xuất**, **đổi mật khẩu**, **yêu cầu xoá tài khoản** hay đăng nhập hết hạn (90 ngày không dùng) là máy thôi nhận. Máy đổi chủ (người khác đăng nhập) → token chuyển sang người mới. Tài khoản bị khoá / đã xoá không nhận gì. | `app/models/device_token.rb`, `app/controllers/api/v1/device_tokens_controller.rb`, `test/integration/api/push_test.rb` |
+| TB-02 | **Chỉ gửi khi khách đã nhận email tương ứng**, cho việc **sân hoặc hệ thống** làm (không gửi cho việc khách vừa tự làm trong app), xem bảng dưới. **Không bao giờ gửi quảng cáo / khuyến mãi.** Nội dung ngắn theo **ngôn ngữ của khách** (như email, TK-04); bấm vào mở đúng trang trong app (như link email, AP-04). | `app/services/push.rb`, `config/locales/*.yml` (`push`) |
+| TB-03 | **Tắt thông báo**: công tắc **Thông báo** trong Cài đặt của app (xoá token trên server) hoặc tắt quyền thông báo của Android. Email vẫn gửi như cũ. | `app/controllers/api/v1/device_tokens_controller.rb` |
+| TB-04 | Gửi qua **Firebase Cloud Messaging** (API v1) bằng **service account** (biến `FIREBASE_SERVICE_ACCOUNT_PATH` = đường dẫn file, hoặc `FIREBASE_SERVICE_ACCOUNT_JSON` = nội dung; **không bao giờ trong repo**). Không cấu hình → không gửi (ghi log một lần). Mỗi máy một job: token Firebase báo không còn (UNREGISTERED/404/INVALID_ARGUMENT) → **xoá**; lỗi mạng/quá tải → **thử lại 3 lần**. | `app/services/push/fcm.rb`, `app/jobs/push_notification_job.rb`, `test/services/push/fcm_test.rb` |
+
+| Thông báo | Khi nào | Mở trang |
+|-----------|---------|----------|
+| Đã xác nhận đặt sân | Nhận đủ tiền chuyển khoản (TT-04, TT-06, TT-09); chủ sân đặt hộ (EM-02) | lượt đặt (nhiều sân: Sân đã đặt) |
+| Sân đã nhận tiền | Nhận đủ tiền gói giờ, chỗ giao lưu, tháng lịch cố định | trang thanh toán |
+| Sắp đến giờ chơi | Cùng lúc email nhắc lịch (EM-04) | lượt đặt |
+| Sân đã huỷ lượt | Sân huỷ, kể cả do sự cố của sân (EM-03, HUY-02) | lượt đặt |
+| Sân đã đổi giờ lượt | Sân đổi giờ (EM-05) | lượt đặt |
+| Có sân trống | EM-07 (TI-04) | trang chủ |
+| Trả lời yêu cầu lịch cố định | EM-08 | Sân đã đặt / trang chủ |
+| Sân đổi giờ lịch cố định | EM-10 | Sân đã đặt |
+| Sân huỷ buổi giao lưu | EM-09 | trang chủ |
 
 ---
 

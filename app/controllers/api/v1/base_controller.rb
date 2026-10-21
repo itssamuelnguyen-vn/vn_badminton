@@ -33,6 +33,12 @@ module Api
         Current.user = current_user
       end
 
+      # A new token for the app's sign-in or sign-up: { token, user }.
+      def render_signed_in(user)
+        _token, secret = ApiToken.issue(user, device_name: params[:device_name])
+        render json: { token: secret, user: ApiJson.user(user) }, status: :created
+      end
+
       def render_error(code, messages = [], status:)
         render json: { error: code, messages: messages }, status: status
       end

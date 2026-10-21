@@ -30,6 +30,7 @@ class User < ApplicationRecord
 
   belongs_to :deletion_requested_by, class_name: "User", optional: true
   has_many :api_tokens, dependent: :delete_all
+  has_many :device_tokens, dependent: :delete_all
   has_many :series_requests, dependent: :delete_all
   has_many :waitlist_entries, dependent: :delete_all
   has_many :reviews, dependent: :delete_all

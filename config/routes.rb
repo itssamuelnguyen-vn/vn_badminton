@@ -139,8 +139,14 @@ Rails.application.routes.draw do
   # The customer mobile app (Api::V1). No locale prefix: the language comes from Accept-Language.
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
-      resource :session, only: %i[create destroy]
-      resource :registration, only: :create
+      resource :session, only: %i[create destroy] do
+        post :google
+      end
+      resource :registration, only: :create do
+        post :google
+      end
+      # Push notifications: the phone's FCM token (POST to add or refresh, DELETE to stop).
+      resource :device_tokens, only: %i[create destroy]
       resource :account, only: %i[show update destroy] do
         post :export
         post :resend_verification

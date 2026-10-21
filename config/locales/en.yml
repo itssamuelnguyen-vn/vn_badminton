@@ -933,6 +933,45 @@ en:
       nothing_due: Nothing left to pay for this month.
     unauthorized: Please sign in again.
     avatar_missing: Please choose a photo.
+    google:
+      invalid: Could not sign in with Google. Please try again.
+      unavailable: Could not reach Google, please try again in a few minutes.
+      signup_expired: The sign-up took too long, please sign in with Google again.
+      already_registered: This Google account was just signed up. Please sign in again.
+  # Push notifications to the app (Push): short, the details are in the email and the app.
+  push:
+    booking_confirmed:
+      title: Booking confirmed
+      body: "%{courts} at %{time}. See you on court!"
+    payment_received:
+      title: Payment received
+      body: "The venue received the full amount for %{code}."
+    booking_reminder:
+      title: Time to play soon
+      body: "%{court} at %{time}. Don't forget your racket!"
+    booking_cancelled:
+      title: "The venue cancelled booking %{code}"
+      body: "%{court} at %{time}. See the email or the app for details."
+    booking_rescheduled:
+      title: "The venue moved booking %{code}"
+      body: "New time: %{court} at %{time}."
+    slot_freed:
+      title: A court is free
+      body: "A court is free at %{time}. First to book gets it!"
+    series_request_approved:
+      title: Your regular booking is set up
+      body: The venue set up the regular booking you asked for. The sessions are in My bookings.
+    series_request_declined:
+      title: Regular booking not accepted
+      body: The venue could not take the regular booking you asked for. The email says why.
+    series_moved:
+      title: The venue moved your regular booking
+      body:
+        one: "1 session moved to a new time. See the email for details."
+        other: "%{count} sessions moved to a new time. See the email for details."
+    play_session_cancelled:
+      title: "The venue cancelled %{title}"
+      body: "The session at %{time} is cancelled. Places you paid for will be refunded."
   account_mailer:
     deletion_requested:
       subject: Your VN Badminton account will be deleted

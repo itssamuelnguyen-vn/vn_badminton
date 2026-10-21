@@ -21,7 +21,10 @@ class WaitlistJob < ApplicationJob
         # Claimed first, so two runs never tell the same customer twice.
         next unless WaitlistEntry.where(id: entry.id, notified_at: nil).update_all(notified_at: now) == 1
 
-        NoticeMailer.with(entry: entry).slot_freed.deliver_later unless entry.user.deleted_at
+        next if entry.user.deleted_at
+
+        NoticeMailer.with(entry: entry).slot_freed.deliver_later
+        Push.slot_freed(entry)
       end
     end
   end

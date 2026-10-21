@@ -13,6 +13,9 @@ module ActiveSupport
 
     # Rate limit counts would otherwise carry over from one test to the next.
     setup { ApplicationController::RATE_LIMIT_STORE.clear }
+    # Push notifications are off unless a test turns them on with a fake Firebase (FakeFcm), whatever the
+    # environment says.
+    setup { Push::Fcm.current = Push::Fcm::Disabled.new }
   end
 end
 
@@ -61,4 +64,22 @@ module ApiTestHelpers
   end
 
   def auth(token) = { "Authorization" => "Bearer #{token}" }
+end
+
+# Firebase Cloud Messaging in the tests (Push::Fcm.current = FakeFcm.new): keeps what would be sent, and answers
+# :invalid_token for the tokens in invalid_tokens.
+class FakeFcm
+  attr_reader :sent, :invalid_tokens
+
+  def initialize
+    @sent = []
+    @invalid_tokens = []
+  end
+
+  def enabled? = true
+
+  def deliver(token:, title:, body:, data: {})
+    @sent << { token: token, title: title, body: body, data: data }
+    invalid_tokens.include?(token) ? :invalid_token : :sent
+  end
 end
