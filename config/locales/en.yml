@@ -378,6 +378,15 @@ en:
           password: Current password
           submit: Delete my account
           owner: The owner's account cannot be deleted.
+      loyalty:
+        title: Member tier
+        discount: "%{percent}% off court fees"
+        hours: "%{hours} hours played in the last 12 months"
+        progress: Progress to the next tier
+        next: "Play %{hours} more hours to reach %{tier} (%{percent}% off court fees when booking online)."
+        top: You are in the top tier. Thank you for playing with us!
+        paused: The member tier discounts are paused for now.
+        packages: Prepaid hours
     passwords:
       new:
         title: Forgot your password?
@@ -483,6 +492,7 @@ en:
       unavailable: Unavailable
       held: Being booked by someone
     grid:
+      wait: Click to be told when a court frees up at this time
       label: "Court schedule for %{date}"
       states:
         available: Available
@@ -491,6 +501,13 @@ en:
         blocked: Maintenance
         unavailable: Unavailable
         held: Held
+    waitlist:
+      title: Tell me when a court frees up
+      hint: Fully booked at the time you want? Pick a time range and we will email you as soon as a court is free for all of it.
+      limit:
+        one: "Wait for up to %{count} time range at once. First to book gets it."
+        other: "Wait for up to %{count} time ranges at once. First to book gets it."
+      submit: Notify me
     holds:
       title: "Customers holding slots (%{count})"
       staff_only: Only the owner and staff see this.
@@ -517,7 +534,14 @@ en:
       total: Total
       price: Price
     new:
-      tier_discount: "%{label} offer: −%{amount}, taken off the transfer."
+      extras: Extras (optional)
+      extras_hint: Pick them up at the counter when you check in. They are added to the transfer.
+      extras_less: "One less %{name}"
+      extras_more: "One more %{name}"
+      package_title: Pay with prepaid hours
+      package_hint: The booking is confirmed at once and the hours come off your package, with no transfer. Please rent extras at the counter.
+      package_use: "Use %{name}"
+      package_left: "%{hours} left · valid until %{date}"
       voucher_code: Voucher code (if you have one)
       voucher_hint: One offer per order; a voucher replaces the member discount when it saves more.
       title: Confirm your booking
@@ -542,6 +566,9 @@ en:
         one: Your court is booked! We've sent you a confirmation email.
         other: Your %{count} courts are booked! We've sent you a confirmation email.
       payments_unavailable: Online payment is not set up yet. Please call the venue to book.
+      paid_with_package:
+        one: Booked and paid with your prepaid hours. We have sent you a confirmation email.
+        other: Booked and paid with your prepaid hours. We have sent you a confirmation email.
     cancel:
       success: Your booking has been cancelled.
       not_allowed: This booking can no longer be cancelled.
@@ -560,6 +587,15 @@ en:
       skip_confirm: Skip this session? The time will be open for others to book.
       awaiting_payment: "Waiting for your transfer (before %{time}). The court is confirmed as soon as the money arrives."
       cancel_confirm_paid: A paid booking is NOT refunded when you cancel it yourself. Cancel anyway?
+      review:
+        title: How was your game?
+        hint: Your rating helps the venue improve. Only the owner and staff read it.
+        stars:
+          one: "%{count} star"
+          other: "%{count} stars"
+        comment_placeholder: Anything else to tell us (optional)
+        submit: Send rating
+        yours: Your rating
     index:
       title: My bookings
       new: Book a court
@@ -569,6 +605,16 @@ en:
       awaiting_payment: Waiting for your transfer
       awaiting_payment_line: "%{amount} · transfer before %{time} to keep the court"
       pay_now: Pay now
+      packages: Prepaid hours
+      waits: Waiting for a free court
+      waits_hint: We will email you when a court is free for the whole time range.
+      stop_waiting: Stop waiting
+    review:
+      success: Thank you for your rating!
+    quote:
+      court: Court fee
+      extras: Extras
+      offer: "%{label} offer"
     lock_notice: "Your account cannot book online until %{until} because of several cancellations in one day. Please call the venue if you need help."
     unverified: Please verify your email before booking. We sent a verification link to your email.
     changed_meanwhile: This booking was just updated elsewhere. Please check its status and try again.
@@ -651,6 +697,9 @@ en:
       underpaid: "%{received} received, %{remaining} missing. Please transfer the remaining %{remaining} with the content %{code}."
       for: "For:"
       for_series: "Court fee for %{month} – %{name}"
+      for_package: "Prepaid hours: %{name}"
+      paid_package: Your prepaid hours are ready. You can use them when you book.
+      view_packages: View my prepaid hours
       paid_title: Payment received
       paid_bookings: Your booking is confirmed. We sent you a confirmation email.
       paid_series: The month's court fee is recorded. Thank you!
@@ -659,6 +708,37 @@ en:
       closed_text: This code no longer holds the court. If you just transferred, the booking is confirmed automatically while the slot is still free; otherwise the venue will contact you for a refund.
       book_again: Book another court
 
+  packages:
+    index:
+      title: Prepaid hours
+      intro: Buy hours in advance for less, then use them to pay for courts when you book. Paid by bank transfer; the hours are ready as soon as the money arrives.
+      mine: My packages
+      on_sale: On sale
+      none_on_sale: The venue is not selling prepaid hours at the moment.
+      states:
+        awaiting: Awaiting transfer
+        active: In use
+        used_up: Used up
+        expired: Expired
+      awaiting_line: "%{amount} · transfer before %{time}"
+      left: "%{left} of %{total} left"
+      used: "%{used} used"
+      expires: "Valid until %{date}"
+      hours_window: "Only between %{from} and %{to}"
+      how_to_use: When you book, pick "Use" on the confirmation step to pay with your hours.
+      package_hours: "%{hours} of play"
+      package_valid:
+        one: "Valid for %{count} day after payment"
+        other: "Valid for %{count} days after payment"
+      buy: Buy
+      buy_confirm: "Buy %{name} for %{amount}? You will pay by bank transfer next."
+      no_refund: Prepaid hours are not refundable. A booking paid with hours that you cancel yourself does not give the hours back.
+
+  waitlist_entries:
+    create:
+      success: "Done. We will email you when a court is free at %{time}."
+    destroy:
+      success: You are no longer waiting for this time.
   users:
     registrations:
       destroy:

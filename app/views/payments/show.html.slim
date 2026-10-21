@@ -13,9 +13,11 @@ div class="card mx-auto max-w-lg"
         svg class="size-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
           path d="M5 12.5l4.5 4.5L19 7.5"
       h1 class="mt-4 text-2xl font-bold text-emerald-700" = t(".paid_title")
-      p class="mt-2 text-sm text-slate-600" = t(payment.for_bookings? ? ".paid_bookings" : ".paid_series")
+      p class="mt-2 text-sm text-slate-600" = t(payment.for_bookings? ? ".paid_bookings" : payment.for_package? ? ".paid_package" : ".paid_series")
       - if payment.for_bookings? && user_signed_in? && @bookings.first&.user == current_user
         = link_to t(".view_bookings"), (@bookings.one? ? booking_path(@bookings.first) : bookings_path), class: "btn-primary mt-6"
+      - elsif payment.for_package? && user_signed_in? && payment.user == current_user
+        = link_to t(".view_packages"), packages_path, class: "btn-primary mt-6"
   - elsif !payment.open?
     div class="text-center" role="status"
       h1 class="text-2xl font-bold" = t(".closed_title")
@@ -62,6 +64,9 @@ div class="card mx-auto max-w-lg"
       ul class="space-y-1 text-sm text-slate-600"
         - @bookings.each do |booking|
           li = "#{booking.court.display_name} · #{l(booking.starts_at.to_date, format: :full)} · #{time_range(booking.starts_at, booking.ends_at)}"
+  - elsif payment.for_package? && payment.package_purchase
+    p class="mt-6 border-t border-slate-100 pt-4 text-sm text-slate-600"
+      = t(".for_package", name: payment.package_purchase.display_name)
   - elsif payment.for_series_period?
     p class="mt-6 border-t border-slate-100 pt-4 text-sm text-slate-600"
       = t(".for_series", month: l(payment.series_month, format: :month_year), name: payment.series.customer_name)

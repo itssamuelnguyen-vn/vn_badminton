@@ -1,0 +1,26 @@
+/ The price of the order on the confirmation page (BookingBatch#quote): court price, extras, the offer taken off
+/ and what will be transferred. Re-rendered alone by BookingsController#quote when extras or the voucher change.
+- quote = batch.quote
+- courts = batch.bookings.size
+= turbo_frame_tag "booking_quote", class: "block", aria: { live: "polite" }
+  dl class="divide-y divide-slate-100 rounded-2xl bg-emerald-50/50 px-4 text-sm ring-1 ring-emerald-100"
+    - if courts > 1 || quote.items_vnd.positive? || quote.discount_vnd.positive?
+      div class="flex justify-between gap-4 py-2"
+        dt class="text-slate-600" = t(".court")
+        dd class="tabular-nums" = format_vnd(quote.court_vnd)
+    - if quote.items_vnd.positive?
+      div class="flex justify-between gap-4 py-2"
+        dt class="text-slate-600" = t(".extras")
+        dd class="tabular-nums" = format_vnd(quote.items_vnd)
+    - if quote.discount_vnd.positive?
+      div class="flex justify-between gap-4 py-2 text-emerald-800"
+        dt = t(".offer", label: quote.offer_label)
+        dd class="tabular-nums" = "−#{format_vnd(quote.discount_vnd)}"
+    div class="flex justify-between gap-4 py-3 text-base"
+      dt class="font-semibold"
+        span = courts > 1 ? t("bookings.new.grand_total", count: courts) : t("bookings.details.total")
+      dd class="font-bold text-emerald-700 tabular-nums" = format_vnd(quote.total_vnd)
+  - if quote.messages.any?
+    ul class="mt-2 space-y-1 text-sm text-amber-800" role="status"
+      - quote.messages.each do |message|
+        li = message

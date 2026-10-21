@@ -14,9 +14,21 @@ Rails.application.routes.draw do
         # Moving a booking: the schedule in reschedule mode sends the new slot here to confirm it.
         get :reschedule, action: :review_reschedule
         patch :reschedule
+        post :review
       end
-      delete :release_hold, on: :collection
+      collection do
+        delete :release_hold
+        # The confirmation page's total, re-rendered when extras or the voucher code change.
+        get :quote
+      end
     end
+
+    # Prepaid hours (UD-04): the packages on sale and the customer's own; buying one leads to the payment page.
+    resources :packages, only: :index do
+      post :buy, on: :member
+    end
+    # "Tell me when a court frees up" (TI-04): added from the schedule, listed on "Lượt đặt của tôi".
+    resources :waitlist_entries, path: "waitlist", only: %i[create destroy]
 
     # The owner's area. /admin is the day board; ?date=YYYY-MM-DD picks the day.
     namespace :admin do

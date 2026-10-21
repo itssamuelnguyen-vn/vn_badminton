@@ -161,7 +161,7 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
 
     get new_booking_path(slots: slots)
     assert_select "span", text: "Tổng tiền (2 sân)"
-    assert_select "span", text: "420.000đ"
+    assert_select "#booking_quote dd", text: "420.000đ"
 
     post bookings_path, params: { booking: { slots: slots, note: "Đi nhóm 8 người" } }
     assert_equal 420_000, Payment.last.amount_vnd, "one transfer for both courts"

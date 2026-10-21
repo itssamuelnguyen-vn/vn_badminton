@@ -374,6 +374,15 @@ vi:
           password: Mật khẩu hiện tại
           submit: Xoá tài khoản
           owner: Tài khoản chủ sân không thể xoá.
+      loyalty:
+        title: Hạng thành viên
+        discount: "Giảm %{percent}% tiền sân"
+        hours: "%{hours} giờ đã chơi trong 12 tháng qua"
+        progress: Tiến độ lên hạng kế tiếp
+        next: "Chơi thêm %{hours} giờ để lên hạng %{tier} (giảm %{percent}% tiền sân khi đặt online)."
+        top: Bạn đang ở hạng cao nhất. Cảm ơn bạn đã gắn bó!
+        paused: Chương trình ưu đãi hạng thành viên đang tạm dừng.
+        packages: Gói giờ chơi
     passwords:
       new:
         title: Quên mật khẩu?
@@ -476,6 +485,7 @@ vi:
       unavailable: Không thể đặt
       held: Đang có người giữ chỗ
     grid:
+      wait: Bấm để được báo khi có sân trống giờ này
       label: "Lịch sân %{date}"
       states:
         available: Còn trống
@@ -484,6 +494,12 @@ vi:
         blocked: Bảo trì
         unavailable: Không thể đặt
         held: Đang giữ
+    waitlist:
+      title: Báo khi có sân trống
+      hint: Hết sân giờ bạn muốn? Chọn khung giờ, chúng tôi gửi email ngay khi có một sân trống trọn khung đó.
+      limit:
+        other: "Chờ tối đa %{count} khung giờ cùng lúc. Ai đặt trước được trước."
+      submit: Báo cho tôi
     holds:
       title: "Khách đang giữ chỗ (%{count})"
       staff_only: Chỉ chủ sân và nhân viên thấy mục này.
@@ -510,7 +526,14 @@ vi:
       total: Tổng tiền
       price: Thành tiền
     new:
-      tier_discount: "Ưu đãi %{label}: −%{amount}, tự trừ khi chuyển khoản."
+      extras: Đồ thuê thêm (không bắt buộc)
+      extras_hint: Nhận đồ tại quầy khi nhận sân. Tiền đồ được cộng vào khoản chuyển khoản.
+      extras_less: "Bớt một %{name}"
+      extras_more: "Thêm một %{name}"
+      package_title: Trả bằng gói giờ
+      package_hint: Lượt đặt được xác nhận ngay và trừ giờ vào gói, không cần chuyển khoản. Đồ thuê thêm vui lòng thuê tại quầy.
+      package_use: "Dùng %{name}"
+      package_left: "Còn %{hours} · hạn đến %{date}"
       voucher_code: Mã giảm giá (nếu có)
       voucher_hint: Mỗi đơn dùng một ưu đãi; mã giảm giá thay ưu đãi hạng khi có lợi hơn.
       title: Xác nhận đặt sân
@@ -532,6 +555,8 @@ vi:
       success:
         other: Đặt sân thành công! Chúng tôi đã gửi email xác nhận cho bạn.
       payments_unavailable: Sân chưa bật thanh toán online. Vui lòng gọi cho sân để đặt.
+      paid_with_package:
+        other: Đặt sân thành công, đã trừ giờ vào gói của bạn. Chúng tôi đã gửi email xác nhận.
     cancel:
       success: Đã huỷ lượt đặt sân.
       not_allowed: Không thể huỷ lượt đặt này nữa.
@@ -549,6 +574,14 @@ vi:
       skip_confirm: Báo nghỉ buổi này? Giờ này sẽ được mở cho người khác đặt.
       awaiting_payment: "Đang chờ chuyển khoản (trước %{time}). Sân sẽ được xác nhận ngay khi nhận được tiền."
       cancel_confirm_paid: Lượt đặt đã thanh toán sẽ KHÔNG được hoàn tiền khi bạn tự huỷ. Bạn vẫn muốn huỷ?
+      review:
+        title: Buổi chơi của bạn thế nào?
+        hint: Đánh giá giúp sân phục vụ tốt hơn. Chỉ chủ sân và nhân viên đọc được.
+        stars:
+          other: "%{count} sao"
+        comment_placeholder: Góp ý thêm (không bắt buộc)
+        submit: Gửi đánh giá
+        yours: Đánh giá của bạn
     index:
       title: Lượt đặt của tôi
       new: Đặt sân
@@ -558,6 +591,16 @@ vi:
       awaiting_payment: Chờ chuyển khoản
       awaiting_payment_line: "%{amount} · chuyển trước %{time} để giữ sân"
       pay_now: Chuyển khoản
+      packages: Gói giờ
+      waits: Đang chờ sân trống
+      waits_hint: Chúng tôi sẽ gửi email khi có một sân trống trọn khung giờ này.
+      stop_waiting: Bỏ chờ
+    review:
+      success: Cảm ơn bạn đã đánh giá!
+    quote:
+      court: Tiền sân
+      extras: Đồ thuê thêm
+      offer: "Ưu đãi %{label}"
     lock_notice: "Tài khoản của bạn tạm thời không thể đặt sân online đến %{until} vì đã huỷ nhiều lần trong một ngày. Vui lòng gọi cho sân nếu cần hỗ trợ."
     unverified: Vui lòng xác minh email trước khi đặt sân. Chúng tôi đã gửi đường dẫn xác minh tới email của bạn.
     changed_meanwhile: Lượt đặt vừa được cập nhật ở nơi khác. Vui lòng xem lại trạng thái rồi thử lại.
@@ -638,6 +681,9 @@ vi:
       underpaid: "Đã nhận %{received}, còn thiếu %{remaining}. Vui lòng chuyển thêm %{remaining} với nội dung %{code}."
       for: "Cho lượt đặt:"
       for_series: "Tiền sân tháng %{month} – %{name}"
+      for_package: "Mua gói giờ: %{name}"
+      paid_package: Gói giờ đã có hiệu lực. Bạn có thể dùng ngay khi đặt sân.
+      view_packages: Xem gói giờ của tôi
       paid_title: Đã nhận được tiền
       paid_bookings: Lượt đặt sân đã được xác nhận. Chúng tôi đã gửi email xác nhận cho bạn.
       paid_series: Tiền sân của tháng đã được ghi nhận. Cảm ơn bạn!
@@ -646,6 +692,36 @@ vi:
       closed_text: Không còn giữ sân cho mã này. Nếu bạn vừa chuyển khoản, sân được xác nhận tự động khi giờ đó vẫn còn trống; nếu không, sân sẽ liên hệ để hoàn tiền.
       book_again: Đặt sân khác
 
+  packages:
+    index:
+      title: Gói giờ chơi
+      intro: Mua trước nhiều giờ với giá tốt hơn, rồi dùng để trả tiền sân khi đặt. Thanh toán bằng chuyển khoản, gói có hiệu lực ngay khi nhận được tiền.
+      mine: Gói của tôi
+      on_sale: Gói đang bán
+      none_on_sale: Hiện sân chưa bán gói giờ nào.
+      states:
+        awaiting: Chờ chuyển khoản
+        active: Đang dùng
+        used_up: Đã dùng hết
+        expired: Hết hạn
+      awaiting_line: "%{amount} · chuyển trước %{time}"
+      left: "Còn %{left} / %{total}"
+      used: "Đã dùng %{used}"
+      expires: "Hạn đến %{date}"
+      hours_window: "Chỉ dùng trong khung %{from} – %{to}"
+      how_to_use: Khi đặt sân, chọn "Dùng gói" ở bước xác nhận để trừ giờ vào gói.
+      package_hours: "%{hours} chơi"
+      package_valid:
+        other: "Dùng trong %{count} ngày kể từ khi thanh toán"
+      buy: Mua gói
+      buy_confirm: "Mua %{name} với giá %{amount}? Bạn sẽ chuyển khoản ở bước tiếp theo."
+      no_refund: Giờ trong gói không được hoàn tiền. Lượt đặt bằng gói mà bạn tự huỷ sẽ không được trả lại giờ.
+
+  waitlist_entries:
+    create:
+      success: "Đã ghi nhận. Chúng tôi sẽ gửi email khi có sân trống lúc %{time}."
+    destroy:
+      success: Đã bỏ chờ khung giờ này.
   users:
     registrations:
       destroy:

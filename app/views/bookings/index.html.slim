@@ -3,10 +3,12 @@
 div class="mx-auto max-w-2xl"
   div class="mb-8 flex flex-wrap items-center justify-between gap-4"
     h1 class="text-2xl font-bold sm:text-3xl" = t(".title")
-    = link_to root_path, class: "btn-primary" do
-      svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"
-        path d="M12 5v14M5 12h14"
-      = t(".new")
+    div class="flex gap-2"
+      = link_to t(".packages"), packages_path, class: "btn-secondary"
+      = link_to root_path, class: "btn-primary" do
+        svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"
+          path d="M12 5v14M5 12h14"
+        = t(".new")
 
   = render "bookings/lock_notice"
 
@@ -37,6 +39,23 @@ div class="mx-auto max-w-2xl"
             path d="M3.5 10h17M8 3v4M16 3v4"
         p class="text-sm text-slate-600" = t(".no_upcoming")
         = link_to t(".new"), root_path, class: "btn-primary mt-1"
+
+  / "Báo khi có sân trống" (TI-04): added from the schedule.
+  - if @waits.any?
+    section class="mb-10"
+      h2 class="section-title mb-1" = t(".waits")
+      p class="mb-4 text-sm text-slate-600" = t(".waits_hint")
+      ul class="space-y-2"
+        - @waits.each do |entry|
+          li class="surface flex items-center justify-between gap-3 px-4 py-3"
+            span class="flex min-w-0 items-center gap-3 text-sm"
+              span class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600" aria-hidden="true"
+                svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"
+              span
+                span class="block font-semibold" = l(entry.starts_at.to_date, format: :full)
+                span class="block text-slate-600 tabular-nums" = time_range(entry.starts_at, entry.ends_at)
+            = button_to t(".stop_waiting"), waitlist_entry_path(entry), method: :delete, class: "btn-secondary shrink-0 px-3 py-1.5 text-xs"
 
   - if @past.any?
     section
