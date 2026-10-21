@@ -199,6 +199,7 @@ Nguồn: `config/recurring.yml`.
 | AP-01 | App **chỉ dành cho khách**. API `/api/v1` **không có** thao tác quản lý nào: mọi việc của chủ sân/nhân viên **chỉ làm trên web**. | `config/routes.rb`, `test/integration/api/v1_test.rb` |
 | AP-02 | Đăng nhập bằng email/số điện thoại + mật khẩu → **token** (chỉ lưu mã băm). Token hết hạn sau **90 ngày không dùng**; bị xoá khi đăng xuất, **đổi mật khẩu**, yêu cầu **xoá tài khoản**. Giới hạn thử mật khẩu như web (BM-01). | `app/models/api_token.rb`, `app/controllers/api/v1/sessions_controller.rb` |
 | AP-03 | Mọi quy tắc đặt sân, thanh toán, huỷ, xoá tài khoản, tải dữ liệu **giống hệt web** (dùng chung model/service); thông báo theo `Accept-Language` (vi/en). Lịch và thông tin sân xem được khi chưa đăng nhập. | `app/controllers/api/v1/`, `docs/api.md` |
+| AP-04 | **Link trong email mở thẳng app** (Android App Links): `/.well-known/assetlinks.json` cho phép app `com.vnbadminton.vn_badminton_mobile` mở link `/payments/<mã>` và `/bookings/<mã>` (cả `/en/...`); vân tay SHA-256 của khoá ký app lấy từ biến môi trường `ANDROID_CERT_SHA256` (nhiều giá trị cách nhau bởi dấu phẩy), trống thì không app nào được tin. Chỉ hoạt động trên tên miền thật có HTTPS. | `app/controllers/well_known/asset_links_controller.rb`, `test/integration/api/asset_links_test.rb` |
 
 ## 15. Tiện ích cho khách (web và app)
 
