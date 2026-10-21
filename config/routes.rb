@@ -18,6 +18,26 @@ Rails.application.routes.draw do
       delete :release_hold, on: :collection
     end
 
+    # Open play (giao lưu): the list is public; buying places leads to the payment page.
+    resources :play_sessions, only: :index do
+      post :buy, on: :member
+    end
+    resources :play_session_tickets, only: :destroy
+
+    # The customer's groups. A booking is shared with the group picked in the form (groups page or booking page).
+    resources :groups, only: %i[index create destroy] do
+      post :join, on: :collection
+      delete :leave, on: :member
+      resources :shares, only: :destroy, controller: :group_shares
+    end
+    resources :group_shares, only: :create
+
+    # The customer's weekly bookings with each month's bill ("Đóng tiền": ?month=YYYY-MM), and asking for a new one.
+    resources :series, only: :index do
+      post :pay, on: :member
+    end
+    resources :series_requests, only: %i[new create destroy]
+
     # The owner's area. /admin is the day board; ?date=YYYY-MM-DD picks the day.
     namespace :admin do
       root "boards#show"

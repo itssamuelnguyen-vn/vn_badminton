@@ -1,0 +1,81 @@
+- content_for :title, t(".title")
+- court_names = ->(record) { record.court_ids.filter_map { |id| @courts[id] }.sort_by { |court| [ court.position, court.id ] }.map(&:display_name).join(", ") }
+- hours = ->(record) { "#{OpeningHour.format_minute(record.start_minute)} – #{OpeningHour.format_minute(record.end_minute)}" }
+
+div class="mx-auto max-w-2xl"
+  = link_to t("groups.index.back"), bookings_path, class: "link text-sm"
+  div class="mt-2 mb-8 flex flex-wrap items-center justify-between gap-4"
+    div
+      h1 class="text-2xl font-bold sm:text-3xl" = t(".title")
+      p class="mt-2 text-sm text-slate-600" = t(".intro")
+    = link_to new_series_request_path, class: "btn-primary" do
+      svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"
+        path d="M12 5v14M5 12h14"
+      = t(".new_request")
+
+  section class="mb-10"
+    h2 class="section-title mb-4" = t(".series")
+    - if @series.empty?
+      p class="surface p-5 text-sm text-slate-600" = t(".no_series")
+    - else
+      div class="space-y-4"
+        - @series.each do |series|
+          article id=dom_id(series) class="card"
+            p class="font-bold" = "#{format_days(series.days_of_week)} · #{hours.(series)}"
+            p class="mt-0.5 text-sm text-slate-600"
+              = "#{court_names.(series)} · #{l(series.starts_on, format: :day_month_year)} – #{l(series.ends_on, format: :day_month_year)}"
+            - if series.price_per_hour_vnd
+              p class="text-sm text-slate-600" = t(".price", price: format_vnd(series.price_per_hour_vnd))
+
+            div class="mt-4 space-y-2"
+              - series.billed_months(@venue.today).each do |month|
+                - bill = series.billing(month)
+                - waiting = @awaiting[[ series.id, month ]]
+                div class="rounded-2xl bg-slate-50 px-4 py-3 text-sm"
+                  div class="flex flex-wrap items-center justify-between gap-2"
+                    p class="font-semibold" = l(month, format: :month_year).capitalize
+                    - if bill.paid?
+                      span class="inline-flex rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200" = t(".paid")
+                    - elsif bill.due_vnd.positive?
+                      span class="inline-flex rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700 ring-1 ring-amber-200" = t(".due")
+                  dl class="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-slate-600 sm:grid-cols-4"
+                    div
+                      dt class="text-xs text-slate-400" = t(".sessions")
+                      dd class="tabular-nums" = bill.billable.count
+                    div
+                      dt class="text-xs text-slate-400" = t(".amount")
+                      dd class="tabular-nums" = format_vnd(bill.amount_vnd)
+                    div
+                      dt class="text-xs text-slate-400" = t(".credit")
+                      dd class="tabular-nums" = bill.credit_vnd.positive? ? "−#{format_vnd(bill.credit_vnd)}" : "–"
+                    div
+                      dt class="text-xs text-slate-400" = t(bill.paid? ? ".paid_amount" : ".due_amount")
+                      dd class="font-bold text-ink tabular-nums" = format_vnd(bill.due_vnd)
+                  - if bill.payable?
+                    div class="mt-3 flex flex-wrap items-center justify-between gap-2"
+                      p class="text-xs text-slate-500" = waiting ? t(".waiting", code: waiting.code) : t(".pay_hint")
+                      = button_to t(".pay"), pay_series_path(series, month: month.strftime("%Y-%m")), class: "btn-primary px-4 py-1.5 text-xs"
+
+  section id="requests"
+    h2 class="section-title mb-4" = t(".requests")
+    - if @requests.empty?
+      p class="surface p-5 text-sm text-slate-600" = t(".no_requests")
+    - else
+      div class="space-y-3"
+        - @requests.each do |series_request|
+          div class="surface flex items-start justify-between gap-3 p-4"
+            div class="min-w-0 text-sm"
+              p class="font-semibold" = "#{format_days(series_request.days_of_week)} · #{hours.(series_request)}"
+              p class="text-slate-600" = "#{court_names.(series_request)} · #{l(series_request.starts_on, format: :day_month_year)} – #{l(series_request.ends_on, format: :day_month_year)}"
+              - if series_request.note
+                p class="mt-1 text-slate-500" = series_request.note
+              - if series_request.declined? && series_request.decline_reason
+                p class="mt-1 text-red-700" = t(".decline_reason", reason: series_request.decline_reason)
+            div class="flex shrink-0 flex-col items-end gap-2"
+              - classes = { "pending" => "bg-amber-50 text-amber-700 ring-amber-200", "approved" => "bg-emerald-50 text-emerald-700 ring-emerald-200",
+                            "declined" => "bg-red-50 text-red-700 ring-red-200", "cancelled" => "bg-slate-100 text-slate-600 ring-slate-200" }
+              span class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap ring-1 #{classes.fetch(series_request.status)}"
+                = t(".statuses.#{series_request.status}")
+              - if series_request.pending?
+                = button_to t(".withdraw"), series_request_path(series_request), method: :delete, class: "btn-secondary px-3 py-1 text-xs",
+                    form: { data: { turbo_confirm: t(".withdraw_confirm") } }

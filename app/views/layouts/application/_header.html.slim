@@ -15,8 +15,12 @@ header class="sticky top-0 z-40 border-b border-ink/5 bg-white/80 backdrop-blur-
     / -m-1 p-1: room inside the scroll area for the buttons' rings, which overflow-x-auto would clip.
     div class="-m-1 flex w-full items-center gap-1 overflow-x-auto p-1 text-sm whitespace-nowrap sm:w-auto sm:flex-1 sm:justify-end"
       = link_to t(".schedule"), root_path, class: nav_link.(controller_name == "schedules")
+      = link_to t(".play_sessions"), play_sessions_path, class: nav_link.(controller_name == "play_sessions")
       - if user_signed_in?
-        = link_to t(".my_bookings"), bookings_path, class: nav_link.(controller_name == "bookings")
+        / A short label on phones, where "Giao lưu" shares the row.
+        = link_to bookings_path, class: nav_link.(controller_name.in?(%w[bookings groups series series_requests])) do
+          span class="sm:hidden" = t(".my_bookings_short")
+          span class="hidden sm:inline" = t(".my_bookings")
         - if current_user.manager?
           = link_to t(".admin"), admin_root_path, class: nav_link.(controller_path.start_with?("admin/"))
         / Phones show an account icon instead of the (possibly long) name.
@@ -24,7 +28,11 @@ header class="sticky top-0 z-40 border-b border-ink/5 bg-white/80 backdrop-blur-
           span class="flex size-7 items-center justify-center rounded-full brand-gradient text-xs font-bold text-white" aria-hidden="true"
             = current_user.full_name.split.last.to_s.first.upcase
           span class="hidden max-w-40 truncate sm:inline" = current_user.full_name
-        = button_to t(".sign_out"), destroy_user_session_path, method: :delete, class: "btn-secondary ml-auto px-3 py-1.5 sm:ml-1 sm:px-4"
+        / An icon on phones, so the row fits a 390px screen.
+        = button_to destroy_user_session_path, method: :delete, class: "btn-secondary ml-auto px-2.5 py-1.5 sm:ml-1 sm:px-4", aria: { label: t(".sign_out") } do
+          svg class="size-4 sm:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+            path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l5-5-5-5M15 12H4"
+          span class="hidden sm:inline" = t(".sign_out")
       - else
         = link_to t(".sign_in"), new_user_session_path, class: [ *nav_link.(controller_name == "sessions"), "ml-auto sm:ml-0" ]
         = link_to t(".sign_up"), new_user_registration_path, class: "btn-primary ml-1 px-4 py-1.5"

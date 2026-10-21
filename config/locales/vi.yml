@@ -288,6 +288,8 @@ vi:
       header:
         schedule: Đặt sân
         my_bookings: Lượt đặt của tôi
+        my_bookings_short: Lượt đặt
+        play_sessions: Giao lưu
         sign_in: Đăng nhập
         sign_up: Đăng ký
         sign_out: Đăng xuất
@@ -558,6 +560,16 @@ vi:
       awaiting_payment: Chờ chuyển khoản
       awaiting_payment_line: "%{amount} · chuyển trước %{time} để giữ sân"
       pay_now: Chuyển khoản
+      groups: Nhóm
+      groups_hint: Chia tiền sân với bạn chơi
+      series: Lịch cố định
+      series_hint: Đóng tiền tháng, xin lịch mới
+    group_share:
+      title: Chia sẻ với nhóm
+      no_groups_html: "Chơi cùng bạn bè? %{link} để chia sẻ lượt đặt và tính tiền mỗi người góp."
+      groups_link: Tạo hoặc vào một nhóm
+      shared: "Đã chia sẻ với %{name}: %{players} người, mỗi người %{amount}"
+      players_placeholder: Cả nhóm
     lock_notice: "Tài khoản của bạn tạm thời không thể đặt sân online đến %{until} vì đã huỷ nhiều lần trong một ngày. Vui lòng gọi cho sân nếu cần hỗ trợ."
     unverified: Vui lòng xác minh email trước khi đặt sân. Chúng tôi đã gửi đường dẫn xác minh tới email của bạn.
     changed_meanwhile: Lượt đặt vừa được cập nhật ở nơi khác. Vui lòng xem lại trạng thái rồi thử lại.
@@ -602,6 +614,28 @@ vi:
       advanced: Khá
       expert: Giỏi
 
+    index:
+      title: Giao lưu
+      intro: Chưa có nhóm chơi? Đăng ký chỗ trong các buổi giao lưu của sân, gặp gỡ người chơi cùng trình độ. Chuyển khoản là giữ chỗ.
+      none: Hiện chưa có buổi giao lưu nào sắp tới. Bạn quay lại sau nhé!
+    session:
+      price: "%{price}/người"
+      seats_left:
+        other: "Còn %{count}/%{capacity} chỗ"
+      full: Đã đủ người
+      mine:
+        confirmed:
+          other: "Bạn đã có %{count} chỗ (đã trả %{amount})."
+        pending:
+          other: "Bạn đang giữ %{count} chỗ, chờ chuyển khoản %{amount}."
+      give_up: Huỷ chỗ
+      give_up_confirm: Huỷ các chỗ này? Chỗ sẽ được trả lại cho người khác.
+      give_up_confirm_paid: Chỗ đã thanh toán sẽ KHÔNG được hoàn tiền khi bạn tự huỷ. Bạn vẫn muốn huỷ?
+      quantity: Số người
+      buy: Đăng ký & chuyển khoản
+      buy_hint:
+        other: "Cho bạn và tối đa 9 người bạn. Chuyển khoản trong %{count} phút để giữ chỗ."
+      sign_in_to_buy: Đăng nhập để đăng ký
   booking_batch:
     errors:
       package_no_items: Khi trả bằng gói giờ, đồ thuê thêm vui lòng thuê tại quầy.
@@ -641,6 +675,11 @@ vi:
       paid_title: Đã nhận được tiền
       paid_bookings: Lượt đặt sân đã được xác nhận. Chúng tôi đã gửi email xác nhận cho bạn.
       paid_series: Tiền sân của tháng đã được ghi nhận. Cảm ơn bạn!
+      paid_tickets: Chỗ giao lưu của bạn đã được xác nhận. Hẹn gặp bạn ở sân!
+      view_play_sessions: Xem buổi giao lưu
+      view_series: Xem lịch cố định
+      for_tickets:
+        other: "Giao lưu: %{title} · %{time} · %{count} chỗ"
       view_bookings: Xem lượt đặt
       closed_title: Mã thanh toán đã hết hạn
       closed_text: Không còn giữ sân cho mã này. Nếu bạn vừa chuyển khoản, sân được xác nhận tự động khi giờ đó vẫn còn trống; nếu không, sân sẽ liên hệ để hoàn tiền.
@@ -653,6 +692,102 @@ vi:
         wrong_password: Mật khẩu không đúng.
         scheduled: "Tài khoản đã được khoá và sẽ bị xoá sau khi lượt chơi cuối kết thúc (khoảng %{time}). Chúng tôi đã gửi email cho bạn."
         deleted: Tài khoản của bạn đã được xoá. Chúng tôi đã gửi email xác nhận.
+
+  play_session_tickets:
+    destroy:
+      success: Đã huỷ chỗ giao lưu.
+
+  groups:
+    index:
+      title: Nhóm của tôi
+      back: "← Lượt đặt của tôi"
+      intro: Rủ bạn chơi vào nhóm bằng mã 6 ký tự, chia sẻ lượt đặt để cả nhóm thấy giờ chơi và số tiền mỗi người góp. Web không thu hộ tiền.
+      create: Tạo nhóm mới
+      name_placeholder: "Ví dụ: Cầu lông công ty"
+      create_submit: Tạo nhóm
+      join: Vào nhóm bằng mã
+      join_submit: Vào nhóm
+      none: Bạn chưa ở trong nhóm nào. Tạo một nhóm rồi gửi mã cho bạn bè nhé.
+    group:
+      members:
+        other: "%{count} thành viên"
+      members_label: Thành viên
+      code: Mã nhóm
+      owner: "· chủ nhóm"
+      shared: Lượt đặt chia sẻ sắp tới
+      no_shares: Chưa có lượt đặt nào được chia sẻ.
+      per_player_html: "Mỗi người góp %{amount} (%{players} người, tổng %{total})"
+      shared_by: "Chia sẻ bởi %{name}"
+      unshare: Gỡ
+      unshare_confirm: Gỡ lượt đặt này khỏi nhóm?
+      share_booking: Chia sẻ lượt đặt của bạn
+      share: Chia sẻ
+      leave: Rời nhóm
+      leave_confirm: "Rời nhóm %{name}? Các lượt đặt bạn đã chia sẻ sẽ được gỡ."
+      leave_confirm_owner: "Rời nhóm %{name}? Nhóm sẽ chuyển cho thành viên vào sớm nhất (không còn ai thì nhóm bị xoá); các lượt bạn chia sẻ sẽ được gỡ."
+      delete: Xoá nhóm
+      delete_confirm: "Xoá nhóm %{name} cho mọi thành viên?"
+    create:
+      success: "Đã tạo nhóm. Gửi mã %{code} cho bạn bè để mời vào nhóm."
+    join:
+      success: "Bạn đã vào nhóm %{name}."
+      wrong_code: Mã nhóm không đúng.
+    leave:
+      success: Bạn đã rời nhóm.
+    destroy:
+      success: Đã xoá nhóm.
+
+  group_shares:
+    create:
+      success: "Đã chia sẻ lượt đặt với nhóm %{name}."
+    destroy:
+      success: Đã gỡ lượt đặt khỏi nhóm.
+      not_allowed: Chỉ người chia sẻ hoặc chủ nhóm mới gỡ được.
+
+  series:
+    index:
+      title: Lịch cố định
+      intro: Các buổi chơi hằng tuần sân giữ cho bạn, đóng tiền theo tháng dương lịch. Buổi báo nghỉ có người khác chơi sẽ được trừ vào tháng sau.
+      new_request: Xin lịch mới
+      series: Lịch của bạn
+      no_series: Bạn chưa có lịch cố định nào. Gửi yêu cầu để sân xếp lịch cho bạn.
+      price: "Giá riêng: %{price}/giờ"
+      paid: Đã đóng
+      due: Cần đóng
+      sessions: Số buổi
+      amount: Tiền sân
+      credit: Trừ hoàn
+      due_amount: Cần đóng
+      paid_amount: Đã đóng
+      pay_hint: Chuyển khoản, sân ghi nhận tự động khi nhận được tiền.
+      waiting: "Mã %{code} đang chờ chuyển khoản."
+      pay: Đóng tiền
+      requests: Yêu cầu đã gửi
+      no_requests: Bạn chưa gửi yêu cầu nào.
+      decline_reason: "Lý do từ chối: %{reason}"
+      statuses:
+        pending: Chờ sân trả lời
+        approved: Đã tạo lịch
+        declined: Đã từ chối
+        cancelled: Đã rút lại
+      withdraw: Rút lại
+      withdraw_confirm: Rút lại yêu cầu này?
+    pay:
+      nothing_due: Tháng này không còn tiền cần đóng.
+
+  series_requests:
+    new:
+      title: Xin lịch cố định
+      intro:
+        other: "Chọn sân, các ngày trong tuần và khung giờ bạn muốn chơi hằng tuần. Sân sẽ kiểm tra lịch và trả lời qua email; bạn có thể gửi tối đa %{count} yêu cầu cùng lúc."
+      dates_hint: Bắt đầu từ ngày mai, kéo dài tối đa 1 năm.
+      note_placeholder: "Ví dụ: nhóm 8 người, cần sân sát nhau"
+      back: Quay lại
+      submit: Gửi yêu cầu
+    create:
+      success: Đã gửi yêu cầu. Sân sẽ trả lời qua email.
+    destroy:
+      success: Đã rút lại yêu cầu.
 
   api:
     groups:

@@ -76,12 +76,10 @@ module Admin
     def request_payment
       month = Date.iso8601(params.require(:month)).beginning_of_month
       bill = @series.billing(month)
-      return redirect_to(admin_series_path(@series), alert: t(".nothing_due")) if bill.paid? || bill.due_vnd <= 0
+      return redirect_to(admin_series_path(@series), alert: t(".nothing_due")) unless bill.payable?
       return redirect_to(edit_admin_settings_path, alert: t("admin.bookings.create.payments_unavailable")) unless venue.payments_enabled?
 
-      @series.payments.awaiting.where(series_month: month).find_each { |p| p.update!(status: :cancelled) }
-      Payment.create!(purpose: :series_period, series: @series, series_month: month, amount_vnd: bill.due_vnd,
-                      user: @series.user, created_by: current_user)
+      bill.request_payment!(by: current_user)
       redirect_to admin_series_path(@series), notice: t(".success")
     end
 

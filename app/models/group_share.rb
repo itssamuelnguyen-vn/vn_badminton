@@ -13,6 +13,11 @@ class GroupShare < ApplicationRecord
     (booking.charged_vnd.to_f / players / 1000).ceil * 1000
   end
 
+  # The member who shared it, or the group's owner.
+  def removable_by?(user)
+    shared_by_id == user.id || group.owner_id == user.id
+  end
+
   private
 
   def own_booking_in_own_group

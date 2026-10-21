@@ -91,11 +91,6 @@ class BookingsController < ApplicationController
 
   private
 
-  # The banner under the header (layouts/application/_unverified_notice) has the button to resend the email.
-  def require_verified_email
-    redirect_to root_path, alert: t("bookings.unverified") unless current_user.confirmed?
-  end
-
   def require_reschedulable
     redirect_to booking_path(@booking), alert: t("bookings.reschedule.not_allowed") unless @booking.reschedulable_by_customer?
   end

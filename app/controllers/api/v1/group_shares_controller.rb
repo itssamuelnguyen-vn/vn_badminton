@@ -5,9 +5,8 @@ module Api
       def create
         group = current_user.groups.find(params[:group_id])
         booking = current_user.bookings.kind_reservation.find_by!(code: params.require(:booking_code))
-        share = group.shares.find_or_initialize_by(booking: booking)
-        share.assign_attributes(shared_by: current_user, players: params[:players].presence || group.memberships.count)
-        if share.save
+        share = group.share(booking, by: current_user, players: params[:players])
+        if share.persisted?
           render json: ApiJson.group(group.reload, current_user), status: :created
         else
           render_error :invalid, share.errors.full_messages, status: :unprocessable_content
@@ -18,7 +17,7 @@ module Api
       def destroy
         group = current_user.groups.find(params[:group_id])
         share = group.shares.find(params[:id])
-        return render_error(:not_allowed, [], status: :forbidden) unless share.shared_by_id == current_user.id || group.owner_id == current_user.id
+        return render_error(:not_allowed, [], status: :forbidden) unless share.removable_by?(current_user)
 
         share.destroy!
         head :no_content
