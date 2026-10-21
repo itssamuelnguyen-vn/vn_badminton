@@ -1,22 +1,28 @@
-- tabs = [ [ t(".board"), admin_root_path, controller_name.in?(%w[boards bookings]) ],
-           [ t(".series"), admin_series_index_path, controller_name == "series" ],
-           [ t(".play_sessions"), admin_play_sessions_path, controller_name == "play_sessions" ],
-           [ t(".customers"), admin_customers_path, controller_name == "customers" ],
-           [ t(".reviews"), admin_reviews_path, controller_name == "reviews" ] ]
-/ Prices, settings and staff are for the owner only.
+/ Tabs in groups. Prices, settings and staff are for the owner only, so staff see the first group alone.
+- groups = [ [ t(".group_operations"), [ [ t(".board"), admin_root_path, controller_name.in?(%w[boards bookings]) ],
+                                         [ t(".series"), admin_series_index_path, controller_name == "series" ],
+                                         [ t(".play_sessions"), admin_play_sessions_path, controller_name == "play_sessions" ],
+                                         [ t(".customers"), admin_customers_path, controller_name == "customers" ],
+                                         [ t(".reviews"), admin_reviews_path, controller_name == "reviews" ] ] ] ]
 - if current_user.owner?
-  - tabs += [ [ t(".reports"), admin_reports_path, controller_name == "reports" ],
-              [ t(".transactions"), admin_bank_transactions_path, controller_name == "bank_transactions" ],
-              [ t(".price_rules"), admin_price_rules_path, controller_name == "price_rules" ],
-              [ t(".products"), admin_products_path, controller_name == "products" ],
-              [ t(".vouchers"), admin_vouchers_path, controller_name == "vouchers" ],
-              [ t(".packages"), admin_packages_path, controller_name == "packages" ],
-              [ t(".announcements"), admin_announcements_path, controller_name == "announcements" ],
-              [ t(".settings"), edit_admin_settings_path, controller_name == "settings" ],
-              [ t(".staff"), admin_staff_members_path, controller_name == "staff_members" ] ]
+  - groups += [ [ t(".group_money"), [ [ t(".reports"), admin_reports_path, controller_name == "reports" ],
+                                       [ t(".transactions"), admin_bank_transactions_path, controller_name == "bank_transactions" ] ] ],
+                [ t(".group_sales"), [ [ t(".price_rules"), admin_price_rules_path, controller_name == "price_rules" ],
+                                       [ t(".products"), admin_products_path, controller_name == "products" ],
+                                       [ t(".vouchers"), admin_vouchers_path, controller_name == "vouchers" ],
+                                       [ t(".packages"), admin_packages_path, controller_name == "packages" ] ] ],
+                [ t(".group_system"), [ [ t(".announcements"), admin_announcements_path, controller_name == "announcements" ],
+                                        [ t(".settings"), edit_admin_settings_path, controller_name == "settings" ],
+                                        [ t(".staff"), admin_staff_members_path, controller_name == "staff_members" ] ] ] ]
 
-/ The bottom line is an inset shadow, not a border: a -mb-px overlap would overflow and show a vertical scrollbar.
-nav class="mb-6 flex gap-1 overflow-x-auto text-sm whitespace-nowrap shadow-[inset_0_-1px_0_var(--color-slate-200)]" aria-label=t(".label")
-  - tabs.each do |label, path, current|
-    = link_to label, path, aria: { current: ("page" if current) },
-        class: [ "border-b-2 px-3 py-2 font-medium", current ? "border-emerald-600 text-emerald-700" : "border-transparent text-slate-600 hover:text-emerald-700" ]
+/ Wide screens: the groups wrap onto as many lines as needed, so every tab stays in sight.
+  Phones: one row that scrolls sideways; tab-scroll brings the current tab into view after each visit.
+nav class="relative mb-6 overflow-x-auto rounded-2xl bg-white p-1.5 text-sm whitespace-nowrap ring-1 ring-slate-200 md:overflow-visible" aria-label=t(".label") data-controller="tab-scroll"
+  div class="flex w-max items-center gap-y-1.5 md:w-auto md:flex-wrap"
+    - groups.each_with_index do |(name, tabs), index|
+      div class=[ "flex items-center gap-0.5", ("ml-1.5 border-l border-slate-200 pl-1.5" if index.positive?) ] role="group" aria-label=name
+        - if groups.size > 1
+          span class="hidden px-2 text-[10px] font-semibold tracking-wide text-slate-400 uppercase lg:inline" aria-hidden="true" = name
+        - tabs.each do |label, path, current|
+          = link_to label, path, aria: { current: ("page" if current) },
+              class: [ "rounded-xl px-3 py-1.5 font-medium transition", current ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200" : "text-slate-600 hover:bg-slate-50 hover:text-emerald-700" ]

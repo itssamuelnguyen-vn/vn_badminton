@@ -310,6 +310,10 @@ en:
         resend: Resend email
     admin:
       nav:
+        group_operations: Operations
+        group_money: Money
+        group_sales: Sales
+        group_system: System
         play_sessions: Open play
         vouchers: Vouchers
         packages: Prepaid hours
@@ -426,6 +430,11 @@ en:
 
   helpers:
     vnd: "%{amount} VND"
+    change_points: "%{sign}%{number} pts"
+    compact:
+      thousand: K
+      million: M
+      billion: B
     every_day: Every day
 
   courts:
@@ -1053,6 +1062,24 @@ en:
         no_shows: No-shows
         cancelled: Cancelled
         total: Total
+        vs_month: "vs %{month}"
+        collected_share: "%{percent} of expected revenue"
+        court_time: "%{booked} / %{open} court time"
+        revenue_by_day: Revenue by day
+        uncollected: Not yet collected
+        no_revenue: No bookings this month yet.
+        status_title: Booking outcomes
+        status_hint: The month's bookings, cancelled ones included.
+        played: Played / upcoming
+        no_bookings: No data yet.
+        heatmap: Occupancy by weekday and hour
+        heatmap_hint: The darker the cell, the fuller the courts. Hover (or tap) a cell for the number.
+        closed: Closed
+        whole_month: Whole month
+        details: Detailed figures
+        details_hint: Tables for every day and every hour of the month.
+        hour: Time
+        open_time: Open court time
     series:
       form:
         price_placeholder: Empty = price rules

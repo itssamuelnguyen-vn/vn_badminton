@@ -307,6 +307,10 @@ vi:
         resend: Gửi lại email
     admin:
       nav:
+        group_operations: Vận hành
+        group_money: Thu chi
+        group_sales: Bán hàng
+        group_system: Hệ thống
         play_sessions: Giao lưu
         vouchers: Mã giảm giá
         packages: Gói giờ
@@ -420,6 +424,11 @@ vi:
 
   helpers:
     vnd: "%{amount}đ"
+    change_points: "%{sign}%{number} điểm %"
+    compact:
+      thousand: k
+      million: tr
+      billion: tỷ
     every_day: Hằng ngày
 
   courts:
@@ -1034,6 +1043,24 @@ vi:
         no_shows: Không đến
         cancelled: Đã huỷ
         total: Tổng
+        vs_month: "so với %{month}"
+        collected_share: "%{percent} doanh thu dự kiến"
+        court_time: "%{booked} / %{open} giờ sân"
+        revenue_by_day: Doanh thu theo ngày
+        uncollected: Chưa thu
+        no_revenue: Chưa có lượt đặt nào trong tháng.
+        status_title: Tình trạng lượt đặt
+        status_hint: Các lượt trong tháng, kể cả lượt đã huỷ.
+        played: Đã chơi / sắp chơi
+        no_bookings: Chưa có số liệu.
+        heatmap: Lấp đầy theo thứ và giờ
+        heatmap_hint: Màu càng đậm, sân càng kín. Rê chuột (hoặc chạm) vào ô để xem số.
+        closed: Đóng cửa
+        whole_month: Cả tháng
+        details: Số liệu chi tiết
+        details_hint: Bảng từng ngày và từng khung giờ trong tháng.
+        hour: Khung giờ
+        open_time: Giờ mở cửa
     series:
       form:
         price_placeholder: Để trống = theo bảng giá
