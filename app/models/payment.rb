@@ -1,6 +1,8 @@
 # Money expected by bank transfer (VietQR), confirmed by a SePay webhook (Payments::Webhook).
 # purpose "bookings": the bookings made together, held (pending) until paid or until expires_at.
 # purpose "series_period": one calendar month of a regular customer's series.
+# purpose "package": prepaid hours (PackagePurchase), active once paid.
+# purpose "tickets": places in an open play session (PlaySession).
 class Payment < ApplicationRecord
   CODE_PREFIX = "VNB"
   # How long the customer has to transfer once on the payment page (the bookings stay held meanwhile).
@@ -10,13 +12,16 @@ class Payment < ApplicationRecord
   # CODE_PREFIX followed by 8 of Booking::CODE_CHARS (A-Z and 2-9 without O and I); test/models/payment_test.rb checks it.
   CODE_PATTERN = /VNB[A-HJ-NP-Z2-9]{8}/
 
-  enum :purpose, { bookings: "bookings", series_period: "series_period" }, prefix: :for, validate: true
+  enum :purpose, { bookings: "bookings", series_period: "series_period", package: "package", tickets: "tickets" }, prefix: :for, validate: true
   enum :status, { awaiting: "awaiting", paid: "paid", expired: "expired", cancelled: "cancelled" }, default: :awaiting, validate: true
 
   belongs_to :user, optional: true
   belongs_to :created_by, class_name: "User", optional: true
   belongs_to :series, class_name: "BookingSeries", optional: true
   belongs_to :bank_transaction, optional: true
+  belongs_to :package_purchase, optional: true
+  belongs_to :play_session_ticket, optional: true
+  has_one :voucher_redemption, dependent: :destroy
   has_many :bookings, dependent: :nullify
   # The transfers carrying this payment's code (or assigned to it by the owner).
   has_many :transfers, class_name: "BankTransaction", dependent: :nullify

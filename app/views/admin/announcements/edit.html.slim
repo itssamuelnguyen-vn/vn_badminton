@@ -1,0 +1,10 @@
+- content_for :title, t(".title")
+
+div class="card mx-auto max-w-lg"
+  h1 class="mb-6 text-2xl font-bold" = t(".title")
+  = render "admin/announcements/form", announcement: @announcement
+
+  div class="mt-6 border-t border-slate-100 pt-6"
+    = button_to t(".destroy"), admin_announcement_path(@announcement), method: :delete,
+        class: "btn bg-white text-red-700 ring-1 ring-red-200 hover:bg-red-50",
+        form: { data: { turbo_confirm: t(".destroy_confirm") } }

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_19_000014) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_20_000024) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "citext"
@@ -42,6 +42,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000014) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "announcements", force: :cascade do |t|
+    t.bigint "venue_id", null: false
+    t.string "title", null: false
+    t.string "title_en"
+    t.text "body"
+    t.text "body_en"
+    t.date "starts_on", null: false
+    t.date "ends_on", null: false
+    t.string "tone", default: "info", null: false
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
+    t.index ["venue_id"], name: "index_announcements_on_venue_id"
+    t.check_constraint "ends_on >= starts_on", name: "announcements_date_range_valid"
+    t.check_constraint "tone::text = ANY (ARRAY['info'::character varying, 'offer'::character varying, 'warning'::character varying]::text[])", name: "announcements_tone_valid"
   end
 
   create_table "api_tokens", force: :cascade do |t|
@@ -90,6 +106,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000014) do
     t.index ["actor_id"], name: "index_booking_events_on_actor_id"
     t.index ["booking_id", "id"], name: "index_booking_events_on_booking_id_and_id"
     t.index ["booking_id"], name: "index_booking_events_on_booking_id"
+  end
+
+  create_table "booking_items", force: :cascade do |t|
+    t.bigint "booking_id", null: false
+    t.bigint "product_id", null: false
+    t.string "name", null: false
+    t.bigint "unit_price_vnd", null: false
+    t.integer "quantity", null: false
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
+    t.index ["booking_id", "product_id"], name: "index_booking_items_on_booking_id_and_product_id", unique: true
+    t.index ["booking_id"], name: "index_booking_items_on_booking_id"
+    t.index ["product_id"], name: "index_booking_items_on_product_id"
+    t.check_constraint "quantity >= 1 AND quantity <= 20", name: "booking_items_quantity_valid"
+    t.check_constraint "unit_price_vnd > 0", name: "booking_items_price_positive"
   end
 
   create_table "booking_series", force: :cascade do |t|
@@ -167,11 +198,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000014) do
     t.bigint "refund_vnd"
     t.datetime "refunded_at", precision: 0
     t.bigint "refunded_by_id"
+    t.bigint "items_amount_vnd", default: 0, null: false
+    t.bigint "discount_vnd", default: 0, null: false
+    t.bigint "package_purchase_id"
+    t.integer "package_minutes"
+    t.bigint "play_session_id"
     t.index ["code"], name: "index_bookings_on_code", unique: true
     t.index ["court_id", "starts_at"], name: "index_bookings_on_court_id_and_starts_at"
     t.index ["created_by_id"], name: "index_bookings_on_created_by_id"
     t.index ["expires_at"], name: "index_bookings_on_expires_at", where: "((status)::text = 'pending'::text)"
+    t.index ["package_purchase_id"], name: "index_bookings_on_package_purchase_id"
     t.index ["payment_id"], name: "index_bookings_on_payment_id"
+    t.index ["play_session_id"], name: "index_bookings_on_play_session_id"
     t.index ["refunded_by_id"], name: "index_bookings_on_refunded_by_id"
     t.index ["series_id"], name: "index_bookings_on_series_id"
     t.index ["series_refund_period_id"], name: "index_bookings_on_series_refund_period_id"
@@ -183,7 +221,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000014) do
     t.check_constraint "(status::text = 'cancelled'::text) = (cancelled_at IS NOT NULL)", name: "bookings_cancelled_at_consistent"
     t.check_constraint "code::text ~ '^[A-Z0-9]{8}$'::text", name: "bookings_code_format"
     t.check_constraint "customer_phone::text ~ '^\\+84[0-9]{9}$'::text", name: "bookings_customer_phone_format"
+    t.check_constraint "discount_vnd >= 0 AND discount_vnd <= total_amount_vnd", name: "bookings_discount_valid"
     t.check_constraint "ends_at > starts_at", name: "bookings_ends_after_starts"
+    t.check_constraint "items_amount_vnd >= 0", name: "bookings_items_amount_non_negative"
     t.check_constraint "jsonb_typeof(price_breakdown) = 'array'::text", name: "bookings_price_breakdown_array"
     t.check_constraint "kind::text = 'reservation'::text AND customer_name IS NOT NULL AND length(btrim(customer_name::text)) > 0 OR kind::text = 'block'::text AND user_id IS NULL AND customer_name IS NULL AND customer_phone IS NULL AND total_amount_vnd = 0 AND payment_status::text = 'unpaid'::text AND source::text = 'staff'::text", name: "bookings_kind_fields"
     t.check_constraint "kind::text = ANY (ARRAY['reservation'::character varying, 'block'::character varying]::text[])", name: "bookings_kind_valid"
@@ -228,6 +268,40 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000014) do
     t.check_constraint "phone::text ~ '^\\+84[0-9]{9}$'::text", name: "customer_profiles_phone_format"
   end
 
+  create_table "group_memberships", force: :cascade do |t|
+    t.bigint "group_id", null: false
+    t.bigint "user_id", null: false
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
+    t.index ["group_id", "user_id"], name: "index_group_memberships_on_group_id_and_user_id", unique: true
+    t.index ["group_id"], name: "index_group_memberships_on_group_id"
+    t.index ["user_id"], name: "index_group_memberships_on_user_id"
+  end
+
+  create_table "group_shares", force: :cascade do |t|
+    t.bigint "group_id", null: false
+    t.bigint "booking_id", null: false
+    t.bigint "shared_by_id", null: false
+    t.integer "players", null: false
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
+    t.index ["booking_id"], name: "index_group_shares_on_booking_id"
+    t.index ["group_id", "booking_id"], name: "index_group_shares_on_group_id_and_booking_id", unique: true
+    t.index ["group_id"], name: "index_group_shares_on_group_id"
+    t.index ["shared_by_id"], name: "index_group_shares_on_shared_by_id"
+    t.check_constraint "players >= 1 AND players <= 50", name: "group_shares_players_valid"
+  end
+
+  create_table "groups", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "invite_code", null: false
+    t.bigint "owner_id", null: false
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
+    t.index ["invite_code"], name: "index_groups_on_invite_code", unique: true
+    t.index ["owner_id"], name: "index_groups_on_owner_id"
+  end
+
   create_table "opening_hours", force: :cascade do |t|
     t.bigint "venue_id", null: false
     t.integer "day_of_week", limit: 2, null: false
@@ -239,6 +313,49 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000014) do
     t.check_constraint "(opens_minute % 30) = 0 AND (closes_minute % 30) = 0", name: "opening_hours_aligned_to_slot"
     t.check_constraint "day_of_week >= 0 AND day_of_week <= 6", name: "opening_hours_day_valid"
     t.check_constraint "opens_minute >= 0 AND closes_minute <= 1440 AND closes_minute > opens_minute", name: "opening_hours_range_valid"
+  end
+
+  create_table "package_purchases", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "package_id", null: false
+    t.bigint "payment_id"
+    t.string "name", null: false
+    t.integer "minutes_total", null: false
+    t.integer "minutes_left", null: false
+    t.bigint "price_vnd", null: false
+    t.integer "valid_days", null: false
+    t.integer "start_minute"
+    t.integer "end_minute"
+    t.string "status", default: "awaiting", null: false
+    t.datetime "paid_at", precision: 0
+    t.datetime "expires_at", precision: 0
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
+    t.index ["package_id"], name: "index_package_purchases_on_package_id"
+    t.index ["payment_id"], name: "index_package_purchases_on_payment_id"
+    t.index ["user_id"], name: "index_package_purchases_on_user_id"
+    t.check_constraint "minutes_left >= 0 AND minutes_left <= minutes_total", name: "package_purchases_minutes_valid"
+    t.check_constraint "status::text <> 'active'::text OR paid_at IS NOT NULL AND expires_at IS NOT NULL", name: "package_purchases_active_paid"
+    t.check_constraint "status::text = ANY (ARRAY['awaiting'::character varying, 'active'::character varying, 'cancelled'::character varying]::text[])", name: "package_purchases_status_valid"
+  end
+
+  create_table "packages", force: :cascade do |t|
+    t.bigint "venue_id", null: false
+    t.string "name", null: false
+    t.string "name_en"
+    t.integer "minutes", null: false
+    t.bigint "price_vnd", null: false
+    t.integer "valid_days", null: false
+    t.integer "start_minute"
+    t.integer "end_minute"
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
+    t.index ["venue_id"], name: "index_packages_on_venue_id"
+    t.check_constraint "(start_minute IS NULL) = (end_minute IS NULL) AND (start_minute IS NULL OR end_minute > start_minute)", name: "packages_time_range_valid"
+    t.check_constraint "minutes > 0 AND (minutes % 30) = 0", name: "packages_minutes_valid"
+    t.check_constraint "price_vnd > 0 AND (price_vnd % 1000::bigint) = 0", name: "packages_price_valid"
+    t.check_constraint "valid_days >= 1 AND valid_days <= 730", name: "packages_valid_days_valid"
   end
 
   create_table "payments", force: :cascade do |t|
@@ -256,9 +373,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000014) do
     t.datetime "created_at", precision: 0, null: false
     t.datetime "updated_at", precision: 0, null: false
     t.bigint "bank_transaction_id"
+    t.bigint "discount_vnd", default: 0, null: false
+    t.string "offer"
+    t.bigint "package_purchase_id"
+    t.bigint "play_session_ticket_id"
     t.index ["bank_transaction_id"], name: "index_payments_on_bank_transaction_id"
     t.index ["code"], name: "index_payments_on_code", unique: true
     t.index ["created_by_id"], name: "index_payments_on_created_by_id"
+    t.index ["package_purchase_id"], name: "index_payments_on_package_purchase_id"
+    t.index ["play_session_ticket_id"], name: "index_payments_on_play_session_ticket_id"
     t.index ["series_id"], name: "index_payments_on_series_id"
     t.index ["token"], name: "index_payments_on_token", unique: true
     t.index ["user_id"], name: "index_payments_on_user_id"
@@ -267,8 +390,54 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000014) do
     t.check_constraint "code::text ~ '^VNB[A-Z0-9]{8}$'::text", name: "payments_code_format"
     t.check_constraint "purpose::text <> 'bookings'::text OR expires_at IS NOT NULL", name: "payments_bookings_expiry"
     t.check_constraint "purpose::text <> 'series_period'::text OR series_id IS NOT NULL AND series_month IS NOT NULL", name: "payments_series_period_target"
-    t.check_constraint "purpose::text = ANY (ARRAY['bookings'::character varying, 'series_period'::character varying]::text[])", name: "payments_purpose_valid"
+    t.check_constraint "purpose::text = ANY (ARRAY['bookings'::character varying, 'series_period'::character varying, 'package'::character varying, 'tickets'::character varying]::text[])", name: "payments_purpose_valid"
     t.check_constraint "status::text = ANY (ARRAY['awaiting'::character varying, 'paid'::character varying, 'expired'::character varying, 'cancelled'::character varying]::text[])", name: "payments_status_valid"
+  end
+
+  create_table "play_session_tickets", force: :cascade do |t|
+    t.bigint "play_session_id", null: false
+    t.bigint "user_id", null: false
+    t.bigint "payment_id"
+    t.integer "quantity", null: false
+    t.bigint "amount_vnd", null: false
+    t.string "status", default: "pending", null: false
+    t.datetime "checked_in_at", precision: 0
+    t.datetime "cancelled_at", precision: 0
+    t.bigint "refund_vnd"
+    t.datetime "refunded_at", precision: 0
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
+    t.index ["payment_id"], name: "index_play_session_tickets_on_payment_id"
+    t.index ["play_session_id"], name: "index_play_session_tickets_on_play_session_id"
+    t.index ["user_id"], name: "index_play_session_tickets_on_user_id"
+    t.check_constraint "quantity >= 1 AND quantity <= 10", name: "play_session_tickets_quantity_valid"
+    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying, 'confirmed'::character varying, 'cancelled'::character varying]::text[])", name: "play_session_tickets_status_valid"
+  end
+
+  create_table "play_sessions", force: :cascade do |t|
+    t.bigint "venue_id", null: false
+    t.bigint "created_by_id", null: false
+    t.string "title", null: false
+    t.string "title_en"
+    t.text "description"
+    t.bigint "court_ids", null: false, array: true
+    t.datetime "starts_at", precision: 0, null: false
+    t.datetime "ends_at", precision: 0, null: false
+    t.integer "capacity", null: false
+    t.bigint "price_vnd", null: false
+    t.string "level"
+    t.string "status", default: "open", null: false
+    t.datetime "cancelled_at", precision: 0
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
+    t.index ["created_by_id"], name: "index_play_sessions_on_created_by_id"
+    t.index ["starts_at"], name: "index_play_sessions_on_starts_at"
+    t.index ["venue_id"], name: "index_play_sessions_on_venue_id"
+    t.check_constraint "capacity >= 1 AND capacity <= 200", name: "play_sessions_capacity_valid"
+    t.check_constraint "cardinality(court_ids) >= 1", name: "play_sessions_courts_present"
+    t.check_constraint "ends_at > starts_at", name: "play_sessions_range_valid"
+    t.check_constraint "price_vnd > 0 AND (price_vnd % 1000::bigint) = 0", name: "play_sessions_price_valid"
+    t.check_constraint "status::text = ANY (ARRAY['open'::character varying, 'cancelled'::character varying]::text[])", name: "play_sessions_status_valid"
   end
 
   create_table "price_rules", force: :cascade do |t|
@@ -294,6 +463,56 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000014) do
     t.check_constraint "price_per_hour_vnd > 0 AND price_per_hour_vnd <= 100000000 AND (price_per_hour_vnd % 1000::bigint) = 0", name: "price_rules_price_valid"
     t.check_constraint "start_minute >= 0 AND end_minute <= 1440 AND end_minute > start_minute AND (start_minute % 30) = 0 AND (end_minute % 30) = 0", name: "price_rules_time_range_valid"
     t.check_constraint "valid_from IS NULL OR valid_until IS NULL OR valid_until >= valid_from", name: "price_rules_validity_range"
+  end
+
+  create_table "products", force: :cascade do |t|
+    t.bigint "venue_id", null: false
+    t.string "name", null: false
+    t.string "name_en"
+    t.bigint "price_vnd", null: false
+    t.integer "position", default: 0, null: false
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
+    t.index ["venue_id"], name: "index_products_on_venue_id"
+    t.check_constraint "price_vnd > 0 AND (price_vnd % 1000::bigint) = 0", name: "products_price_valid"
+  end
+
+  create_table "reviews", force: :cascade do |t|
+    t.bigint "booking_id", null: false
+    t.bigint "user_id", null: false
+    t.integer "rating", limit: 2, null: false
+    t.text "comment"
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
+    t.index ["booking_id"], name: "index_reviews_on_booking_id", unique: true
+    t.index ["user_id"], name: "index_reviews_on_user_id"
+    t.check_constraint "rating >= 1 AND rating <= 5", name: "reviews_rating_valid"
+  end
+
+  create_table "series_requests", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "court_ids", null: false, array: true
+    t.integer "days_of_week", limit: 2, null: false, array: true
+    t.integer "start_minute", null: false
+    t.integer "end_minute", null: false
+    t.date "starts_on", null: false
+    t.date "ends_on", null: false
+    t.text "note"
+    t.string "status", default: "pending", null: false
+    t.bigint "series_id"
+    t.bigint "decided_by_id"
+    t.datetime "decided_at", precision: 0
+    t.string "decline_reason"
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
+    t.index ["decided_by_id"], name: "index_series_requests_on_decided_by_id"
+    t.index ["series_id"], name: "index_series_requests_on_series_id"
+    t.index ["user_id"], name: "index_series_requests_on_user_id"
+    t.check_constraint "cardinality(court_ids) >= 1", name: "series_requests_courts_present"
+    t.check_constraint "ends_on >= starts_on", name: "series_requests_date_range_valid"
+    t.check_constraint "start_minute >= 0 AND end_minute <= 1440 AND end_minute > start_minute AND (start_minute % 30) = 0 AND (end_minute % 30) = 0", name: "series_requests_time_range_valid"
+    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying, 'approved'::character varying, 'declined'::character varying, 'cancelled'::character varying]::text[])", name: "series_requests_status_valid"
   end
 
   create_table "users", force: :cascade do |t|
@@ -357,6 +576,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000014) do
     t.string "bank_account_name"
     t.string "zalo_phone"
     t.string "facebook_page"
+    t.boolean "loyalty_enabled", default: true, null: false
+    t.integer "silver_hours", default: 20, null: false
+    t.integer "silver_percent", default: 3, null: false
+    t.integer "gold_hours", default: 60, null: false
+    t.integer "gold_percent", default: 5, null: false
+    t.integer "diamond_hours", default: 150, null: false
+    t.integer "diamond_percent", default: 10, null: false
     t.index ["slug"], name: "index_venues_on_slug", unique: true
     t.check_constraint "booking_horizon_days >= 1 AND booking_horizon_days <= 365", name: "venues_booking_horizon_valid"
     t.check_constraint "cancellation_cutoff_hours >= 0 AND cancellation_cutoff_hours <= 168", name: "venues_cancellation_cutoff_valid"
@@ -368,17 +594,72 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000014) do
     t.check_constraint "max_upcoming_bookings >= 1 AND max_upcoming_bookings <= 50", name: "venues_max_upcoming_bookings_valid"
     t.check_constraint "min_booking_minutes >= 30 AND (min_booking_minutes % 30) = 0", name: "venues_min_booking_minutes_valid"
     t.check_constraint "phone::text ~ '^\\+84[0-9]{9}$'::text", name: "venues_phone_format"
+    t.check_constraint "silver_hours > 0 AND gold_hours > silver_hours AND diamond_hours > gold_hours", name: "venues_tier_hours_ascending"
+    t.check_constraint "silver_percent >= 0 AND silver_percent <= 50 AND gold_percent >= 0 AND gold_percent <= 50 AND diamond_percent >= 0 AND diamond_percent <= 50", name: "venues_tier_percents_valid"
     t.check_constraint "slug::text ~ '^[a-z0-9]+(-[a-z0-9]+)*$'::text", name: "venues_slug_format"
     t.check_constraint "status::text = ANY (ARRAY['active'::character varying, 'inactive'::character varying]::text[])", name: "venues_status_valid"
   end
 
+  create_table "voucher_redemptions", force: :cascade do |t|
+    t.bigint "voucher_id", null: false
+    t.bigint "user_id", null: false
+    t.bigint "payment_id", null: false
+    t.bigint "discount_vnd", null: false
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
+    t.index ["payment_id"], name: "index_voucher_redemptions_on_payment_id", unique: true
+    t.index ["user_id"], name: "index_voucher_redemptions_on_user_id"
+    t.index ["voucher_id"], name: "index_voucher_redemptions_on_voucher_id"
+  end
+
+  create_table "vouchers", force: :cascade do |t|
+    t.bigint "venue_id", null: false
+    t.string "code", null: false
+    t.string "description"
+    t.string "kind", null: false
+    t.integer "value", null: false
+    t.bigint "max_discount_vnd"
+    t.bigint "min_amount_vnd", default: 0, null: false
+    t.date "valid_from", null: false
+    t.date "valid_until", null: false
+    t.integer "days_of_week", limit: 2, array: true
+    t.integer "start_minute"
+    t.integer "end_minute"
+    t.integer "usage_limit"
+    t.integer "per_user_limit", default: 1, null: false
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
+    t.index ["code"], name: "index_vouchers_on_code", unique: true
+    t.index ["venue_id"], name: "index_vouchers_on_venue_id"
+    t.check_constraint "(start_minute IS NULL) = (end_minute IS NULL) AND (start_minute IS NULL OR end_minute > start_minute)", name: "vouchers_time_range_valid"
+    t.check_constraint "kind::text = ANY (ARRAY['percent'::character varying, 'amount'::character varying]::text[])", name: "vouchers_kind_valid"
+    t.check_constraint "valid_until >= valid_from", name: "vouchers_date_range_valid"
+    t.check_constraint "value > 0 AND (kind::text <> 'percent'::text OR value <= 100)", name: "vouchers_value_valid"
+  end
+
+  create_table "waitlist_entries", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.datetime "starts_at", precision: 0, null: false
+    t.datetime "ends_at", precision: 0, null: false
+    t.datetime "notified_at", precision: 0
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
+    t.index ["starts_at"], name: "index_waitlist_entries_on_starts_at", where: "(notified_at IS NULL)"
+    t.index ["user_id"], name: "index_waitlist_entries_on_user_id"
+    t.check_constraint "ends_at > starts_at", name: "waitlist_entries_range_valid"
+  end
+
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "announcements", "venues"
   add_foreign_key "api_tokens", "users", on_delete: :cascade
   add_foreign_key "bank_transactions", "payments"
   add_foreign_key "bank_transactions", "users", column: "resolved_by_id"
   add_foreign_key "booking_events", "bookings", on_delete: :cascade
   add_foreign_key "booking_events", "users", column: "actor_id"
+  add_foreign_key "booking_items", "bookings", on_delete: :cascade
+  add_foreign_key "booking_items", "products"
   add_foreign_key "booking_series", "users"
   add_foreign_key "booking_series", "users", column: "created_by_id"
   add_foreign_key "booking_series_periods", "booking_series", column: "series_id"
@@ -386,19 +667,49 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_000014) do
   add_foreign_key "bookings", "booking_series", column: "series_id"
   add_foreign_key "bookings", "booking_series_periods", column: "series_refund_period_id"
   add_foreign_key "bookings", "courts"
+  add_foreign_key "bookings", "package_purchases"
   add_foreign_key "bookings", "payments"
+  add_foreign_key "bookings", "play_sessions"
   add_foreign_key "bookings", "users"
   add_foreign_key "bookings", "users", column: "cancelled_by_id"
   add_foreign_key "bookings", "users", column: "created_by_id"
   add_foreign_key "bookings", "users", column: "refunded_by_id"
   add_foreign_key "courts", "venues"
   add_foreign_key "customer_profiles", "users", column: "blocked_by_id"
+  add_foreign_key "group_memberships", "groups", on_delete: :cascade
+  add_foreign_key "group_memberships", "users", on_delete: :cascade
+  add_foreign_key "group_shares", "bookings", on_delete: :cascade
+  add_foreign_key "group_shares", "groups", on_delete: :cascade
+  add_foreign_key "group_shares", "users", column: "shared_by_id", on_delete: :cascade
+  add_foreign_key "groups", "users", column: "owner_id"
   add_foreign_key "opening_hours", "venues", on_delete: :cascade
+  add_foreign_key "package_purchases", "packages"
+  add_foreign_key "package_purchases", "payments"
+  add_foreign_key "package_purchases", "users"
+  add_foreign_key "packages", "venues"
   add_foreign_key "payments", "bank_transactions"
   add_foreign_key "payments", "booking_series", column: "series_id"
+  add_foreign_key "payments", "package_purchases"
+  add_foreign_key "payments", "play_session_tickets"
   add_foreign_key "payments", "users"
   add_foreign_key "payments", "users", column: "created_by_id"
+  add_foreign_key "play_session_tickets", "payments"
+  add_foreign_key "play_session_tickets", "play_sessions"
+  add_foreign_key "play_session_tickets", "users"
+  add_foreign_key "play_sessions", "users", column: "created_by_id"
+  add_foreign_key "play_sessions", "venues"
   add_foreign_key "price_rules", "courts", column: ["court_id", "venue_id"], primary_key: ["id", "venue_id"], name: "fk_price_rules_court_venue"
   add_foreign_key "price_rules", "venues"
+  add_foreign_key "products", "venues"
+  add_foreign_key "reviews", "bookings", on_delete: :cascade
+  add_foreign_key "reviews", "users", on_delete: :cascade
+  add_foreign_key "series_requests", "booking_series", column: "series_id"
+  add_foreign_key "series_requests", "users", column: "decided_by_id"
+  add_foreign_key "series_requests", "users", on_delete: :cascade
   add_foreign_key "users", "users", column: "deletion_requested_by_id"
+  add_foreign_key "voucher_redemptions", "payments"
+  add_foreign_key "voucher_redemptions", "users", on_delete: :cascade
+  add_foreign_key "voucher_redemptions", "vouchers"
+  add_foreign_key "vouchers", "venues"
+  add_foreign_key "waitlist_entries", "users", on_delete: :cascade
 end

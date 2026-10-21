@@ -50,6 +50,21 @@ Rails.application.routes.draw do
           patch :update_price
         end
       end
+      resources :series_requests, only: [] do
+        patch :decline, on: :member
+      end
+      resources :products, except: %i[show destroy]
+      resources :vouchers, except: %i[show destroy]
+      resources :packages, except: %i[show destroy]
+      resources :announcements, except: :show
+      resources :reviews, only: :index
+      resources :play_sessions, only: %i[index new create show] do
+        member do
+          patch :cancel
+          patch :check_in
+          patch :mark_refunded
+        end
+      end
       get "reports", to: "reports#show", as: :reports
       resources :bank_transactions, path: "transactions", only: %i[index update] do
         patch :assign, on: :member
@@ -93,9 +108,35 @@ Rails.application.routes.draw do
       resource :schedule, only: :show
       resource :hold, only: %i[create destroy]
       resources :bookings, only: %i[index show create], param: :code do
-        patch :cancel, on: :member
+        member do
+          patch :cancel
+          # The new slot is checked and priced first (GET), then moved to (PATCH).
+          get :reschedule, action: :review_reschedule
+          patch :reschedule
+          post :review
+        end
       end
       resources :payments, only: :show, param: :token
+      resource :quote, only: :create
+      resources :packages, only: :index do
+        post :buy, on: :member
+      end
+      resources :announcements, only: :index
+      resources :play_sessions, only: :index do
+        post :tickets, on: :member, action: :buy
+      end
+      resources :tickets, only: :destroy, controller: :play_session_tickets
+      resources :groups, only: %i[index create destroy] do
+        post :join, on: :collection
+        delete :leave, on: :member
+        resources :shares, only: %i[create destroy], controller: :group_shares
+      end
+      resources :waitlist_entries, path: "waitlist", only: %i[index create destroy]
+      resources :series_requests, only: %i[index create destroy]
+      resources :series, only: :index do
+        # A transfer code for a month (YYYY-MM) still to pay.
+        post :pay, on: :member
+      end
     end
   end
 

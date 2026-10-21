@@ -28,11 +28,18 @@ class Booking < ApplicationRecord
   belongs_to :series_refund_period, class_name: "BookingSeriesPeriod", optional: true
   belongs_to :payment, optional: true
   belongs_to :refunded_by, class_name: "User", optional: true
+  # Paid with prepaid hours (PackagePurchase): package_minutes were taken off it.
+  belongs_to :package_purchase, optional: true
+  # A block keeping a court for an open play session.
+  belongs_to :play_session, optional: true
 
   # Why a booking was cancelled, besides a plain cancellation (see also BookingSeries reasons).
   PAYMENT_EXPIRED = "payment_expired" # the transfer did not arrive in time
   VENUE_FAULT = "venue_fault"         # the venue could not provide the court (outage, broken court): refunded
   has_one :venue, through: :court
+  # Products picked with the booking (racket, shuttlecocks...), paid with it; their sum is items_amount_vnd.
+  has_many :items, -> { order(:id) }, class_name: "BookingItem", inverse_of: :booking, dependent: :delete_all
+  has_one :review, dependent: :destroy
 
   # Expired holds no longer count, even before they are deleted (see release_expired_holds!).
   scope :holding_slot, ->(now = Time.current) {
@@ -57,6 +64,7 @@ class Booking < ApplicationRecord
   normalizes :customer_name, with: ->(name) { name.squish.presence }
 
   after_commit :refresh_live_schedules
+  after_commit :tell_waitlist, on: :update
   # The booking's history, oldest first (see #record_events).
   has_many :events, -> { order(:id) }, class_name: "BookingEvent", inverse_of: :booking
   after_create :record_creation
@@ -113,6 +121,7 @@ class Booking < ApplicationRecord
 
     deleted = holds.delete_all
     Schedule::Live.refresh(ranges)
+    WaitlistJob.enqueue_for(ranges)
     deleted
   end
 
@@ -189,6 +198,18 @@ class Booking < ApplicationRecord
     ACTIVE_STATUSES.include?(status) && !(pending? && expires_at && expires_at <= now)
   end
 
+  # What the customer pays for the booking: the court less its discount (tier, voucher, prepaid hours) and the
+  # products picked with it.
+  def charged_vnd
+    total_amount_vnd - discount_vnd + items_amount_vnd
+  end
+
+  # Prices the booking without saving it (for a quote before booking).
+  def quote_price
+    apply_price if needs_pricing?
+    self
+  end
+
   def duration_minutes
     ((ends_at - starts_at) / 60).to_i
   end
@@ -240,7 +261,9 @@ class Booking < ApplicationRecord
     transaction do
       paid = payment_paid?
       cancel!(by: by, reason: VENUE_FAULT, now: now)
-      update!(refund_vnd: total_amount_vnd) if paid && total_amount_vnd.positive?
+      update!(refund_vnd: charged_vnd) if paid && charged_vnd.positive?
+      # Prepaid hours go back to the package (even past its expiry date, the hours stay recorded).
+      package_purchase.with_lock { package_purchase.update!(minutes_left: package_purchase.minutes_left + package_minutes) } if package_purchase && package_minutes
     end
   end
 
@@ -357,6 +380,15 @@ class Booking < ApplicationRecord
       ranges << [ court_id_before_last_save, starts_at_before_last_save, ends_at_before_last_save ]
     end
     Schedule::Live.refresh(ranges.uniq)
+  end
+
+  # A slot freed by a cancellation or a move may be what someone waits for (WaitlistEntry).
+  def tell_waitlist
+    if saved_change_to_status? && cancelled?
+      WaitlistJob.enqueue_for([ [ court_id, starts_at, ends_at ] ])
+    elsif saved_change_to_court_id? || saved_change_to_starts_at? || saved_change_to_ends_at?
+      WaitlistJob.enqueue_for([ [ court_id_before_last_save, starts_at_before_last_save, ends_at_before_last_save ] ])
+    end
   end
 
   # A status change only counts when the booking starts holding the slot again (e.g. a cancelled

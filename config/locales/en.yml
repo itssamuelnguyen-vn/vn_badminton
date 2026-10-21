@@ -9,6 +9,19 @@ en:
 
   activerecord:
     models:
+      play_session: Open play session
+      play_session_ticket: Open play place
+      group: Group
+      group_share: Shared booking
+      voucher: Voucher
+      package: Prepaid hours
+      package_purchase: Prepaid hours bought
+      product: Extra
+      booking_item: Booking extra
+      announcement: Announcement
+      review: Review
+      waitlist_entry: Free court alert
+      series_request: Regular booking request
       user: User
       venue: Venue
       opening_hour: Opening hours
@@ -18,6 +31,78 @@ en:
       booking_series: Regular booking
 
     attributes:
+      play_session:
+        title: Title
+        title_en: English title
+        description: Description
+        court_ids: Courts
+        starts_at: Start time
+        ends_at: End time
+        date: Date
+        capacity: Places
+        price_vnd: Price per player
+        level: Level
+      play_session_ticket:
+        quantity: Players
+      group:
+        name: Group name
+      group_share:
+        players: Players
+        booking: Booking
+        group: Group
+      voucher:
+        code: Code
+        description: Description
+        kind: Type
+        value: Discount
+        max_discount_vnd: Maximum discount
+        min_amount_vnd: Minimum order
+        valid_from: From
+        valid_until: Until
+        days_of_week: Days
+        start_minute: From time
+        end_minute: Until time
+        usage_limit: Total uses
+        per_user_limit: Uses per customer
+        active: Active
+      package:
+        name: Name (Vietnamese)
+        name_en: English name
+        minutes: Hours
+        hours: Hours
+        price_vnd: Price
+        valid_days: Use within (days)
+        start_minute: Only from
+        end_minute: Until
+        active: On sale
+      product:
+        name: Name (Vietnamese)
+        name_en: English name
+        price_vnd: Price
+        position: Order
+        active: On sale
+      announcement:
+        title: Title
+        title_en: English title
+        body: Text
+        body_en: English text
+        starts_on: Shown from
+        ends_on: Until
+        tone: Style
+      review:
+        rating: Stars
+        comment: Comment
+      waitlist_entry:
+        starts_at: Start time
+        ends_at: End time
+      series_request:
+        court_ids: Courts
+        days_of_week: Days of the week
+        start_minute: Start time
+        end_minute: End time
+        starts_on: From
+        ends_on: Until
+        note: Note
       user:
         email: Email
         full_name: Full name
@@ -33,6 +118,15 @@ en:
         skill_level: Badminton level
         avatar: Profile photo
       venue:
+        loyalty_enabled: Member tier discounts on online bookings
+        tier_hours: From hours played (12 months)
+        tier_percent: Discount (%)
+        silver_hours: Silver hours
+        silver_percent: Silver discount
+        gold_hours: Gold hours
+        gold_percent: Gold discount
+        diamond_hours: Diamond hours
+        diamond_percent: Diamond discount
         name: Name
         slug: Slug
         address: Address
@@ -95,6 +189,55 @@ en:
 
     errors:
       models:
+        play_session:
+          after_start: "must be after the start time"
+          off_slot_grid: "Times must be on the half hour"
+          not_in_future: "must be in the future"
+          invalid: "is invalid"
+        play_session_ticket:
+          not_bookable: This session no longer takes players.
+          blacklisted: Your account cannot book online at the moment. Please contact the venue.
+          full: "Only %{left} places left in this session."
+        group:
+          too_many: "You can be in at most %{count} groups."
+          full: "The group already has %{count} members."
+        group_share:
+          not_yours: "is not yours"
+          not_member: "you are not in this group"
+        voucher:
+          before_valid_from: "must be after the start date"
+          after_start: "must be after the start time"
+          both_or_none: "needs both a start and an end time, or neither"
+          invalid_days: "is invalid"
+        package:
+          not_multiple_of_30: "must be whole half hours"
+          not_multiple_of_1000: "must be a multiple of 1,000 VND"
+          after_start: "must be after the start time"
+          both_or_none: "needs both a start and an end time, or neither"
+        product:
+          not_multiple_of_1000: "must be a multiple of 1,000 VND"
+        announcement:
+          before_starts_on: "must be after the start date"
+        review:
+          not_reviewable: "You can only review a session you played, within 14 days after it"
+        waitlist_entry:
+          after_start: "must be after the start time"
+          not_in_future: "must be in the future"
+          off_slot_grid: "Times must be on the half hour"
+          too_many:
+            one: "You can wait for at most %{count} time at once"
+            other: "You can wait for at most %{count} times at once"
+        series_request:
+          after_start: "must be after the start time"
+          off_slot_grid: "Times must be on the half hour"
+          invalid_days: "is invalid"
+          invalid: "is invalid"
+          not_in_future: "must be tomorrow or later"
+          before_starts_on: "must be after the start date"
+          too_far: "at most 1 year after the start date"
+          too_many:
+            one: "You already have %{count} request waiting for the venue, the most allowed"
+            other: "You already have %{count} requests waiting for the venue, the most allowed"
         user:
           privacy_consent_required: "You need to agree to the privacy policy to sign up"
           attributes:
@@ -105,6 +248,8 @@ en:
               too_big: "must not be larger than %{size} MB"
 
         venue:
+          more_than_silver: "must be more than the Silver hours"
+          more_than_gold: "must be more than the Gold hours"
           not_multiple_of_30: "must be a multiple of 30"
           less_than_min: "must be greater than or equal to the minimum duration"
         opening_hour:
@@ -164,6 +309,12 @@ en:
         resend: Resend email
     admin:
       nav:
+        play_sessions: Open play
+        vouchers: Vouchers
+        packages: Prepaid hours
+        reviews: Reviews
+        products: Extras
+        announcements: Announcements
         label: Management
         board: Day board
         price_rules: Price rules
@@ -343,6 +494,9 @@ en:
       total: Total
       price: Price
     new:
+      tier_discount: "%{label} offer: −%{amount}, taken off the transfer."
+      voucher_code: Voucher code (if you have one)
+      voucher_hint: One offer per order; a voucher replaces the member discount when it saves more.
       title: Confirm your booking
       customer: Booked by
       customer_hint_html: "Taken from your account. Need a change? Go to %{link}."
@@ -405,8 +559,48 @@ en:
       back: Pick another time
       submit: Confirm the change
 
+  pricing:
+    offer:
+      tier: "%{tier} member (%{percent}% off)"
+      voucher: "Code %{code}"
+      voucher_problems:
+        not_found: This voucher code is not valid.
+        inactive: This voucher is no longer in use.
+        expired: This voucher is not valid yet or has expired.
+        used_up: This voucher has been used up.
+        used_by_you: You have used this voucher as many times as allowed.
+        min_amount: The order is below this voucher's minimum.
+        wrong_day: This voucher is not valid on the day you picked.
+        wrong_time: This voucher is not valid at the time you picked.
+        tier_better: Your member discount saves more than this code, so it is kept.
+
+  loyalty:
+    tiers:
+      bronze: Bronze
+      silver: Silver
+      gold: Gold
+      diamond: Diamond
+
+  play_sessions:
+    block_note: "Open play: %{title}"
+    levels:
+      any: All levels
+      beginner: Beginner
+      intermediate: Intermediate
+      advanced: Advanced
+      expert: Expert
+
   booking_batch:
     errors:
+      package_no_items: When paying with prepaid hours, please rent extras at the counter.
+      package:
+        not_usable: These prepaid hours cannot be used yet or have expired.
+        not_enough: Not enough prepaid hours left for this booking.
+        expires_before: The prepaid hours expire before the day you picked.
+        wrong_time: These prepaid hours cannot be used at the time you picked.
+        no_items: When paying with prepaid hours, please rent extras at the counter.
+      product_unavailable: An extra you picked is no longer available, please pick again.
+      quantity_invalid: "Each extra's quantity must be between 1 and %{max}."
       locked: "Your account cannot book online until %{until} because of several cancellations in one day."
       limit_reached:
         one: "You already have %{count} upcoming booking, the maximum. Play or cancel it before booking again."
@@ -451,6 +645,10 @@ en:
         deleted: Your account has been deleted. We have sent you a confirmation email.
 
   api:
+    groups:
+      wrong_code: This group code is not valid.
+    series:
+      nothing_due: Nothing left to pay for this month.
     unauthorized: Please sign in again.
     avatar_missing: Please choose a photo.
   account_mailer:
@@ -498,6 +696,24 @@ en:
       intro: "Your booking has been moved to a new time:"
       before: "Before:"
 
+  notice_mailer:
+    play_session_cancelled:
+      subject: "The venue cancelled %{title} at %{time}"
+      intro: "The venue cancelled the open play session %{title} at %{time} you signed up for."
+      refund: "The venue will refund the %{amount} you transferred."
+    slot_freed:
+      subject: "A court is free at %{time}"
+      intro: "The time you were waiting for (%{from} – %{to}) has a free court now."
+      hurry: "First come, first served: book soon!"
+      book_now: Book now
+    series_request_decided:
+      subject_approved: Your regular booking is set up
+      subject_declined: The venue could not take your regular booking
+      intro: "Regular booking request: %{courts} · %{days} %{time}."
+      approved: The venue set up the regular booking you asked for. See it and pay each month in the app, under Regular bookings.
+      declined: Sorry, the venue could not take this booking.
+      reason: "Reason: %{reason}"
+
   admin:
     not_authorized: You are not allowed to open the management pages.
     block: Blocked
@@ -532,6 +748,7 @@ en:
         label: "Courts on %{date}"
         book_slot: "Book %{court} at %{time}"
       list:
+        items: "To prepare: %{list}"
         title: Bookings of the day
         empty: No bookings on this day yet.
         cancelled:
@@ -699,6 +916,8 @@ en:
         success: Price rule deleted.
     settings:
       edit:
+        loyalty: Member tiers
+        loyalty_hint: Tiers go by the hours played (checked in, paid) in the last 12 months; below Silver is Bronze, with no discount. The discount applies to the court price of online bookings and is not added to a voucher.
         title: Settings
         venue: Venue details
         policy: Online booking rules
@@ -776,6 +995,8 @@ en:
           other: "Showing the %{count} most recent customers. Use the search to find others."
         empty: No customers.
       show:
+        tier: "%{tier} member · %{hours} hours played in 12 months"
+        package_left: "%{name}: %{left} left (until %{until})"
         back: Customer list
         unverified: email not verified
         no_account: no account (booked through the venue)
@@ -799,6 +1020,8 @@ en:
         success: Customer saved.
     reports:
       show:
+        tickets_sold: "Open play places sold this month: %{amount}."
+        packages_sold: "Prepaid hours sold this month: %{amount} (bookings paid with them count 0 above)."
         title: Reports
         explanation: Monthly revenue and occupancy. Cancelled bookings are not counted.
         previous_month: Previous month
@@ -821,11 +1044,19 @@ en:
         price_placeholder: Empty = price rules
         price_hint: The price agreed with the regular customer (multiple of 1,000 VND). Empty uses the price rules.
       index:
+        requests:
+          one: "Customer request (%{count})"
+          other: "Customer requests (%{count})"
+        create_from_request: Create the booking
+        decline: Decline
+        decline_reason: Reason (the customer sees it)
+        decline_submit: Send
         title: Regular bookings
         explanation: Regular customers book the same time every week and pay at the start of each month.
         new: New regular booking
         empty: No regular bookings yet.
       new:
+        from_request: "Requested by %{name} on %{date}. Check it, change the price if needed, then create it; the customer gets an email."
         title: New regular booking
         explanation: The next step lists every session to check before creating them; sessions that clash or fall on closed days are skipped.
         submit: Preview the sessions
@@ -936,6 +1167,159 @@ en:
         assigned: Transfer assigned to the booking; it still needs review.
 
   # The optional profile (User#gender, User#skill_level), TK-10.
+    series_requests:
+      decline:
+        success: Request declined; the customer was told.
+    products:
+      index:
+        title: Extras
+        explanation: What customers can add when booking in the app (racket rental, shuttlecocks, drinks...); it is added to the transfer. Staff see the list on the day board to prepare it.
+        new: Add an extra
+        empty: No extras yet.
+        inactive: not on sale
+        edit: Edit
+      form:
+        name_placeholder: Thuê vợt
+        position_hint: Lower numbers come first.
+        active: On sale (customers can pick it)
+        back: Back
+        submit: Save
+      new:
+        title: Add an extra
+      edit:
+        title: Edit extra
+      create:
+        success: Extra added.
+      update:
+        success: Saved.
+    announcements:
+      index:
+        title: Announcements
+        explanation: News shown on the booking page and in the app between the dates you pick (holiday closing, off-peak offers, tournaments...).
+        new: Post news
+        empty: No announcements yet.
+        showing: Showing
+      form:
+        title_placeholder: Closed for Tết from 28/1 to 2/2
+        english_hint: Left empty, customers using English see the Vietnamese text.
+        back: Back
+        submit: Save
+      tones:
+        info: Information (blue)
+        offer: Offer (green)
+        warning: Notice (yellow)
+      new:
+        title: Post news
+      edit:
+        title: Edit news
+        destroy: Delete
+        destroy_confirm: Delete this announcement?
+      create:
+        success: Announcement posted.
+      update:
+        success: Saved.
+      destroy:
+        success: Announcement deleted.
+    reviews:
+      index:
+        title: Reviews
+        explanation: Customers rate the sessions they played in the app (1-5 stars and a comment). Only the owner and staff see them.
+        count:
+          one: "%{count} review"
+          other: "%{count} reviews"
+        empty: No reviews yet.
+    vouchers:
+      index:
+        title: Vouchers
+        explanation: Customers enter the code when booking online (web and app). It takes money off the court price and is not added to the member discount (the better one for the customer applies).
+        new: New voucher
+        empty: No vouchers yet.
+        percent_off: "%{value}% off"
+        amount_off: "%{amount} off"
+        uses:
+          one: "Used %{count}/%{limit}"
+          other: "Used %{count}/%{limit}"
+      kinds:
+        percent: Percentage
+        amount: Amount
+      form:
+        value_hint: A percentage (1-100) or an amount (VND).
+        days_hint: None ticked = every day.
+        any_time: Any time
+        active: Active
+        back: Back
+        submit: Save
+      new:
+        title: New voucher
+      edit:
+        title: Edit voucher
+      create:
+        success: Voucher created.
+      update:
+        success: Saved.
+    packages:
+      index:
+        title: Prepaid hours
+        explanation: Customers buy prepaid hours in the app (by transfer), then book with those hours instead of a transfer. Unused hours are not refunded; a booking the customer cancels does not give its hours back, one the venue cancels for its own fault does.
+        new: New package
+        empty: No packages yet.
+        summary: "%{hours} · use within %{days} days"
+        purchases: Bought by customers
+        left: "%{left} left · until %{until}"
+      form:
+        name_placeholder: Gói 10 giờ
+        hours: Hours
+        time_hint: Empty = any time. With times, the booking must fit within them.
+        active: On sale
+        back: Back
+        submit: Save
+      new:
+        title: New package
+      edit:
+        title: Edit package
+      create:
+        success: Package created.
+      update:
+        success: Saved.
+    play_sessions:
+      index:
+        title: Open play
+        explanation: Keep some courts for a few hours and sell places per player; customers sign up and pay in the app. The session's courts show as blocked on the day board.
+        new: New session
+        upcoming: Coming
+        past: Past
+        seats: "%{taken}/%{capacity} places"
+        empty: No sessions yet.
+      new:
+        title: New open play session
+        explanation: The courts picked are blocked for these times (a court already booked cannot be used).
+        title_placeholder: Friday night open play
+        date: Date
+        back: Back
+        submit: Create
+      create:
+        success: Open play session created.
+      show:
+        kicker: Open play
+        summary: "%{price} per player · %{taken}/%{capacity} places"
+        cancelled: Cancelled
+        statuses:
+          pending: Awaiting transfer
+          confirmed: Paid
+          cancelled: Cancelled
+        refunded: Refunded
+        refund_due: "%{amount} to refund"
+        check_in: Arrived
+        undo_check_in: Undo arrived
+        mark_refunded: Refunded
+        no_tickets: Nobody signed up yet.
+        cancel: Cancel session
+        cancel_confirm: Cancel this session? The courts open again; paid places must be refunded.
+        back: All sessions
+      cancel:
+        success: Session cancelled; the players were emailed.
+      mark_refunded:
+        success: Refund recorded.
   profile:
     genders:
       male: Male

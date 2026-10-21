@@ -49,3 +49,16 @@ module ActionDispatch
     end
   end
 end
+
+# Signing in to the mobile app's API (Api::V1) in integration tests.
+module ApiTestHelpers
+  private
+
+  def sign_in_api(user)
+    post api_v1_session_path, params: { login: user.email, password: "password123", device_name: "Pixel" }, as: :json
+    assert_response :created
+    response.parsed_body["token"]
+  end
+
+  def auth(token) = { "Authorization" => "Bearer #{token}" }
+end

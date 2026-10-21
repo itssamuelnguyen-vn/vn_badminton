@@ -6,9 +6,11 @@ module Api
       include Slots
 
       before_action :require_verified_email, only: :create
+      before_action :set_booking, only: %i[show cancel review_reschedule reschedule review]
+      before_action :require_reschedulable, only: %i[review_reschedule reschedule]
 
       def index
-        bookings = current_user.bookings.kind_reservation.where.not(status: :pending).includes(:court, :payment)
+        bookings = current_user.bookings.kind_reservation.where.not(status: :pending).includes(:court, :payment, :items, :review)
         upcoming = bookings.where(status: ::BookingsController::UPCOMING_STATUSES).where(ends_at: Time.current..).order(:starts_at)
         awaiting = Payment.awaiting.where(user: current_user).where("expires_at > ?", Time.current).order(:expires_at)
         render json: {
@@ -19,11 +21,12 @@ module Api
       end
 
       def show
-        render json: ApiJson.booking(current_user.bookings.kind_reservation.find_by!(code: params[:code]))
+        render json: ApiJson.booking(@booking)
       end
 
       def create
-        batch = BookingBatch.new(user: current_user, slots: slots_param, note: params[:note])
+        batch = BookingBatch.new(user: current_user, slots: slots_param, note: params[:note], items: items_param, voucher_code: params[:voucher_code])
+        return create_with_package(batch) if params[:package_purchase_id].present?
         return render_error(:payments_unavailable, [ t("bookings.create.payments_unavailable") ], status: :unprocessable_content) unless batch.venue.payments_enabled?
 
         if (payment = batch.reserve_for_payment)
@@ -35,15 +38,77 @@ module Api
       end
 
       def cancel
-        booking = current_user.bookings.kind_reservation.find_by!(code: params[:code])
-        booking.cancel!(by: current_user)
+        @booking.cancel!(by: current_user)
         current_user.remember_locale(I18n.locale)
-        BookingMailer.with(booking: booking).cancelled.deliver_later
-        render json: ApiJson.booking(booking)
+        BookingMailer.with(booking: @booking).cancelled.deliver_later
+        render json: ApiJson.booking(@booking)
       rescue ArgumentError
         render_error :not_allowed, [ t("bookings.cancel.not_allowed") ], status: :unprocessable_content
       rescue ActiveRecord::StaleObjectError
         render_error :changed_meanwhile, [ t("bookings.changed_meanwhile") ], status: :conflict
+      end
+
+      # The new slot (court_id, starts_at, ends_at) checked and priced without saving, as the web's review page:
+      # { booking (with the new slot and price), valid, messages }.
+      def review_reschedule
+        @booking.price_cap_vnd = @booking.total_amount_vnd if @booking.payment_paid? # same rule as Booking#reschedule
+        @booking.assign_attributes(new_slot)
+        valid = @booking.validate
+        render json: { booking: ApiJson.booking(@booking), valid: valid, messages: @booking.errors.full_messages }
+      end
+
+      def reschedule
+        previous = @booking.attributes.slice("court_id", "starts_at", "ends_at")
+        if @booking.reschedule(**new_slot, by: current_user)
+          BookingMailer.with(booking: @booking, previous: previous).rescheduled.deliver_later
+          render json: ApiJson.booking(@booking)
+        else
+          render_error :not_bookable, @booking.errors.full_messages, status: :unprocessable_content
+        end
+      rescue ActiveRecord::StaleObjectError
+        render_error :changed_meanwhile, [ t("bookings.changed_meanwhile") ], status: :conflict
+      end
+
+      # Rating a session played (Review): { rating: 1..5, comment }.
+      def review
+        # Not build_review: on a has_one it would replace the existing review.
+        review = Review.new(booking: @booking, user: current_user, rating: params.require(:rating), comment: params[:comment])
+        if review.save
+          render json: ApiJson.booking(@booking.reload), status: :created
+        else
+          render_error :invalid, review.errors.full_messages, status: :unprocessable_content
+        end
+      end
+
+      private
+
+      # Paid with prepaid hours: booked and confirmed at once, no transfer. Answers { bookings } (no payment).
+      def create_with_package(batch)
+        purchase = current_user.package_purchases.find(params[:package_purchase_id])
+        if batch.reserve_with_package(purchase)
+          current_user.remember_locale(I18n.locale)
+          BookingMailer.with(bookings: batch.bookings, locale: I18n.locale).confirmed.deliver_later
+          render json: { bookings: batch.bookings.map { |booking| ApiJson.booking(booking) } }, status: :created
+        else
+          render_error :not_bookable, ApiJson.errors(batch), status: :unprocessable_content
+        end
+      end
+
+      # items: [{ product_id, quantity }], the products picked with the booking.
+      def items_param
+        Array(params[:items]).map { |item| item.permit(:product_id, :quantity).to_h.symbolize_keys }
+      end
+
+      def set_booking
+        @booking = current_user.bookings.kind_reservation.find_by!(code: params[:code])
+      end
+
+      def require_reschedulable
+        render_error(:not_allowed, [ t("bookings.reschedule.not_allowed") ], status: :unprocessable_content) unless @booking.reschedulable_by_customer?
+      end
+
+      def new_slot
+        { court: Venue.main.courts.active.find(params.require(:court_id)), starts_at: params.require(:starts_at), ends_at: params.require(:ends_at) }
       end
     end
   end

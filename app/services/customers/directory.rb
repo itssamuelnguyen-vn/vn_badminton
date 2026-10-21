@@ -87,7 +87,7 @@ module Customers
         count(*) FILTER (WHERE status IN ('confirmed', 'checked_in') AND ends_at > #{Booking.connection.quote(@now)}),
         count(*) FILTER (WHERE status = 'no_show'),
         count(*) FILTER (WHERE status = 'cancelled' AND cancelled_by_id = user_id),
-        coalesce(sum(total_amount_vnd) FILTER (WHERE status IN ('confirmed', 'checked_in', 'completed')), 0),
+        coalesce(sum(total_amount_vnd + items_amount_vnd) FILTER (WHERE status IN ('confirmed', 'checked_in', 'completed')), 0),
         max(starts_at)
       SQL
     end

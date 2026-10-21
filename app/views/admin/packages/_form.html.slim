@@ -1,0 +1,34 @@
+= form_with model: [ :admin, package ], class: "space-y-5" do |f|
+  = render "devise/shared/error_messages", resource: package
+
+  div
+    = f.label :name, class: "form-label"
+    = f.text_field :name, maxlength: 60, required: true, placeholder: t("admin.packages.form.name_placeholder"), class: "form-input"
+  div
+    = f.label :name_en, class: "form-label"
+    = f.text_field :name_en, maxlength: 60, class: "form-input"
+  div class="grid grid-cols-3 gap-3"
+    div
+      = f.label :hours, t("admin.packages.form.hours"), class: "form-label"
+      = f.number_field :hours, value: (package.minutes / 60.0 if package.minutes), min: 0.5, step: 0.5, required: true, class: "form-input"
+    div
+      = f.label :price_vnd, class: "form-label"
+      = f.number_field :price_vnd, min: 1000, step: 1000, required: true, class: "form-input"
+    div
+      = f.label :valid_days, class: "form-label"
+      = f.number_field :valid_days, min: 1, max: 730, required: true, class: "form-input"
+  div class="grid grid-cols-2 gap-3"
+    div
+      = f.label :start_minute, class: "form-label"
+      = f.select :start_minute, minute_options(0..1410), { include_blank: t("admin.vouchers.form.any_time") }, class: "form-input"
+    div
+      = f.label :end_minute, class: "form-label"
+      = f.select :end_minute, minute_options(30..1440), { include_blank: t("admin.vouchers.form.any_time") }, class: "form-input"
+  p class="form-hint -mt-3" = t("admin.packages.form.time_hint")
+  label class="flex items-center gap-2 text-sm"
+    = f.check_box :active, class: "size-4 accent-emerald-600"
+    = t("admin.packages.form.active")
+
+  div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"
+    = link_to t("admin.packages.form.back"), admin_packages_path, class: "btn-secondary"
+    = f.submit t("admin.packages.form.submit"), class: "btn-primary"

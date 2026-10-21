@@ -36,7 +36,8 @@ class BookingsController < ApplicationController
   # when the transfer arrives (Payments::Webhook), which also sends the confirmation email.
   def create
     booking_params = params.require(:booking)
-    @batch = BookingBatch.new(user: current_user, slots: slots_from(booking_params), note: booking_params[:note])
+    @batch = BookingBatch.new(user: current_user, slots: slots_from(booking_params), note: booking_params[:note],
+                              voucher_code: booking_params[:voucher_code])
     return redirect_to(root_path, alert: t(".payments_unavailable")) unless @batch.venue.payments_enabled?
 
     if (payment = @batch.reserve_for_payment)

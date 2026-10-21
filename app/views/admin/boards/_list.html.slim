@@ -10,7 +10,11 @@ section aria-labelledby="day-list-title"
             p class="truncate text-sm text-slate-600"
               = booking_title(booking)
               - if booking.kind_reservation?
-                = [ "", PhoneNumber.to_local(booking.customer_phone), format_vnd(booking.total_amount_vnd) ].compact.join(" · ")
+                = [ "", PhoneNumber.to_local(booking.customer_phone), format_vnd(booking.charged_vnd) ].compact.join(" · ")
+            / What to hand over at check-in.
+            - if booking.items.any?
+              p class="text-sm font-medium text-amber-800"
+                = t(".items", list: booking.items.map { |item| "#{item.display_name} × #{item.quantity}" }.join(", "))
           div class="flex flex-wrap items-center gap-2"
             - if booking.kind_reservation?
               = booking_status_badge(booking)

@@ -9,6 +9,19 @@ vi:
 
   activerecord:
     models:
+      play_session: Buổi giao lưu
+      play_session_ticket: Chỗ giao lưu
+      group: Nhóm
+      group_share: Lượt đặt chia sẻ
+      voucher: Mã giảm giá
+      package: Gói giờ
+      package_purchase: Gói giờ đã mua
+      product: Đồ thuê thêm
+      booking_item: Đồ thuê thêm của lượt đặt
+      announcement: Bảng tin
+      review: Đánh giá
+      waitlist_entry: Báo khi có sân trống
+      series_request: Yêu cầu lịch cố định
       user: Người dùng
       venue: Cơ sở
       opening_hour: Giờ mở cửa
@@ -18,6 +31,78 @@ vi:
       booking_series: Lịch cố định
 
     attributes:
+      play_session:
+        title: Tên buổi
+        title_en: Tên tiếng Anh
+        description: Mô tả
+        court_ids: Sân
+        starts_at: Giờ bắt đầu
+        ends_at: Giờ kết thúc
+        date: Ngày
+        capacity: Số người tối đa
+        price_vnd: Giá mỗi người
+        level: Trình độ
+      play_session_ticket:
+        quantity: Số người
+      group:
+        name: Tên nhóm
+      group_share:
+        players: Số người chơi
+        booking: Lượt đặt
+        group: Nhóm
+      voucher:
+        code: Mã
+        description: Mô tả
+        kind: Loại
+        value: Mức giảm
+        max_discount_vnd: Giảm tối đa
+        min_amount_vnd: Đơn tối thiểu
+        valid_from: Từ ngày
+        valid_until: Đến ngày
+        days_of_week: Các ngày áp dụng
+        start_minute: Từ giờ
+        end_minute: Đến giờ
+        usage_limit: Tổng số lượt
+        per_user_limit: Số lượt mỗi khách
+        active: Đang dùng
+      package:
+        name: Tên (tiếng Việt)
+        name_en: Tên tiếng Anh
+        minutes: Số giờ
+        hours: Số giờ
+        price_vnd: Giá
+        valid_days: Dùng trong (ngày)
+        start_minute: Chỉ dùng từ giờ
+        end_minute: Đến giờ
+        active: Đang bán
+      product:
+        name: Tên (tiếng Việt)
+        name_en: Tên tiếng Anh
+        price_vnd: Giá
+        position: Thứ tự
+        active: Đang bán
+      announcement:
+        title: Tiêu đề
+        title_en: Tiêu đề tiếng Anh
+        body: Nội dung
+        body_en: Nội dung tiếng Anh
+        starts_on: Hiện từ ngày
+        ends_on: Đến ngày
+        tone: Kiểu
+      review:
+        rating: Số sao
+        comment: Góp ý
+      waitlist_entry:
+        starts_at: Giờ bắt đầu
+        ends_at: Giờ kết thúc
+      series_request:
+        court_ids: Sân
+        days_of_week: Các ngày trong tuần
+        start_minute: Giờ bắt đầu
+        end_minute: Giờ kết thúc
+        starts_on: Từ ngày
+        ends_on: Đến ngày
+        note: Ghi chú
       user:
         email: Email
         full_name: Họ tên
@@ -33,6 +118,15 @@ vi:
         skill_level: Trình độ cầu lông
         avatar: Ảnh đại diện
       venue:
+        loyalty_enabled: Giảm giá theo hạng thành viên khi đặt online
+        tier_hours: Từ số giờ chơi (12 tháng)
+        tier_percent: Giảm (%)
+        silver_hours: Số giờ hạng Bạc
+        silver_percent: Giảm hạng Bạc
+        gold_hours: Số giờ hạng Vàng
+        gold_percent: Giảm hạng Vàng
+        diamond_hours: Số giờ hạng Kim cương
+        diamond_percent: Giảm hạng Kim cương
         name: Tên
         slug: Đường dẫn
         address: Địa chỉ
@@ -95,6 +189,53 @@ vi:
 
     errors:
       models:
+        play_session:
+          after_start: "phải sau giờ bắt đầu"
+          off_slot_grid: "Giờ phải tròn 30 phút"
+          not_in_future: "phải ở tương lai"
+          invalid: "không hợp lệ"
+        play_session_ticket:
+          not_bookable: Buổi này không còn nhận đăng ký.
+          blacklisted: Tài khoản của bạn hiện không thể đặt online. Vui lòng liên hệ sân.
+          full: "Buổi này chỉ còn %{left} chỗ."
+        group:
+          too_many: "Mỗi người tham gia tối đa %{count} nhóm."
+          full: "Nhóm đã đủ %{count} người."
+        group_share:
+          not_yours: "không phải của bạn"
+          not_member: "bạn không ở trong nhóm này"
+        voucher:
+          before_valid_from: "phải sau ngày bắt đầu"
+          after_start: "phải sau giờ bắt đầu"
+          both_or_none: "cần chọn cả giờ bắt đầu và giờ kết thúc, hoặc để trống cả hai"
+          invalid_days: "không hợp lệ"
+        package:
+          not_multiple_of_30: "phải tròn 30 phút"
+          not_multiple_of_1000: "phải là bội số của 1.000đ"
+          after_start: "phải sau giờ bắt đầu"
+          both_or_none: "cần chọn cả giờ bắt đầu và giờ kết thúc, hoặc để trống cả hai"
+        product:
+          not_multiple_of_1000: "phải là bội số của 1.000đ"
+        announcement:
+          before_starts_on: "phải sau ngày bắt đầu"
+        review:
+          not_reviewable: "Chỉ đánh giá được buổi bạn đã chơi, trong vòng 14 ngày sau khi chơi"
+        waitlist_entry:
+          after_start: "phải sau giờ bắt đầu"
+          not_in_future: "phải ở tương lai"
+          off_slot_grid: "Giờ phải tròn 30 phút"
+          too_many:
+            other: "Bạn chỉ chờ được tối đa %{count} khung giờ cùng lúc"
+        series_request:
+          after_start: "phải sau giờ bắt đầu"
+          off_slot_grid: "Giờ phải tròn 30 phút"
+          invalid_days: "không hợp lệ"
+          invalid: "không hợp lệ"
+          not_in_future: "phải từ ngày mai trở đi"
+          before_starts_on: "phải sau ngày bắt đầu"
+          too_far: "tối đa 1 năm sau ngày bắt đầu"
+          too_many:
+            other: "Bạn đang có %{count} yêu cầu chờ sân trả lời, là số tối đa"
         user:
           privacy_consent_required: "Bạn cần đồng ý với chính sách bảo mật để đăng ký"
           attributes:
@@ -105,6 +246,8 @@ vi:
               too_big: "không được lớn hơn %{size} MB"
 
         venue:
+          more_than_silver: "phải nhiều hơn số giờ hạng Bạc"
+          more_than_gold: "phải nhiều hơn số giờ hạng Vàng"
           not_multiple_of_30: "phải là bội số của 30"
           less_than_min: "phải lớn hơn hoặc bằng thời lượng tối thiểu"
         opening_hour:
@@ -163,6 +306,12 @@ vi:
         resend: Gửi lại email
     admin:
       nav:
+        play_sessions: Giao lưu
+        vouchers: Mã giảm giá
+        packages: Gói giờ
+        reviews: Đánh giá
+        products: Đồ thuê thêm
+        announcements: Bảng tin
         label: Quản lý
         board: Lịch trong ngày
         price_rules: Bảng giá
@@ -338,6 +487,9 @@ vi:
       total: Tổng tiền
       price: Thành tiền
     new:
+      tier_discount: "Ưu đãi %{label}: −%{amount}, tự trừ khi chuyển khoản."
+      voucher_code: Mã giảm giá (nếu có)
+      voucher_hint: Mỗi đơn dùng một ưu đãi; mã giảm giá thay ưu đãi hạng khi có lợi hơn.
       title: Xác nhận đặt sân
       customer: Người đặt
       customer_hint_html: "Thông tin lấy từ tài khoản của bạn. Cần sửa? Vào %{link}."
@@ -396,8 +548,48 @@ vi:
       back: Chọn giờ khác
       submit: Xác nhận đổi giờ
 
+  pricing:
+    offer:
+      tier: "Hạng %{tier} (giảm %{percent}%)"
+      voucher: "Mã %{code}"
+      voucher_problems:
+        not_found: Mã giảm giá không đúng.
+        inactive: Mã giảm giá này đã ngừng dùng.
+        expired: Mã giảm giá chưa tới hoặc đã hết hạn.
+        used_up: Mã giảm giá đã hết lượt.
+        used_by_you: Bạn đã dùng hết lượt của mã này.
+        min_amount: Đơn chưa đủ giá trị tối thiểu để dùng mã này.
+        wrong_day: Mã này không dùng cho ngày bạn chọn.
+        wrong_time: Mã này không dùng cho khung giờ bạn chọn.
+        tier_better: Ưu đãi hạng thành viên của bạn có lợi hơn mã này nên được giữ.
+
+  loyalty:
+    tiers:
+      bronze: Đồng
+      silver: Bạc
+      gold: Vàng
+      diamond: Kim cương
+
+  play_sessions:
+    block_note: "Giao lưu: %{title}"
+    levels:
+      any: Mọi trình độ
+      beginner: Mới chơi
+      intermediate: Trung bình
+      advanced: Khá
+      expert: Giỏi
+
   booking_batch:
     errors:
+      package_no_items: Khi trả bằng gói giờ, đồ thuê thêm vui lòng thuê tại quầy.
+      package:
+        not_usable: Gói giờ này chưa dùng được hoặc đã hết hạn.
+        not_enough: Gói giờ không còn đủ giờ cho lượt này.
+        expires_before: Gói giờ hết hạn trước ngày chơi.
+        wrong_time: Gói giờ này không dùng cho khung giờ bạn chọn.
+        no_items: Khi trả bằng gói giờ, đồ thuê thêm vui lòng thuê tại quầy.
+      product_unavailable: Có món thuê thêm không còn bán, vui lòng chọn lại.
+      quantity_invalid: "Số lượng mỗi món từ 1 đến %{max}."
       locked: "Tài khoản của bạn tạm thời không thể đặt sân online đến %{until} vì đã huỷ nhiều lần trong một ngày."
       limit_reached:
         other: "Bạn đang có %{count} lượt đặt sắp tới, là số tối đa. Vui lòng chơi xong hoặc huỷ bớt trước khi đặt thêm."
@@ -440,6 +632,10 @@ vi:
         deleted: Tài khoản của bạn đã được xoá. Chúng tôi đã gửi email xác nhận.
 
   api:
+    groups:
+      wrong_code: Mã nhóm không đúng.
+    series:
+      nothing_due: Tháng này không còn tiền cần đóng.
     unauthorized: Vui lòng đăng nhập lại.
     avatar_missing: Vui lòng chọn một ảnh.
   account_mailer:
@@ -486,6 +682,24 @@ vi:
       intro: "Lượt đặt sân của bạn đã được đổi sang giờ mới:"
       before: "Trước đây:"
 
+  notice_mailer:
+    play_session_cancelled:
+      subject: "Sân huỷ buổi %{title} lúc %{time}"
+      intro: "Sân đã huỷ buổi giao lưu %{title} lúc %{time} mà bạn đã đăng ký."
+      refund: "Sân sẽ hoàn lại %{amount} bạn đã chuyển khoản."
+    slot_freed:
+      subject: "Có sân trống lúc %{time}"
+      intro: "Khung giờ bạn đang chờ (%{from} – %{to}) vừa có sân trống."
+      hurry: Ai đặt trước được trước, bạn đặt sớm nhé!
+      book_now: Đặt sân ngay
+    series_request_decided:
+      subject_approved: Sân đã tạo lịch cố định cho bạn
+      subject_declined: Sân chưa nhận được lịch cố định bạn yêu cầu
+      intro: "Yêu cầu lịch cố định: %{courts} · %{days} %{time}."
+      approved: Sân đã tạo lịch cố định theo yêu cầu. Bạn xem lịch và đóng tiền tháng trong app, mục Lịch cố định.
+      declined: Rất tiếc, sân chưa nhận được lịch này.
+      reason: "Lý do: %{reason}"
+
   admin:
     not_authorized: Bạn không có quyền vào trang quản lý.
     block: Khoá sân
@@ -520,6 +734,7 @@ vi:
         label: "Lịch sân %{date}"
         book_slot: "Đặt %{court} lúc %{time}"
       list:
+        items: "Chuẩn bị: %{list}"
         title: Danh sách trong ngày
         empty: Chưa có lượt đặt nào trong ngày này.
         cancelled:
@@ -686,6 +901,8 @@ vi:
         success: Đã xoá khung giá.
     settings:
       edit:
+        loyalty: Hạng thành viên
+        loyalty_hint: Hạng tính theo số giờ đã chơi (đã nhận sân, đã thanh toán) trong 12 tháng gần nhất; dưới hạng Bạc là hạng Đồng, không giảm. Mức giảm áp dụng cho tiền sân khi khách đặt online, không cộng với mã giảm giá.
         title: Cài đặt
         venue: Thông tin cơ sở
         policy: Quy định đặt online
@@ -759,6 +976,8 @@ vi:
           other: "Chỉ hiện %{count} khách gần nhất. Dùng ô tìm kiếm để tìm khách khác."
         empty: Không có khách nào.
       show:
+        tier: "Hạng %{tier} · %{hours} giờ chơi trong 12 tháng"
+        package_left: "%{name}: còn %{left} (hạn %{until})"
         back: Danh sách khách
         unverified: chưa xác minh email
         no_account: chưa có tài khoản (đặt qua chủ sân)
@@ -782,6 +1001,8 @@ vi:
         success: Đã lưu thông tin khách.
     reports:
       show:
+        tickets_sold: "Bán chỗ giao lưu trong tháng: %{amount}."
+        packages_sold: "Bán gói giờ trong tháng: %{amount} (lượt đặt bằng gói tính 0đ ở trên)."
         title: Báo cáo
         explanation: Doanh thu và tỷ lệ lấp đầy theo tháng. Không tính lượt đã huỷ.
         previous_month: Tháng trước
@@ -804,11 +1025,18 @@ vi:
         price_placeholder: Để trống = theo bảng giá
         price_hint: Giá thoả thuận với khách cố định (bội số 1.000đ). Để trống thì tính theo bảng giá.
       index:
+        requests:
+          other: "Yêu cầu từ khách (%{count})"
+        create_from_request: Tạo lịch
+        decline: Từ chối
+        decline_reason: Lý do (khách sẽ thấy)
+        decline_submit: Gửi
         title: Lịch cố định
         explanation: Khách quen đặt cùng giờ hằng tuần, đóng tiền đầu mỗi tháng.
         new: Tạo lịch cố định
         empty: Chưa có lịch cố định nào.
       new:
+        from_request: "Theo yêu cầu của %{name} gửi ngày %{date}. Kiểm tra, sửa giá nếu cần rồi tạo lịch; khách sẽ nhận email."
         title: Tạo lịch cố định
         explanation: Bước tiếp theo sẽ hiện từng buổi để kiểm tra trước khi tạo; buổi trùng lịch hoặc sân nghỉ sẽ được bỏ qua.
         submit: Xem trước các buổi
@@ -913,6 +1141,157 @@ vi:
         assigned: Đã gán giao dịch vào đơn; giao dịch vẫn cần xử lý.
 
   # The optional profile (User#gender, User#skill_level), TK-10.
+    series_requests:
+      decline:
+        success: Đã từ chối yêu cầu và báo cho khách.
+    products:
+      index:
+        title: Đồ thuê thêm
+        explanation: Khách chọn thêm khi đặt sân trên app (thuê vợt, ống cầu, nước uống...); tiền được cộng vào khoản chuyển khoản. Nhân viên thấy danh sách ở Lịch trong ngày để chuẩn bị.
+        new: Thêm món
+        empty: Chưa có món nào.
+        inactive: ngừng bán
+        edit: Sửa
+      form:
+        name_placeholder: Thuê vợt
+        position_hint: Số nhỏ hiện trước.
+        active: Đang bán (khách chọn được)
+        back: Quay lại
+        submit: Lưu
+      new:
+        title: Thêm món thuê thêm
+      edit:
+        title: Sửa món thuê thêm
+      create:
+        success: Đã thêm món.
+      update:
+        success: Đã lưu.
+    announcements:
+      index:
+        title: Bảng tin
+        explanation: Thông báo hiện trên trang Đặt sân và trong app trong khoảng ngày bạn chọn (nghỉ lễ, khuyến mãi giờ thấp điểm, giải đấu...).
+        new: Đăng tin
+        empty: Chưa có tin nào.
+        showing: Đang hiện
+      form:
+        title_placeholder: Nghỉ Tết từ 28/1 đến 2/2
+        english_hint: Để trống thì khách dùng tiếng Anh thấy bản tiếng Việt.
+        back: Quay lại
+        submit: Lưu
+      tones:
+        info: Thông tin (xanh dương)
+        offer: Ưu đãi (xanh lá)
+        warning: Lưu ý (vàng)
+      new:
+        title: Đăng tin
+      edit:
+        title: Sửa tin
+        destroy: Xoá tin
+        destroy_confirm: Xoá tin này?
+      create:
+        success: Đã đăng tin.
+      update:
+        success: Đã lưu.
+      destroy:
+        success: Đã xoá tin.
+    reviews:
+      index:
+        title: Đánh giá
+        explanation: Khách đánh giá buổi đã chơi trong app (1–5 sao và góp ý). Chỉ chủ sân và nhân viên xem được.
+        count:
+          other: "%{count} đánh giá"
+        empty: Chưa có đánh giá nào.
+    vouchers:
+      index:
+        title: Mã giảm giá
+        explanation: Khách nhập mã khi đặt sân online (web và app). Giảm vào tiền sân, không cộng với ưu đãi hạng thành viên (lấy mức có lợi hơn cho khách).
+        new: Tạo mã
+        empty: Chưa có mã nào.
+        percent_off: "Giảm %{value}%"
+        amount_off: "Giảm %{amount}"
+        uses:
+          other: "Đã dùng %{count}/%{limit}"
+      kinds:
+        percent: Giảm theo %
+        amount: Giảm số tiền
+      form:
+        value_hint: Phần trăm (1–100) hoặc số tiền (đồng).
+        days_hint: Để trống = mọi ngày.
+        any_time: Mọi giờ
+        active: Đang dùng
+        back: Quay lại
+        submit: Lưu
+      new:
+        title: Tạo mã giảm giá
+      edit:
+        title: Sửa mã giảm giá
+      create:
+        success: Đã tạo mã.
+      update:
+        success: Đã lưu.
+    packages:
+      index:
+        title: Gói giờ
+        explanation: Khách mua gói giờ trả trước trong app (chuyển khoản), rồi đặt sân bằng giờ trong gói thay vì chuyển khoản. Giờ chưa dùng không hoàn tiền; khách tự huỷ lượt thì không trả lại giờ, sân huỷ do sự cố thì trả lại giờ.
+        new: Tạo gói
+        empty: Chưa có gói nào.
+        summary: "%{hours} · dùng trong %{days} ngày"
+        purchases: Khách đã mua
+        left: "Còn %{left} · hạn %{until}"
+      form:
+        name_placeholder: Gói 10 giờ
+        hours: Số giờ
+        time_hint: Để trống = dùng mọi giờ. Có giờ thì lượt đặt phải nằm trọn trong khung đó.
+        active: Đang bán
+        back: Quay lại
+        submit: Lưu
+      new:
+        title: Tạo gói giờ
+      edit:
+        title: Sửa gói giờ
+      create:
+        success: Đã tạo gói.
+      update:
+        success: Đã lưu.
+    play_sessions:
+      index:
+        title: Giao lưu / vãng lai
+        explanation: Giữ một số sân trong vài giờ và bán chỗ theo người; khách đăng ký và chuyển khoản trong app. Sân của buổi hiện là sân khoá trên Lịch trong ngày.
+        new: Tạo buổi
+        upcoming: Sắp tới
+        past: Đã qua
+        seats: "%{taken}/%{capacity} chỗ"
+        empty: Chưa có buổi nào.
+      new:
+        title: Tạo buổi giao lưu
+        explanation: Các sân chọn sẽ bị khoá trong khung giờ này (sân đang có người đặt thì không tạo được).
+        title_placeholder: Giao lưu tối thứ Sáu
+        date: Ngày
+        back: Quay lại
+        submit: Tạo buổi
+      create:
+        success: Đã tạo buổi giao lưu.
+      show:
+        kicker: Giao lưu
+        summary: "%{price}/người · %{taken}/%{capacity} chỗ"
+        cancelled: Đã huỷ
+        statuses:
+          pending: Chờ chuyển khoản
+          confirmed: Đã thanh toán
+          cancelled: Đã huỷ
+        refunded: Đã hoàn tiền
+        refund_due: "Cần hoàn %{amount}"
+        check_in: Đã đến
+        undo_check_in: Huỷ "đã đến"
+        mark_refunded: Đã hoàn tiền
+        no_tickets: Chưa có ai đăng ký.
+        cancel: Huỷ buổi
+        cancel_confirm: Huỷ buổi này? Sân được mở lại, chỗ đã thanh toán cần hoàn tiền cho khách.
+        back: Tất cả buổi
+      cancel:
+        success: Đã huỷ buổi; khách đã nhận email.
+      mark_refunded:
+        success: Đã ghi nhận hoàn tiền.
   profile:
     genders:
       male: Nam

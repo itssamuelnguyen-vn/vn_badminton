@@ -1,0 +1,22 @@
+- content_for :title, t(".title")
+
+div class="mb-4 flex flex-wrap items-end justify-between gap-4"
+  div
+    h1 class="text-2xl font-bold sm:text-3xl" = t(".title")
+    p class="mt-1 max-w-2xl text-sm text-slate-600" = t(".explanation")
+  = link_to t(".new"), new_admin_voucher_path, class: "btn-primary"
+
+- if @vouchers.any?
+  div class="divide-y divide-slate-100 rounded-xl bg-white ring-1 ring-slate-200"
+    - @vouchers.each do |voucher|
+      = link_to edit_admin_voucher_path(voucher), class: [ "flex flex-wrap items-center justify-between gap-3 px-4 py-3 hover:bg-slate-50", ("text-slate-400" unless voucher.active) ] do
+        div
+          p class="font-mono font-semibold tracking-wider" = voucher.code
+          p class="text-sm text-slate-600"
+            = voucher.kind == "percent" ? t(".percent_off", value: voucher.value) : t(".amount_off", amount: format_vnd(voucher.value))
+            = " · #{l(voucher.valid_from, format: :day_month_year)} – #{l(voucher.valid_until, format: :day_month_year)}"
+          - if voucher.description
+            p class="text-xs text-slate-500" = voucher.description
+        p class="text-sm tabular-nums" = t(".uses", count: @uses.fetch(voucher.id, 0), limit: voucher.usage_limit || "∞")
+- else
+  p class="card text-center text-sm text-slate-600" = t(".empty")

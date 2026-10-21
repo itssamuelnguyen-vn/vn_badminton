@@ -27,6 +27,8 @@ div class="mx-auto max-w-3xl space-y-6"
 
   = form_with model: series, url: admin_series_index_path, method: :post, class: "flex flex-col-reverse gap-3 sm:flex-row sm:justify-end" do |f|
     / The previewed series, sent again to create it.
+    - if @request
+      = hidden_field_tag :request_id, @request.id
     - %i[customer_name start_minute end_minute starts_on ends_on price_per_hour_vnd note].each do |field|
       = f.hidden_field field
     = f.hidden_field :customer_phone, value: series.customer_phone
@@ -34,6 +36,6 @@ div class="mx-auto max-w-3xl space-y-6"
       = hidden_field_tag "booking_series[court_ids][]", id, id: nil
     - series.days_of_week.each do |day|
       = hidden_field_tag "booking_series[days_of_week][]", day, id: nil
-    = link_to t(".back"), new_admin_series_path, class: "btn-secondary"
+    = link_to t(".back"), new_admin_series_path(request_id: @request&.id), class: "btn-secondary"
     - if plan.ok.any?
       = f.submit t(".submit", count: plan.ok.size), class: "btn-primary"

@@ -1,0 +1,31 @@
+- content_for :title, t(".title")
+
+div class="mb-4 flex flex-wrap items-end justify-between gap-4"
+  div
+    h1 class="text-2xl font-bold sm:text-3xl" = t(".title")
+    p class="mt-1 max-w-2xl text-sm text-slate-600" = t(".explanation")
+  = link_to t(".new"), new_admin_package_path, class: "btn-primary"
+
+- if @packages.any?
+  div class="divide-y divide-slate-100 rounded-xl bg-white ring-1 ring-slate-200"
+    - @packages.each do |package|
+      = link_to edit_admin_package_path(package), class: [ "flex flex-wrap items-center justify-between gap-3 px-4 py-3 hover:bg-slate-50", ("text-slate-400" unless package.active) ] do
+        div
+          p class="font-semibold" = package.name
+          p class="text-sm text-slate-600"
+            = t(".summary", hours: format_duration(package.minutes), days: package.valid_days)
+            - if package.start_minute
+              = " · #{OpeningHour.format_minute(package.start_minute)} – #{OpeningHour.format_minute(package.end_minute)}"
+        p class="tabular-nums" = format_vnd(package.price_vnd)
+- else
+  p class="card text-center text-sm text-slate-600" = t(".empty")
+
+- if @purchases.any?
+  h2 class="mt-8 mb-2 text-lg font-semibold" = t(".purchases")
+  div class="divide-y divide-slate-100 rounded-xl bg-white text-sm ring-1 ring-slate-200"
+    - @purchases.each do |purchase|
+      div class="flex flex-wrap items-center justify-between gap-3 px-4 py-2"
+        span
+          = "#{purchase.user.full_name} · #{purchase.name}"
+        span class="text-slate-600 tabular-nums"
+          = t(".left", left: format_duration(purchase.minutes_left), until: purchase.expires_at ? l(purchase.expires_at.to_date, format: :day_month_year) : "–")

@@ -31,8 +31,8 @@ module Reports
         list = bookings_by_date.fetch(date, [])
         counted = list.select { |b| COUNTED_STATUSES.include?(b.status) }
         Day.new(date: date, bookings: counted.size, booked_minutes: counted.sum(&:duration_minutes),
-                open_minutes: open_minutes(date), expected_vnd: counted.sum(&:total_amount_vnd),
-                collected_vnd: counted.select(&:payment_paid?).sum(&:total_amount_vnd),
+                open_minutes: open_minutes(date), expected_vnd: counted.sum(&:charged_vnd),
+                collected_vnd: counted.select(&:payment_paid?).sum(&:charged_vnd),
                 no_shows: counted.count(&:no_show?), cancelled: list.count(&:cancelled?))
       end
     end
@@ -56,6 +56,17 @@ module Reports
         booking.duration_minutes.step(1, -30) { booked[(minute / 60) % 24] += 30; minute += 30 }
       end
       open.keys.sort.map { |hour| Hour.new(hour: hour, booked_minutes: booked[hour], open_minutes: open[hour]) }
+    end
+
+    # Prepaid hours sold in the month (paid then); the bookings paid with them count 0 in the revenue above.
+    def packages_sold_vnd
+      PackagePurchase.where.not(paid_at: nil).where(paid_at: range).sum(:price_vnd)
+    end
+
+    # Places sold in open play sessions held in the month (paid, less what is owed back).
+    def tickets_sold_vnd
+      tickets = PlaySessionTicket.joins(:play_session).where(play_sessions: { venue_id: venue.id, starts_at: range })
+      tickets.where(status: :confirmed).sum(:amount_vnd)
     end
 
     # Every reservation of the month, for the CSV export.

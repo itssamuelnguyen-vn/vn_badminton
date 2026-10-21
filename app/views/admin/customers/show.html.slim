@@ -13,6 +13,13 @@ div class="mx-auto max-w-3xl space-y-6"
             = " (#{t(".unverified")})"
         - else
           = " · #{t(".no_account")}"
+      - if customer.user
+        - tier = Loyalty::Tier.for(customer.user)
+        - packages = customer.user.package_purchases.usable
+        p class="mt-1 text-sm text-slate-600"
+          = t(".tier", tier: tier.name, hours: number_with_precision(tier.hours, precision: 1, strip_insignificant_zeros: true))
+          - packages.each do |purchase|
+            = " · #{t(".package_left", name: purchase.name, left: format_duration(purchase.minutes_left), until: l(purchase.expires_at.to_date, format: :day_month_year))}"
     = link_to t(".back"), admin_customers_path, class: "btn-secondary"
 
   - if customer.blocked?
@@ -56,7 +63,7 @@ div class="mx-auto max-w-3xl space-y-6"
           = link_to admin_booking_path(booking), class: "flex flex-wrap items-center justify-between gap-3 px-4 py-3 hover:bg-slate-50" do
             div
               p class="font-medium" = "#{l(booking.starts_at.to_date, format: :full)} · #{booking.court.display_name}"
-              p class="text-sm text-slate-600 tabular-nums" = "#{time_range(booking.starts_at, booking.ends_at)} · #{format_vnd(booking.total_amount_vnd)}"
+              p class="text-sm text-slate-600 tabular-nums" = "#{time_range(booking.starts_at, booking.ends_at)} · #{format_vnd(booking.charged_vnd)}"
             div class="flex gap-2"
               = booking_status_badge(booking)
               = payment_status_badge(booking)

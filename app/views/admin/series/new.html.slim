@@ -6,6 +6,10 @@ div class="card mx-auto max-w-2xl"
 
   = form_with model: @series, url: preview_admin_series_index_path, method: :post, class: "space-y-5" do |f|
     = render "devise/shared/error_messages", resource: @series
+    - if @request
+      = hidden_field_tag :request_id, @request.id
+      p class="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800 ring-1 ring-emerald-200"
+        = t(".from_request", name: @request.user.full_name, date: l(@request.created_at.to_date, format: :day_month_year))
     = render "admin/series/form", f: f, series: @series
     div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"
       = link_to t("admin.bookings.new.back"), admin_series_index_path, class: "btn-secondary"
