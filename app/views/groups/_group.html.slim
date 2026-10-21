@@ -1,0 +1,60 @@
+/ A group: its code to invite friends, the members (names only, NH-01), the bookings shared with it still to play
+/ with each player's share (NH-02), a form to share one of the customer's own, and leave / delete.
+- owner = group.owner_id == current_user.id
+- shares = group.upcoming_shares(now)
+- shareable = @shareable.reject { |booking| shares.any? { |share| share.booking_id == booking.id } }
+section id=dom_id(group) class="card space-y-5"
+  div class="flex flex-wrap items-start justify-between gap-3"
+    div class="min-w-0"
+      h2 class="text-lg font-bold break-words" = group.name
+      p class="mt-0.5 text-sm text-slate-500" = t(".members", count: group.members.size)
+    div class="rounded-2xl bg-emerald-50 px-3 py-2 text-right ring-1 ring-emerald-200"
+      p class="text-[11px] font-semibold text-emerald-700 uppercase" = t(".code")
+      p class="font-mono text-lg font-bold tracking-widest text-emerald-900 select-all" = group.invite_code
+
+  ul class="flex flex-wrap gap-1.5" aria-label=t(".members_label")
+    - group.members.sort_by(&:full_name).each do |member|
+      li class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700"
+        span class="flex size-5 items-center justify-center rounded-full brand-gradient text-[10px] font-bold text-white" aria-hidden="true"
+          = member.full_name.split.last.to_s.first.upcase
+        = member.full_name
+        - if member.id == group.owner_id
+          span class="text-emerald-700" = t(".owner")
+
+  div
+    h3 class="mb-2 text-sm font-semibold text-slate-700" = t(".shared")
+    - if shares.empty?
+      p class="text-sm text-slate-500" = t(".no_shares")
+    - else
+      ul class="space-y-2"
+        - shares.each do |share|
+          - booking = share.booking
+          li class="flex items-start justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm"
+            div class="min-w-0"
+              p class="font-semibold" = "#{booking.court.display_name} · #{l(booking.starts_at.to_date, format: :full)}"
+              p class="text-slate-600 tabular-nums" = time_range(booking.starts_at, booking.ends_at)
+              p class="mt-1 text-slate-600"
+                = t(".per_player_html", amount: tag.strong(format_vnd(share.per_player_vnd), class: "text-emerald-700"), players: share.players, total: format_vnd(booking.charged_vnd))
+              p class="text-xs text-slate-400" = t(".shared_by", name: share.shared_by.full_name)
+            - if share.removable_by?(current_user)
+              = button_to t(".unshare"), group_share_path(group, share), method: :delete, class: "btn-secondary shrink-0 px-3 py-1 text-xs",
+                  form: { data: { turbo_confirm: t(".unshare_confirm") } }
+
+  - if shareable.any?
+    = form_with scope: :group_share, url: group_shares_path, class: "grid grid-cols-[1fr_auto] items-end gap-3 border-t border-slate-100 pt-4 sm:grid-cols-[1fr_6rem_auto]" do |f|
+      = f.hidden_field :group_id, value: group.id
+      div class="col-span-2 sm:col-span-1"
+        = f.label :booking_code, t(".share_booking"), for: "share_booking_#{group.id}", class: "form-label"
+        = f.select :booking_code, shareable.map { |booking| [ "#{booking.court.display_name} · #{l(booking.starts_at.to_date, format: "%d/%m")} · #{time_range(booking.starts_at, booking.ends_at)}", booking.code ] },
+            {}, id: "share_booking_#{group.id}", class: "form-input"
+      div
+        = f.label :players, GroupShare.human_attribute_name(:players), for: "share_players_#{group.id}", class: "form-label"
+        = f.number_field :players, value: group.members.size, min: 1, max: 50, id: "share_players_#{group.id}", class: "form-input"
+      = f.submit t(".share"), class: "btn-primary"
+
+  div class="flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-4"
+    = button_to t(".leave"), leave_group_path(group), method: :delete, class: "btn-secondary px-4 py-1.5 text-xs",
+        form: { data: { turbo_confirm: t(owner ? ".leave_confirm_owner" : ".leave_confirm", name: group.name) } }
+    - if owner
+      = button_to t(".delete"), group_path(group), method: :delete, class: "btn bg-red-50 px-4 py-1.5 text-xs text-red-700 ring-1 ring-red-200 hover:bg-red-100",
+          form: { data: { turbo_confirm: t(".delete_confirm", name: group.name) } }

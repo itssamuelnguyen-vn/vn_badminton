@@ -48,8 +48,8 @@ class BookingHoldTest < ActionDispatch::IntegrationTest
 
     sign_in users(:chi)
     get root_path(date: "2026-10-20")
-    assert_select "div[data-court-name='Sân 1'][data-starts-label='18:00']", text: "Đang giữ"
-    assert_select "button[data-court-name='Sân 1'][data-starts-label='18:00']", count: 0
+    assert_select "[data-court-name='Sân 1'][data-starts-label='18:00']", text: "Đang giữ"
+    assert_select "[data-available][data-court-name='Sân 1'][data-starts-label='18:00']", count: 0
 
     get new_booking_path(slots: @slots)
     assert_select "#error_explanation li", text: "Khung giờ này đã có người đặt"

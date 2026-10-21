@@ -1,0 +1,25 @@
+/ "Báo khi có sân trống" (TI-04): the customer picks a time range of this day and is emailed when a court frees up
+/ for all of it. Clicking a taken slot in the grid opens this with that time filled in (waitlist controller).
+/ Permanent: a live refresh of the schedule keeps what the customer is choosing.
+- times = day.upcoming_times
+- if times.any?
+  details#waitlist class="surface mt-4 p-4 sm:p-5" data-turbo-permanent=true data-waitlist-target="panel"
+    summary class="flex cursor-pointer list-none items-center gap-3 text-sm font-semibold [&::-webkit-details-marker]:hidden"
+      span class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600" aria-hidden="true"
+        svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"
+      span class="flex-1"
+        span class="block" = t(".title")
+        span class="block text-xs font-normal text-slate-500" = t(".hint")
+    = form_with model: WaitlistEntry.new, url: waitlist_entries_path, class: "mt-4 space-y-3" do |f|
+      div class="grid grid-cols-2 gap-3"
+        div
+          = f.label :starts_at, class: "form-label"
+          = f.select :starts_at, times.map { |time| [ l(time, format: :hour_minute), time.iso8601 ] }, {}, class: "form-input", data: { waitlist_target: "from" }
+        div
+          = f.label :ends_at, class: "form-label"
+          = f.select :ends_at, times.map { |time| [ l(time + Schedule::Day::SLOT, format: :hour_minute), (time + Schedule::Day::SLOT).iso8601 ] },
+              { selected: ((times[1] || times[0]) + Schedule::Day::SLOT).iso8601 },
+              class: "form-input", data: { waitlist_target: "to" }
+      p class="form-hint" = t(".limit", count: WaitlistEntry::MAX_PER_USER)
+      = f.submit t(".submit"), class: "btn-primary w-full sm:w-auto"

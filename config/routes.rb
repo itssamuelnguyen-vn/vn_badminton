@@ -14,9 +14,40 @@ Rails.application.routes.draw do
         # Moving a booking: the schedule in reschedule mode sends the new slot here to confirm it.
         get :reschedule, action: :review_reschedule
         patch :reschedule
+        post :review
       end
-      delete :release_hold, on: :collection
+      collection do
+        delete :release_hold
+        # The confirmation page's total, re-rendered when extras or the voucher code change.
+        get :quote
+      end
     end
+
+    # Open play (giao lưu): the list is public; buying places leads to the payment page.
+    resources :play_sessions, only: :index do
+      post :buy, on: :member
+    end
+    resources :play_session_tickets, only: :destroy
+
+    # The customer's groups. A booking is shared with the group picked in the form (groups page or booking page).
+    resources :groups, only: %i[index create destroy] do
+      post :join, on: :collection
+      delete :leave, on: :member
+      resources :shares, only: :destroy, controller: :group_shares
+    end
+    resources :group_shares, only: :create
+
+    # The customer's weekly bookings with each month's bill ("Đóng tiền": ?month=YYYY-MM), and asking for a new one.
+    resources :series, only: :index do
+      post :pay, on: :member
+    end
+    resources :series_requests, only: %i[new create destroy]
+    # Prepaid hours (UD-04): the packages on sale and the customer's own; buying one leads to the payment page.
+    resources :packages, only: :index do
+      post :buy, on: :member
+    end
+    # "Tell me when a court frees up" (TI-04): added from the schedule, listed on "Lượt đặt của tôi".
+    resources :waitlist_entries, path: "waitlist", only: %i[create destroy]
 
     # The owner's area. /admin is the day board; ?date=YYYY-MM-DD picks the day.
     namespace :admin do
@@ -48,6 +79,10 @@ Rails.application.routes.draw do
           post :mark_paid
           post :request_payment
           patch :update_price
+          # Moving the future sessions to another court or time: form -> plan (conflicts resolved) -> move.
+          get :move, action: :edit_move
+          post :move, action: :preview_move
+          patch :move
         end
       end
       resources :series_requests, only: [] do
@@ -56,7 +91,9 @@ Rails.application.routes.draw do
       resources :products, except: %i[show destroy]
       resources :vouchers, except: %i[show destroy]
       resources :packages, except: %i[show destroy]
-      resources :announcements, except: :show
+      resources :announcements, except: :show do
+        delete :destroy_many, on: :collection
+      end
       resources :reviews, only: :index
       resources :play_sessions, only: %i[index new create show] do
         member do
@@ -66,6 +103,11 @@ Rails.application.routes.draw do
         end
       end
       get "reports", to: "reports#show", as: :reports
+      get "reports/customers", to: "customer_reports#show", as: :customer_reports
+      # The cash drawer per shift ("chốt ca"): open, close by counting; the owner sees the history.
+      resources :cash_shifts, path: "shifts", only: %i[index show create] do
+        patch :close, on: :member
+      end
       resources :bank_transactions, path: "transactions", only: %i[index update] do
         patch :assign, on: :member
       end

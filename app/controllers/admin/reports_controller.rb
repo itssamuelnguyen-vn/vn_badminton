@@ -10,7 +10,7 @@ module Admin
       @report = Reports::Month.new(venue: venue, month: @month)
 
       respond_to do |format|
-        format.html
+        format.html { @previous = Reports::Month.new(venue: venue, month: @month.prev_month).totals }
         format.csv { send_data csv(@report), filename: "dat-san-#{@month.strftime("%Y-%m")}.csv", type: "text/csv; charset=utf-8" }
       end
     end

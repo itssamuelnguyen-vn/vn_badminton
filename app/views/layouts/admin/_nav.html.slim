@@ -1,22 +1,43 @@
-- tabs = [ [ t(".board"), admin_root_path, controller_name.in?(%w[boards bookings]) ],
-           [ t(".series"), admin_series_index_path, controller_name == "series" ],
-           [ t(".play_sessions"), admin_play_sessions_path, controller_name == "play_sessions" ],
-           [ t(".customers"), admin_customers_path, controller_name == "customers" ],
-           [ t(".reviews"), admin_reviews_path, controller_name == "reviews" ] ]
-/ Prices, settings and staff are for the owner only.
+/ Two levels: the group buttons, then the tabs of the current group. A group button opens its first tab.
+  Prices, money, settings and staff are for the owner only, so staff get the operations tabs alone, without the group row.
+- groups = [ [ t(".group_operations"), [ "M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" ],
+              [ [ t(".board"), admin_root_path, controller_name.in?(%w[boards bookings]) ],
+                [ t(".series"), admin_series_index_path, controller_name == "series" ],
+                [ t(".play_sessions"), admin_play_sessions_path, controller_name == "play_sessions" ],
+                [ t(".customers"), admin_customers_path, controller_name == "customers" ],
+                [ t(".cash_shifts"), admin_cash_shifts_path, controller_name == "cash_shifts" ],
+                [ t(".reviews"), admin_reviews_path, controller_name == "reviews" ] ] ] ]
 - if current_user.owner?
-  - tabs += [ [ t(".reports"), admin_reports_path, controller_name == "reports" ],
-              [ t(".transactions"), admin_bank_transactions_path, controller_name == "bank_transactions" ],
-              [ t(".price_rules"), admin_price_rules_path, controller_name == "price_rules" ],
-              [ t(".products"), admin_products_path, controller_name == "products" ],
-              [ t(".vouchers"), admin_vouchers_path, controller_name == "vouchers" ],
-              [ t(".packages"), admin_packages_path, controller_name == "packages" ],
-              [ t(".announcements"), admin_announcements_path, controller_name == "announcements" ],
-              [ t(".settings"), edit_admin_settings_path, controller_name == "settings" ],
-              [ t(".staff"), admin_staff_members_path, controller_name == "staff_members" ] ]
+  - groups += [ [ t(".group_sales"), [ "M12.6 2.6A2 2 0 0 0 11.2 2H4a2 2 0 0 0-2 2v7.2a2 2 0 0 0 .6 1.4l8.7 8.7a2.4 2.4 0 0 0 3.4 0l6.6-6.6a2.4 2.4 0 0 0 0-3.4Z", "M7.5 7.5h.01" ],
+                  [ [ t(".price_rules"), admin_price_rules_path, controller_name == "price_rules" ],
+                    [ t(".packages"), admin_packages_path, controller_name == "packages" ],
+                    [ t(".products"), admin_products_path, controller_name == "products" ],
+                    [ t(".vouchers"), admin_vouchers_path, controller_name == "vouchers" ] ] ],
+                [ t(".group_money"), [ "M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1", "M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4" ],
+                  [ [ t(".transactions"), admin_bank_transactions_path, controller_name == "bank_transactions" ],
+                    [ t(".reports"), admin_reports_path, controller_name == "reports" ],
+                    [ t(".customer_reports"), admin_customer_reports_path, controller_name == "customer_reports" ] ] ],
+                [ t(".group_system"), [ "M20 7h-9M14 17H5", "M14 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM20 17a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" ],
+                  [ [ t(".announcements"), admin_announcements_path, controller_name == "announcements" ],
+                    [ t(".staff"), admin_staff_members_path, controller_name == "staff_members" ],
+                    [ t(".settings"), edit_admin_settings_path, controller_name == "settings" ] ] ] ]
+- current_group = groups.find { |_, _, tabs| tabs.any?(&:last) } || groups.first
 
-/ The bottom line is an inset shadow, not a border: a -mb-px overlap would overflow and show a vertical scrollbar.
-nav class="mb-6 flex gap-1 overflow-x-auto text-sm whitespace-nowrap shadow-[inset_0_-1px_0_var(--color-slate-200)]" aria-label=t(".label")
-  - tabs.each do |label, path, current|
-    = link_to label, path, aria: { current: ("page" if current) },
-        class: [ "border-b-2 px-3 py-2 font-medium", current ? "border-emerald-600 text-emerald-700" : "border-transparent text-slate-600 hover:text-emerald-700" ]
+nav class="mb-6 rounded-2xl bg-white text-sm ring-1 ring-slate-200" aria-label=t(".label")
+  - if groups.size > 1
+    div class="grid grid-cols-4 gap-1 border-b border-slate-100 p-1.5 sm:flex sm:gap-1.5"
+      - groups.each do |label, icon, tabs|
+        - active = current_group.first == label
+        = link_to tabs.first[1], aria: { current: ("true" if active) },
+            class: [ "flex items-center justify-center gap-1.5 rounded-xl px-1 py-2 text-[13px] font-semibold whitespace-nowrap ring-1 transition sm:px-4 sm:text-sm",
+                     active ? "bg-emerald-600 text-white ring-emerald-600" : "text-slate-600 ring-slate-200 hover:bg-slate-50 hover:text-emerald-700" ] do
+          svg class="hidden size-4 shrink-0 sm:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+            - icon.each do |d|
+              path d=d
+          span = label
+  / On phones the tab row scrolls sideways; tab-scroll brings the current tab into view after each visit.
+  div class="relative overflow-x-auto p-1.5 whitespace-nowrap" data-controller="tab-scroll"
+    div class="flex w-max gap-0.5"
+      - current_group.last.each do |label, path, current|
+        = link_to label, path, aria: { current: ("page" if current) },
+            class: [ "rounded-xl px-3 py-1.5 font-medium transition", current ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200" : "text-slate-600 hover:bg-slate-50 hover:text-emerald-700" ]

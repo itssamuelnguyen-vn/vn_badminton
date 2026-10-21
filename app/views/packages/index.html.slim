@@ -1,0 +1,60 @@
+- content_for :title, t(".title")
+- now = Time.current
+
+div class="mx-auto max-w-2xl"
+  div class="mb-8"
+    h1 class="text-2xl font-bold sm:text-3xl" = t(".title")
+    p class="mt-2 text-sm text-slate-600" = t(".intro")
+
+  / The customer's purchases: waiting for the transfer, in use, used up or expired.
+  - if @purchases.any?
+    section class="mb-10"
+      h2 class="section-title mb-4" = t(".mine")
+      div class="space-y-3"
+        - @purchases.each do |purchase|
+          - state = if purchase.awaiting? then "awaiting" elsif purchase.expired?(now) then "expired" elsif purchase.minutes_left.zero? then "used_up" else "active" end
+          div class="surface p-4 sm:p-5"
+            div class="flex items-start justify-between gap-3"
+              div class="min-w-0"
+                p class="font-bold" = purchase.display_name
+                - if purchase.start_minute
+                  p class="mt-0.5 text-xs text-slate-500" = t(".hours_window", from: OpeningHour.format_minute(purchase.start_minute), to: OpeningHour.format_minute(purchase.end_minute))
+              span class=[ "inline-flex shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap ring-1",
+                           { "awaiting" => "bg-amber-50 text-amber-700 ring-amber-200", "active" => "bg-emerald-50 text-emerald-700 ring-emerald-200",
+                             "expired" => "bg-slate-100 text-slate-600 ring-slate-200", "used_up" => "bg-slate-100 text-slate-600 ring-slate-200" }.fetch(state) ]
+                = t(".states.#{state}")
+            - if purchase.awaiting?
+              div class="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-slate-600"
+                p = t(".awaiting_line", amount: format_vnd(purchase.price_vnd), time: l(purchase.payment.expires_at, format: :hour_minute))
+                - if purchase.payment.open?(now)
+                  = link_to t("bookings.index.pay_now"), payment_path(purchase.payment), class: "btn-primary px-4 py-1.5 text-xs"
+            - else
+              - used = purchase.minutes_total - purchase.minutes_left
+              div class="mt-3"
+                div class="flex justify-between text-sm"
+                  span class="font-semibold tabular-nums" = t(".left", left: format_duration(purchase.minutes_left), total: format_duration(purchase.minutes_total))
+                  span class="text-slate-500" = t(".expires", date: l(purchase.expires_at.to_date, format: :day_month_year))
+                div class="mt-2 h-2 overflow-hidden rounded-full bg-slate-100" role="presentation"
+                  div class="brand-gradient h-full rounded-full" style="width: #{(100.0 * purchase.minutes_left / purchase.minutes_total).round}%"
+                - if used.positive?
+                  p class="mt-1 text-xs text-slate-500" = t(".used", used: format_duration(used))
+      p class="mt-3 text-xs text-slate-500" = t(".how_to_use")
+
+  section
+    h2 class="section-title mb-4" = t(".on_sale")
+    - if @packages.any?
+      div class="grid gap-3 sm:grid-cols-2"
+        - @packages.each do |package|
+          div class="surface flex flex-col p-5"
+            p class="font-bold" = package.display_name
+            p class="mt-1 text-2xl font-bold text-emerald-700 tabular-nums" = format_vnd(package.price_vnd)
+            ul class="mt-2 flex-1 space-y-1 text-sm text-slate-600"
+              li = t(".package_hours", hours: format_duration(package.minutes))
+              li = t(".package_valid", count: package.valid_days)
+              - if package.start_minute
+                li = t(".hours_window", from: OpeningHour.format_minute(package.start_minute), to: OpeningHour.format_minute(package.end_minute))
+            = button_to t(".buy"), buy_package_path(package), class: "btn-primary mt-4 w-full",
+                form: { data: { turbo_confirm: t(".buy_confirm", name: package.display_name, amount: format_vnd(package.price_vnd)) } }
+      p class="mt-3 text-xs text-slate-500" = t(".no_refund")
+    - else
+      div class="card text-center text-sm text-slate-600" = t(".none_on_sale")

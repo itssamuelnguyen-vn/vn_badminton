@@ -1,0 +1,67 @@
+- content_for :title, t(".title")
+- series = @series
+- move = @move
+- items = move.items
+- slot = ->(court, from, to) { "#{court.display_name} · #{time_range(from, to)}" }
+
+div class="mx-auto max-w-3xl space-y-6"
+  div
+    p class="text-sm text-slate-500" = series.customer_name
+    h1 class="text-2xl font-bold" = t(".title")
+    p class="mt-1 text-sm text-slate-600"
+      = t(".pattern", from: l(move.from, format: :day_month_year), courts: move.courts.map(&:display_name).join(", "), days: format_days(move.days_of_week),
+                      time: "#{OpeningHour.format_minute(move.start_minute)} – #{OpeningHour.format_minute(move.end_minute)}")
+
+  - if move.errors.any?
+    div role="alert" class="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-200"
+      - move.errors.full_messages.each do |message|
+        p = message
+
+  dl class="grid grid-cols-3 gap-3"
+    - [ [ t(".moving"), items.count(&:moves?) ], [ t(".conflicts"), items.count(&:conflict?) ], [ t(".sessions"), items.size ] ].each do |label, value|
+      div class="rounded-xl bg-white px-4 py-3 ring-1 ring-slate-200"
+        dt class="text-xs text-slate-500" = label
+        dd class="mt-1 text-lg font-semibold tabular-nums" = value
+
+  = form_with url: move_admin_series_path(series), method: :patch, class: "space-y-6", data: { turbo_confirm: t(".confirm") } do |f|
+    / The planned move, sent again to apply it.
+    = hidden_field_tag "move[from]", move.from.iso8601, id: nil
+    = hidden_field_tag "move[start_minute]", move.start_minute, id: nil
+    = hidden_field_tag "move[end_minute]", move.end_minute, id: nil
+    - move.court_ids.each do |id|
+      = hidden_field_tag "move[court_ids][]", id, id: nil
+    - move.days_of_week.each do |day|
+      = hidden_field_tag "move[days_of_week][]", day, id: nil
+
+    ul class="divide-y divide-slate-100 rounded-xl bg-white ring-1 ring-slate-200"
+      - items.each do |item|
+        - booking = item.booking
+        li class=[ "space-y-1.5 px-4 py-3 text-sm", ("bg-amber-50/60" if item.conflict?) ]
+          div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1"
+            p
+              span class="text-slate-500" = "#{l(booking.starts_at.to_date, format: :full)} · #{slot.(booking.court, booking.starts_at, booking.ends_at)}"
+              - unless item.status == :skipped
+                span class="mx-1 text-slate-400" aria-hidden="true" = "→"
+                span class="sr-only" = t(".to")
+                span class="font-medium" = "#{l(item.starts_at.to_date, format: :full)} · #{slot.(item.court, item.starts_at, item.ends_at)}"
+            p class="tabular-nums text-slate-600"
+              - if item.keeps_price
+                = t(".kept_price", amount: format_vnd(booking.total_amount_vnd))
+              - elsif item.amount_vnd == booking.total_amount_vnd
+                = format_vnd(item.amount_vnd)
+              - else
+                = "#{format_vnd(booking.total_amount_vnd)} → #{format_vnd(item.amount_vnd)}"
+          - if item.conflict?
+            p class="text-xs text-red-700" = item.problems.to_sentence
+            - options = [ [ t(".skip"), Series::Move::SKIP ] ] + (item.free_courts + [ (item.court if item.status == :other_court) ]).compact.uniq.sort_by(&:position).map { |court| [ t(".other_court", court: court.display_name), court.id ] }
+            - selected = move.choices[booking.id] || Series::Move::SKIP
+            div class="flex flex-wrap items-center gap-2"
+              = label_tag "choices_#{booking.id}", t(".choice"), class: "text-xs font-medium text-slate-600"
+              = select_tag "choices[#{booking.id}]", options_for_select(options, selected), id: "choices_#{booking.id}", class: "form-input w-auto py-1.5 text-sm"
+              - if item.status == :skipped
+                span class="text-xs text-slate-500" = t(".skipped_hint")
+
+    p class="form-hint" = t(".price_hint")
+    div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"
+      = link_to t(".back"), move_admin_series_path(series), class: "btn-secondary"
+      = f.submit t(".submit"), class: "btn-primary"

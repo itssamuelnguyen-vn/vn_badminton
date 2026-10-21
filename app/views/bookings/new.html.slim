@@ -1,6 +1,8 @@
 - content_for :title, t(".title")
 - bookings = @batch.bookings
 - several = bookings.size > 1
+- products = @batch.venue.products.active.ordered.to_a
+- packages = @batch.errors? ? [] : @batch.payable_packages
 
 div class="card mx-auto max-w-lg"
   h1 class="mb-6 text-2xl font-bold" = t(".title")
@@ -13,7 +15,8 @@ div class="card mx-auto max-w-lg"
         = t(".held_html", time: tag.strong("--:--", class: "tabular-nums", data: { hold_countdown_target: "clock" }))
       p hidden=true data-hold-countdown-target="expired" = t(".hold_expired")
 
-  = form_with scope: :booking, url: bookings_path, class: "space-y-6" do |f|
+  / The price box follows the extras and the voucher code (booking-quote controller, BookingsController#quote).
+  = form_with scope: :booking, url: bookings_path, class: "space-y-6", data: { controller: "booking-quote", booking_quote_url_value: quote_bookings_path } do |f|
     - if @batch.errors?
       div#error_explanation role="alert" class="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-200"
         ul class="list-disc space-y-1 pl-5"
@@ -25,15 +28,31 @@ div class="card mx-auto max-w-lg"
 
     - bookings.each_with_index do |booking, index|
       div class=("rounded-2xl ring-1 ring-slate-200 px-4" if several)
-        = render "bookings/details", booking: booking, total_label: (t("bookings.details.price") if several)
+        = render "bookings/details", booking: booking, court_only: true, total_label: (t("bookings.details.price") if several)
       = hidden_field_tag "booking[slots][#{index}][court_id]", booking.court_id
       = hidden_field_tag "booking[slots][#{index}][starts_at]", booking.starts_at&.iso8601
       = hidden_field_tag "booking[slots][#{index}][ends_at]", booking.ends_at&.iso8601
 
-    - if several
-      div class="flex justify-between gap-4 text-base"
-        span class="font-semibold" = t(".grand_total", count: bookings.size)
-        span class="font-bold text-emerald-700 tabular-nums" = format_vnd(@batch.total_amount_vnd)
+    / Extras (TI-01): 0 to BookingItem::MAX_QUANTITY of each, priced when picked.
+    - if products.any?
+      fieldset
+        legend class="form-label" = t(".extras")
+        ul class="divide-y divide-slate-100 rounded-2xl ring-1 ring-slate-200"
+          - products.each do |product|
+            - field_id = "booking_quantities_#{product.id}"
+            li class="flex items-center justify-between gap-3 px-4 py-2.5"
+              label for=field_id class="min-w-0 text-sm"
+                span class="block font-medium" = product.display_name
+                span class="block text-slate-500 tabular-nums" = format_vnd(product.price_vnd)
+              div class="flex shrink-0 items-center gap-1"
+                = button_tag "−", type: "button", class: "btn-secondary size-9 px-0 py-0 text-lg", aria: { label: t(".extras_less", name: product.display_name) },
+                    data: { action: "booking-quote#step", booking_quote_input_param: field_id, booking_quote_delta_param: -1 }
+                = number_field_tag "booking[quantities][#{product.id}]", params.dig(:booking, :quantities, product.id.to_s).presence || 0, id: field_id,
+                    min: 0, max: BookingItem::MAX_QUANTITY, inputmode: "numeric", class: "form-input w-14 px-1 text-center tabular-nums",
+                    data: { action: "input->booking-quote#refresh keydown.enter->booking-quote#refresh:prevent" }
+                = button_tag "+", type: "button", class: "btn-secondary size-9 px-0 py-0 text-lg", aria: { label: t(".extras_more", name: product.display_name) },
+                    data: { action: "booking-quote#step", booking_quote_input_param: field_id, booking_quote_delta_param: 1 }
+        p class="form-hint" = t(".extras_hint")
 
     div class="rounded-2xl bg-slate-50 p-4 text-sm"
       p class="mb-1 font-medium" = t(".customer")
@@ -42,17 +61,30 @@ div class="card mx-auto max-w-lg"
         = t(".customer_hint_html", link: link_to(t(".account_settings"), edit_user_registration_path, class: "link"))
 
     / The member tier's discount applies by itself; a voucher code replaces it when it saves more (Pricing::Offer).
-    - offer = @batch.offer
-    - if offer.kind == "tier"
-      p class="rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800 ring-1 ring-emerald-200"
-        = t(".tier_discount", label: offer.label, amount: format_vnd(offer.discount_vnd))
     div
       = f.label :voucher_code, t(".voucher_code"), class: "form-label"
-      = f.text_field :voucher_code, value: params.dig(:booking, :voucher_code), maxlength: 20, autocomplete: "off", class: "form-input uppercase"
+      = f.text_field :voucher_code, value: params.dig(:booking, :voucher_code), maxlength: 20, autocomplete: "off", class: "form-input uppercase",
+          data: { action: "change->booking-quote#refresh keydown.enter->booking-quote#refresh:prevent" }
       p class="form-hint" = t(".voucher_hint")
     div
       = f.label :note, Booking.human_attribute_name(:note), class: "form-label"
       = f.text_area :note, value: bookings.first&.note, rows: 2, maxlength: 500, placeholder: t(".note_placeholder"), class: "form-input"
+
+    = render "bookings/quote", batch: @batch
+
+    / Prepaid hours that can pay these slots (UD-05): booked and confirmed at once, no transfer.
+    - if packages.any?
+      div class="rounded-2xl bg-sky-50 p-4 text-sm text-sky-950 ring-1 ring-sky-200"
+        p class="font-semibold" = t(".package_title")
+        p class="mt-0.5 text-xs text-sky-800" = t(".package_hint")
+        div class="mt-3 space-y-2"
+          - packages.each do |purchase|
+            = button_tag type: "submit", name: "booking[package_purchase_id]", value: purchase.id, class: "btn-secondary w-full justify-between text-left" do
+              span
+                span class="block" = t(".package_use", name: purchase.display_name)
+                span class="block text-xs font-normal text-slate-500"
+                  = t(".package_left", hours: format_duration(purchase.minutes_left), date: l(purchase.expires_at.to_date, format: :day_month_year))
+              span class="text-emerald-700" aria-hidden="true" = "→"
 
     p class="rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200" = t(".pay_by_transfer", count: (Payment::WINDOW / 60).to_i)
 

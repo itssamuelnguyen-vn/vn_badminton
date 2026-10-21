@@ -38,6 +38,12 @@ module Admin
       redirect_to admin_announcements_path, notice: t(".success")
     end
 
+    # The announcements ticked on the list (ids[]), deleted together.
+    def destroy_many
+      count = venue.announcements.where(id: Array(params[:ids])).destroy_all.size
+      redirect_to admin_announcements_path, notice: t(".success", count: count)
+    end
+
     private
 
     def set_announcement

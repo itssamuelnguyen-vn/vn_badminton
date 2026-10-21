@@ -1,0 +1,85 @@
+- content_for :title, t(".title")
+- shift = @shift
+
+div class="mx-auto max-w-3xl space-y-6"
+  div
+    h1 class="text-2xl font-bold sm:text-3xl" = t(".title")
+    p class="mt-1 text-sm text-slate-600" = t(".explanation")
+
+  - if shift
+    section class="rounded-2xl bg-white ring-1 ring-slate-200" aria-labelledby="current-shift"
+      div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3 sm:px-5"
+        div
+          h2#current-shift class="font-semibold" = t(".current")
+          p class="text-sm text-slate-600" = t(".opened", time: l(shift.opened_at, format: :slot), by: shift.opened_by.full_name)
+        span class="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200" = t(".open_badge")
+      / Blind count: staff count the drawer without seeing what it should hold; the owner sees everything.
+      - figures = [ [ t(".opening"), shift.opening_vnd ] ]
+      - figures += [ [ t(".collected"), shift.collected_vnd ], [ t(".expected"), shift.expected_vnd ] ] if current_user.owner?
+      dl class="grid grid-cols-3 gap-2 px-4 py-3 sm:px-5"
+        - figures.each do |label, amount|
+          div
+            dt class="text-xs text-slate-500" = label
+            dd class="mt-0.5 font-semibold tabular-nums sm:text-lg" = format_vnd(amount)
+      - if current_user.owner?
+        = render "lines", shift: shift
+      - else
+        p class="border-t border-slate-100 px-4 py-3 text-sm text-slate-600 sm:px-5" = t(".blind_count")
+
+      = form_with url: close_admin_cash_shift_path(shift), method: :patch, class: "space-y-3 border-t border-slate-100 px-4 py-4 sm:px-5",
+          data: { turbo_confirm: t(".close_confirm") } do |f|
+        h3 class="font-semibold" = t(".close")
+        - if shift.errors.any?
+          div role="alert" class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800 ring-1 ring-red-200"
+            - shift.errors.full_messages.each do |message|
+              p = message
+        div
+          = f.label :counted_vnd, t(".counted"), class: "form-label"
+          = f.number_field :counted_vnd, value: shift.counted_vnd, min: 0, step: 1000, required: true, inputmode: "numeric", class: "form-input tabular-nums"
+          p class="form-hint" = t(".counted_hint")
+        div
+          = f.label :note, t(".note"), class: "form-label"
+          = f.text_area :note, value: shift.note, rows: 2, maxlength: 500, placeholder: t(".note_placeholder"), class: "form-input"
+          p class="form-hint" = t(".note_hint")
+        = f.submit t(".close_submit"), class: "btn-primary w-full sm:w-auto"
+  - else
+    = form_with url: admin_cash_shifts_path, method: :post, class: "card space-y-3" do |f|
+      h2 class="font-semibold" = t(".no_shift")
+      p class="text-sm text-slate-600" = t(".no_shift_hint")
+      div
+        = f.label :opening_vnd, t(".opening_field"), class: "form-label"
+        = f.number_field :opening_vnd, value: @last&.counted_vnd, min: 0, step: 1000, required: true, inputmode: "numeric", class: "form-input tabular-nums"
+        - if @last
+          p class="form-hint"
+            = t(".last_closed", time: l(@last.closed_at, format: :slot), by: @last.closed_by.full_name, amount: format_vnd(@last.counted_vnd))
+      = f.submit t(".open_submit"), class: "btn-primary w-full sm:w-auto"
+
+  - if current_user.owner?
+    section aria-labelledby="shift-history" class="space-y-3"
+      div class="flex flex-wrap items-center justify-between gap-2"
+        h2#shift-history class="text-lg font-semibold" = t(".history")
+        div class="flex items-center gap-2"
+          = link_to "‹", admin_cash_shifts_path(month: @month.prev_month.strftime("%Y-%m")), class: "btn-secondary px-3", aria: { label: t("admin.reports.show.previous_month") }
+          span class="min-w-28 text-center font-semibold" = l(@month, format: :month_year)
+          = link_to "›", admin_cash_shifts_path(month: @month.next_month.strftime("%Y-%m")), class: "btn-secondary px-3", aria: { label: t("admin.reports.show.next_month") }
+      - if @history.empty?
+        p class="card text-center text-sm text-slate-600" = t(".history_empty")
+      - else
+        - total = @history.sum(&:difference_vnd)
+        p class="text-sm text-slate-600"
+          = t(".history_total", count: @history.size)
+          =< tag.span(cash_difference(total), class: "font-semibold tabular-nums #{cash_difference_class(total)}")
+        ul class="divide-y divide-slate-100 rounded-2xl bg-white ring-1 ring-slate-200"
+          - @history.each do |past|
+            li
+              = link_to admin_cash_shift_path(past), class: "block px-4 py-3 hover:bg-slate-50 sm:px-5" do
+                div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1"
+                  p class="font-medium"
+                    = "#{l(past.opened_at, format: :slot)} – #{l(past.closed_at, format: past.closed_at.to_date == past.opened_at.to_date ? :hour_minute : :slot)}"
+                  p class="font-semibold tabular-nums #{cash_difference_class(past.difference_vnd)}" = cash_difference(past.difference_vnd)
+                p class="text-xs text-slate-500" = t(".by", opened: past.opened_by.full_name, closed: past.closed_by.full_name)
+                p class="mt-1 text-sm text-slate-600 tabular-nums"
+                  = t(".amounts", opening: format_vnd(past.opening_vnd), collected: format_vnd(past.collected_vnd),
+                                  expected: format_vnd(past.expected_vnd), counted: format_vnd(past.counted_vnd))
+                - if past.note
+                  p class="mt-1 text-sm text-slate-700" = t(".note_line", note: past.note)

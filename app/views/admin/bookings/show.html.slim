@@ -73,8 +73,12 @@ div class="card mx-auto max-w-lg"
         p = t(".refunded", amount: format_vnd(@booking.refund_vnd), date: l(@booking.refunded_at, format: :slot))
       - else
         p = t(".refund_due", amount: format_vnd(@booking.refund_vnd))
-        = button_to t(".mark_refunded"), mark_refunded_admin_booking_path(@booking), method: :patch, class: "btn-secondary px-3 py-1.5 text-xs",
-            form: { data: { turbo_confirm: t(".mark_refunded_confirm", amount: format_vnd(@booking.refund_vnd)) } }
+        div class="flex flex-wrap gap-2"
+          = button_to t(".mark_refunded"), mark_refunded_admin_booking_path(@booking), method: :patch, class: "btn-secondary px-3 py-1.5 text-xs",
+              form: { data: { turbo_confirm: t(".mark_refunded_confirm", amount: format_vnd(@booking.refund_vnd)) } }
+          / Handed back from the drawer: taken out of the open cash shift (VH-12).
+          = button_to t(".mark_refunded_cash"), mark_refunded_admin_booking_path(@booking, via: "cash"), method: :patch, class: "btn-secondary px-3 py-1.5 text-xs",
+              form: { data: { turbo_confirm: t(".mark_refunded_cash_confirm", amount: format_vnd(@booking.refund_vnd)) } }
 
   - if @booking.note.present?
     p class="mt-4 rounded-lg bg-slate-50 p-3 text-sm text-slate-700" = @booking.note

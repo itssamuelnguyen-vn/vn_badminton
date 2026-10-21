@@ -49,7 +49,7 @@ module ApiJson
       # Cancelling a paid booking gives no refund (only a venue fault does).
       cancel_without_refund: booking.payment_paid?,
       payment_token: (booking.payment&.token if booking.pending?),
-      can_review: booking.persisted? && booking.user && booking.review.nil? && Review.allowed?(booking, booking.user, now),
+      can_review: booking.reviewable?(now),
       review: (review(booking.review) if booking.review)
     }
   end
@@ -89,8 +89,7 @@ module ApiJson
   def group(group, viewer, now: Time.current)
     { id: group.id, name: group.name, invite_code: group.invite_code, owner: group.owner_id == viewer.id,
       members: group.members.sort_by(&:full_name).map { |member| { id: member.id, name: member.full_name, owner: member.id == group.owner_id } },
-      shares: group.shares.select { |share| share.booking.ends_at > now && share.booking.status.in?(%w[confirmed checked_in]) }
-                   .sort_by { |share| share.booking.starts_at }.map do |share|
+      shares: group.upcoming_shares(now).map do |share|
         booking = share.booking
         { id: share.id, shared_by: share.shared_by.full_name, mine: share.shared_by_id == viewer.id, players: share.players,
           per_player_vnd: share.per_player_vnd, total_vnd: booking.charged_vnd, court: booking.court.display_name,
@@ -129,7 +128,7 @@ module ApiJson
       id: series.id, courts: series.courts.map(&:display_name), days_of_week: series.days_of_week,
       start_minute: series.start_minute, end_minute: series.end_minute, starts_on: series.starts_on.iso8601,
       ends_on: series.ends_on.iso8601, price_per_hour_vnd: series.price_per_hour_vnd,
-      months: series.months.select { |month| month >= today.beginning_of_month.prev_month }.map do |month|
+      months: series.billed_months(today).map do |month|
         bill = series.billing(month)
         { month: month.strftime("%Y-%m"), sessions: bill.billable.count, amount_vnd: bill.amount_vnd, credit_vnd: bill.credit_vnd,
           due_vnd: bill.due_vnd, paid: bill.paid?, payment_token: awaiting[month]&.token }

@@ -4,7 +4,8 @@ div class="card mx-auto max-w-2xl"
   h1 class="mb-2 text-2xl font-bold" = t(".title")
   p class="mb-6 text-sm text-slate-600" = t(".explanation")
 
-  = form_with model: @series, url: preview_admin_series_index_path, method: :post, class: "space-y-5" do |f|
+  / Not Turbo: the preview is rendered as the answer to this POST (no redirect), which Turbo would ignore.
+  = form_with model: @series, url: preview_admin_series_index_path, method: :post, class: "space-y-5", data: { turbo: false } do |f|
     = render "devise/shared/error_messages", resource: @series
     - if @request
       = hidden_field_tag :request_id, @request.id

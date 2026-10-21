@@ -1,0 +1,48 @@
+- content_for :title, t(".title")
+- series = @series
+- move = @move
+
+div class="card mx-auto max-w-2xl"
+  p class="text-sm text-slate-500" = series.customer_name
+  h1 class="mb-2 text-2xl font-bold" = t(".title")
+  p class="mb-1 text-sm text-slate-600"
+    = t(".now", courts: series.courts.map(&:display_name).join(", "), days: format_days(series.days_of_week),
+                time: "#{OpeningHour.format_minute(series.start_minute)} – #{OpeningHour.format_minute(series.end_minute)}")
+  p class="mb-6 text-sm text-slate-600" = t(".explanation", courts: series.court_ids.size, days: series.days_of_week.size)
+
+  / The plan is a page of its own (200), which Turbo does not show after a form submission.
+  = form_with model: move, scope: :move, url: move_admin_series_path(series), method: :post, class: "space-y-5", data: { turbo: false } do |f|
+    = render "devise/shared/error_messages", resource: move
+    div
+      = f.label :from, Series::Move.human_attribute_name(:from), class: "form-label"
+      = f.date_field :from, min: Venue.main.today.iso8601, required: true, class: "form-input sm:max-w-56"
+      p class="form-hint" = t(".from_hint")
+
+    fieldset
+      legend class="form-label" = Series::Move.human_attribute_name(:court_ids)
+      div class="flex flex-wrap gap-2"
+        = f.collection_check_boxes :court_ids, Venue.main.courts.active, :id, :display_name do |b|
+          = b.label class: "flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 has-checked:bg-emerald-50 has-checked:ring-emerald-500" do
+            = b.check_box class: "accent-emerald-600"
+            = b.text
+
+    fieldset
+      legend class="form-label" = Series::Move.human_attribute_name(:days_of_week)
+      div class="flex flex-wrap gap-2"
+        = f.collection_check_boxes :days_of_week, Admin::VenueSettings::WEEK.map { |day| [ day, t("date.abbr_day_names")[day] ] }, :first, :last do |b|
+          = b.label class: "flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 has-checked:bg-emerald-50 has-checked:ring-emerald-500" do
+            = b.check_box class: "accent-emerald-600"
+            = b.text
+
+    div class="grid grid-cols-2 gap-3 sm:max-w-md"
+      div
+        = f.label :start_minute, Series::Move.human_attribute_name(:start_minute), class: "form-label"
+        = f.select :start_minute, minute_options(0..1410), {}, class: "form-input"
+      div
+        = f.label :end_minute, Series::Move.human_attribute_name(:end_minute), class: "form-label"
+        = f.select :end_minute, minute_options(30..1440), {}, class: "form-input"
+
+    p class="form-hint" = t(".price_hint")
+    div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"
+      = link_to t("admin.bookings.new.back"), admin_series_path(series), class: "btn-secondary"
+      = f.submit t(".submit"), class: "btn-primary"

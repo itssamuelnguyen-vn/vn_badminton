@@ -7,17 +7,29 @@ div class="mb-4 flex flex-wrap items-end justify-between gap-4"
   = link_to t(".new"), new_admin_announcement_path, class: "btn-primary"
 
 - if @announcements.any?
-  div class="divide-y divide-slate-100 rounded-xl bg-white ring-1 ring-slate-200"
-    - @announcements.each do |announcement|
-      - showing = announcement.starts_on <= @today && announcement.ends_on >= @today
-      = link_to edit_admin_announcement_path(announcement), class: [ "block px-4 py-3 hover:bg-slate-50", ("text-slate-400" if announcement.ends_on < @today) ] do
-        div class="flex flex-wrap items-center justify-between gap-2"
-          p class="font-medium" = announcement.title
-          span class="text-xs"
-            - if showing
-              span class="mr-2 rounded-full bg-emerald-100 px-2 py-0.5 font-medium text-emerald-800" = t(".showing")
-            = "#{l(announcement.starts_on, format: :day_month_year)} – #{l(announcement.ends_on, format: :day_month_year)}"
-        - if announcement.body
-          p class="mt-1 line-clamp-2 text-sm text-slate-600" = announcement.body
+  / Tick announcements, then delete them together; the button counts the ticked ones.
+  = form_with url: destroy_many_admin_announcements_path, method: :delete, data: { controller: "bulk-select", turbo_confirm: t(".destroy_confirm") } do
+    div class="rounded-xl bg-white ring-1 ring-slate-200"
+      div class="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-2"
+        label class="flex cursor-pointer items-center gap-2 text-sm text-slate-600"
+          input type="checkbox" class="size-4 rounded border-slate-300 accent-emerald-600" data-bulk-select-target="all" data-action="change->bulk-select#toggleAll"
+          = t(".select_all")
+        button type="submit" class="btn bg-white px-3 py-1.5 text-sm text-red-700 ring-1 ring-red-200 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40" disabled=true data-bulk-select-target="button"
+          = t(".destroy_selected")
+          span class="tabular-nums" data-bulk-select-target="count"
+      div class="divide-y divide-slate-100"
+        - @announcements.each do |announcement|
+          - showing = announcement.starts_on <= @today && announcement.ends_on >= @today
+          div class=[ "flex items-start gap-3 px-4 py-3 hover:bg-slate-50", ("text-slate-400" if announcement.ends_on < @today) ]
+            input type="checkbox" name="ids[]" value=announcement.id class="mt-1 size-4 shrink-0 rounded border-slate-300 accent-emerald-600" aria-label=announcement.title data-bulk-select-target="item" data-action="change->bulk-select#update"
+            = link_to edit_admin_announcement_path(announcement), class: "block min-w-0 flex-1" do
+              div class="flex flex-wrap items-center justify-between gap-2"
+                p class="font-medium" = announcement.title
+                span class="text-xs"
+                  - if showing
+                    span class="mr-2 rounded-full bg-emerald-100 px-2 py-0.5 font-medium text-emerald-800" = t(".showing")
+                  = "#{l(announcement.starts_on, format: :day_month_year)} – #{l(announcement.ends_on, format: :day_month_year)}"
+              - if announcement.body
+                p class="mt-1 line-clamp-2 text-sm text-slate-600" = announcement.body
 - else
   p class="card text-center text-sm text-slate-600" = t(".empty")

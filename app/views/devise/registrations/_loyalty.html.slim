@@ -1,0 +1,25 @@
+/ The customer's member tier (UD-01): hours played in the last 12 months, the discount, and how far the next tier is;
+/ with the link to their prepaid hours. Staff accounts have neither.
+- if user.customer?
+  - tier = Loyalty::Tier.for(user, venue: venue)
+  - following = tier.next
+  section class="mx-auto mb-6 max-w-md overflow-hidden rounded-3xl brand-gradient p-6 text-white shadow-xl shadow-emerald-700/20" aria-labelledby="loyalty-title"
+    div class="flex items-start justify-between gap-4"
+      div
+        p#loyalty-title class="text-sm text-emerald-50/80" = t(".title")
+        p class="text-2xl font-bold" = tier.name
+      - if venue.loyalty_enabled? && tier.percent.positive?
+        span class="rounded-full bg-white/15 px-3 py-1 text-sm font-semibold ring-1 ring-white/30" = t(".discount", percent: tier.percent)
+    p class="mt-3 text-sm text-emerald-50" = t(".hours", hours: number_with_precision(tier.hours, precision: 1, strip_insignificant_zeros: true))
+    - if following
+      - threshold = following[:hours]
+      div class="mt-3 h-2 overflow-hidden rounded-full bg-white/20" role="progressbar" aria-valuemin=0 aria-valuemax=threshold aria-valuenow=tier.hours.round(1) aria-label=t(".progress")
+        div class="h-full rounded-full bg-white" style="width: #{[ (100 * tier.hours / threshold).round, 100 ].min}%"
+      p class="mt-2 text-xs text-emerald-50/90"
+        = t(".next", hours: number_with_precision(threshold - tier.hours, precision: 1, strip_insignificant_zeros: true), tier: t("loyalty.tiers.#{following[:key]}"),
+            percent: Loyalty::Tier.thresholds(venue).fetch(following[:key]).last)
+    - else
+      p class="mt-2 text-xs text-emerald-50/90" = t(".top")
+    - unless venue.loyalty_enabled?
+      p class="mt-2 text-xs text-emerald-50/90" = t(".paused")
+    = link_to t(".packages"), packages_path, class: "mt-4 inline-flex items-center gap-1 rounded-full bg-white px-4 py-2 text-sm font-semibold text-emerald-800 shadow-sm transition hover:bg-emerald-50"

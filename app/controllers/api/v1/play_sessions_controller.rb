@@ -11,8 +11,8 @@ module Api
 
       def index
         venue = Venue.main
-        sessions = venue.play_sessions.upcoming.where("starts_at > ?", Time.current).limit(30).to_a
-        mine = current_user ? current_user.play_session_tickets.where.not(status: :cancelled).includes(:payment).group_by(&:play_session_id) : {}
+        sessions = PlaySession.preload_seats_taken(venue.play_sessions.listed.to_a)
+        mine = current_user ? current_user.play_session_tickets.active.includes(:payment).group_by(&:play_session_id) : {}
         render json: { sessions: sessions.map { |session| ApiJson.play_session(session, mine.fetch(session.id, [])) } }
       end
 

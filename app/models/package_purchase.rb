@@ -14,6 +14,8 @@ class PackagePurchase < ApplicationRecord
   has_many :bookings, dependent: :restrict_with_error
 
   scope :usable, ->(now = Time.current) { active.where("expires_at > ?", now).where("minutes_left > 0") }
+  # What the customer sees of their purchases: paid ones, and those still waiting for the transfer.
+  scope :listed, ->(now = Time.current) { active.or(awaiting.where(created_at: (now - PAYMENT_WINDOW)..)) }
 
   def self.buy!(user, package, now: Time.current)
     transaction do
@@ -33,6 +35,10 @@ class PackagePurchase < ApplicationRecord
 
   def display_name(locale = I18n.locale)
     package&.display_name(locale) || name
+  end
+
+  def expired?(now = Time.current)
+    active? && expires_at <= now
   end
 
   # Why these bookings cannot be paid with the package, or nil.

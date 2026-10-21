@@ -6,8 +6,8 @@ class BookingsController < ApplicationController
   # Each opening of the confirmation page can hold slots; keep that from being used to block the schedule.
   rate_limit to: 30, within: 10.minutes, only: :new, by: -> { current_user.id }, store: RATE_LIMIT_STORE,
              with: -> { rate_limited(root_path) }
-  before_action :require_verified_email, only: %i[new create]
-  before_action :set_booking, only: %i[show cancel review_reschedule reschedule]
+  before_action :require_verified_email, only: %i[new create quote]
+  before_action :set_booking, only: %i[show cancel review_reschedule reschedule review]
   before_action :require_reschedulable, only: %i[review_reschedule reschedule]
 
   def index
@@ -15,6 +15,7 @@ class BookingsController < ApplicationController
     @upcoming = bookings.where(status: UPCOMING_STATUSES).where(ends_at: Time.current..).order(:starts_at)
     @awaiting_payments = Payment.awaiting.where(user: current_user).where("expires_at > ?", Time.current).order(:expires_at)
     @past = bookings.where.not(id: @upcoming).order(starts_at: :desc).limit(50)
+    @waits = current_user.waitlist_entries.waiting.order(:starts_at)
   end
 
   def show
@@ -32,12 +33,22 @@ class BookingsController < ApplicationController
     @batch.hold
   end
 
+  # The confirmation page's price box (a Turbo frame), re-rendered as the customer picks extras or types a voucher code.
+  # Nothing is held or saved.
+  def quote
+    scope = params.fetch(:booking, {})
+    batch = BookingBatch.new(user: current_user, slots: slots_from(scope), items: items_from(scope), voucher_code: scope[:voucher_code])
+    render partial: "bookings/quote", locals: { batch: batch }
+  end
+
   # Online bookings are paid in full by bank transfer: the bookings are held for Payment::WINDOW and confirmed
   # when the transfer arrives (Payments::Webhook), which also sends the confirmation email.
+  # "Dùng gói giờ" (booking[package_purchase_id]) books and pays with prepaid hours instead, with no transfer.
   def create
     booking_params = params.require(:booking)
     @batch = BookingBatch.new(user: current_user, slots: slots_from(booking_params), note: booking_params[:note],
-                              voucher_code: booking_params[:voucher_code])
+                              items: items_from(booking_params), voucher_code: booking_params[:voucher_code])
+    return create_with_package(booking_params[:package_purchase_id]) if booking_params[:package_purchase_id].present?
     return redirect_to(root_path, alert: t(".payments_unavailable")) unless @batch.venue.payments_enabled?
 
     if (payment = @batch.reserve_for_payment)
@@ -89,11 +100,30 @@ class BookingsController < ApplicationController
     redirect_to booking_path(@booking), alert: t("bookings.changed_meanwhile")
   end
 
+  # Rating a session played (Review, TI-03).
+  def review
+    # Not build_review: on a has_one it would replace the existing review.
+    review = Review.new(booking: @booking, user: current_user, **params.require(:review).permit(:rating, :comment).to_h.symbolize_keys)
+    if review.save
+      redirect_to booking_path(@booking), notice: t(".success")
+    else
+      redirect_to booking_path(@booking), alert: review.errors.full_messages.to_sentence
+    end
+  end
+
   private
 
-  # The banner under the header (layouts/application/_unverified_notice) has the button to resend the email.
-  def require_verified_email
-    redirect_to root_path, alert: t("bookings.unverified") unless current_user.confirmed?
+  # Paid with prepaid hours: confirmed at once, so the confirmation email goes now.
+  def create_with_package(purchase_id)
+    purchase = current_user.package_purchases.find(purchase_id)
+    if @batch.reserve_with_package(purchase)
+      current_user.remember_locale(I18n.locale)
+      BookingMailer.with(bookings: @batch.bookings, locale: I18n.locale).confirmed.deliver_later
+      bookings = @batch.bookings
+      redirect_to (bookings.one? ? booking_path(bookings.first) : bookings_path), notice: t(".paid_with_package", count: bookings.size)
+    else
+      render :new, status: :unprocessable_content
+    end
   end
 
   def require_reschedulable
@@ -112,5 +142,12 @@ class BookingsController < ApplicationController
   def slots_from(scope)
     slots = scope.permit(slots: %i[court_id starts_at ends_at]).to_h.fetch(:slots, {})
     (slots.is_a?(Hash) ? slots.values : slots).map(&:symbolize_keys)
+  end
+
+  # quantities[<product id>]=2 (the extras picked, TI-01) -> [{ product_id:, quantity: }]; 0 or blank is not picked.
+  def items_from(scope)
+    scope.permit(quantities: {}).to_h.fetch(:quantities, {}).filter_map do |product_id, quantity|
+      { product_id: product_id, quantity: quantity } if quantity.to_s.strip.present? && quantity.to_s.strip != "0"
+    end
   end
 end

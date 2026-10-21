@@ -11,6 +11,7 @@ class StaffTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "nav[aria-label='Quản lý'] a", text: "Lịch trong ngày"
     assert_select "nav[aria-label='Quản lý'] a", text: "Bảng giá", count: 0
+    assert_select "nav[aria-label='Quản lý'] a", text: "Vận hành", count: 0 # one group, so no group row
     assert_select "dt", text: "Doanh thu dự kiến", count: 0
 
     patch check_in_admin_booking_path(booking)

@@ -4,6 +4,8 @@
 class BookingEvent < ApplicationRecord
   belongs_to :booking
   belongs_to :actor, class_name: "User", optional: true
+  # Cash taken at the counter (or its undo) while a cash shift was open; cash_vnd is signed (see CashShift).
+  belongs_to :cash_shift, optional: true
 
   validates :action, presence: true
 end

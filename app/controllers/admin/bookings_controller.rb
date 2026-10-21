@@ -58,7 +58,7 @@ module Admin
     end
 
     def mark_refunded
-      @booking.mark_refunded!(by: current_user)
+      @booking.mark_refunded!(by: current_user, cash: params[:via] == "cash")
       redirect_back_or_to admin_booking_path(@booking), notice: t(".success")
     rescue ArgumentError
       redirect_back_or_to admin_booking_path(@booking), alert: t("admin.bookings.not_allowed")

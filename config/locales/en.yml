@@ -28,6 +28,7 @@ en:
       court: Court
       price_rule: Price rule
       booking: Booking
+      cash_shift: Cash shift
       booking_series: Regular booking
 
     attributes:
@@ -175,6 +176,10 @@ en:
         total_amount_vnd: Total amount
         note: Note
         expires_at: Hold expiry
+      cash_shift:
+        opening_vnd: Opening cash
+        counted_vnd: Counted cash
+        note: Note
       booking_series:
         customer_name: Customer name
         customer_phone: Customer phone
@@ -278,6 +283,12 @@ en:
             one: "can be at most %{count} day in advance"
             other: "can be at most %{count} days in advance"
           duration_out_of_range: "Duration must be between %{min} and %{max} minutes"
+        cash_shift:
+          already_open: A shift is still open. Please close it first.
+          already_closed: This shift is already closed.
+          attributes:
+            note:
+              blank: "is required when the counted cash differs from the expected amount"
         booking_series:
           before_starts_on: "must be after the start date"
           after_start: "must be after the start time"
@@ -286,11 +297,37 @@ en:
           not_multiple_of_1000: "must be a multiple of 1,000 VND"
           too_far: "at most 1 year after the start date"
 
+  # Form objects (Series::Move).
+  activemodel:
+    attributes:
+      series/move:
+        from: Applies from
+        court_ids: New courts
+        days_of_week: New days of the week
+        start_minute: New start time
+        end_minute: New end time
+    errors:
+      models:
+        series/move:
+          after_start: "must be after the start time"
+          off_slot_grid: "Times must be on the half hour"
+          in_past: "cannot be before today"
+          wrong_count: "must have exactly %{count} selected (as the series has now)"
+          unchanged: The new courts, days and time are the same as now.
+          no_sessions: No sessions to come from this date.
+          conflicts_left: Some conflicting sessions have no choice yet.
+          taken_meanwhile: Someone just booked the new slot of a session. Please check the list below again.
+          taken: The new slot is already booked
+          other_month: The new slot is in another month (the month's payment would no longer match)
+          before_from: The new slot is before the date the change applies from
+          started: The new slot has already started
   layouts:
     application:
       header:
         schedule: Book a court
         my_bookings: My bookings
+        my_bookings_short: Bookings
+        play_sessions: Open play
         sign_in: Sign in
         sign_up: Sign up
         sign_out: Sign out
@@ -310,6 +347,10 @@ en:
         resend: Resend email
     admin:
       nav:
+        group_operations: Operations
+        group_money: Money
+        group_sales: Sales
+        group_system: System
         play_sessions: Open play
         vouchers: Vouchers
         packages: Prepaid hours
@@ -324,6 +365,8 @@ en:
         customers: Customers
         reports: Reports
         series: Regular bookings
+        cash_shifts: Cash shifts
+        customer_reports: Customer report
         transactions: Transactions
 
 
@@ -374,6 +417,15 @@ en:
           password: Current password
           submit: Delete my account
           owner: The owner's account cannot be deleted.
+      loyalty:
+        title: Member tier
+        discount: "%{percent}% off court fees"
+        hours: "%{hours} hours played in the last 12 months"
+        progress: Progress to the next tier
+        next: "Play %{hours} more hours to reach %{tier} (%{percent}% off court fees when booking online)."
+        top: You are in the top tier. Thank you for playing with us!
+        paused: The member tier discounts are paused for now.
+        packages: Prepaid hours
     passwords:
       new:
         title: Forgot your password?
@@ -426,6 +478,11 @@ en:
 
   helpers:
     vnd: "%{amount} VND"
+    change_points: "%{sign}%{number} pts"
+    compact:
+      thousand: K
+      million: M
+      billion: B
     every_day: Every day
 
   courts:
@@ -474,6 +531,7 @@ en:
       unavailable: Unavailable
       held: Being booked by someone
     grid:
+      wait: Click to be told when a court frees up at this time
       label: "Court schedule for %{date}"
       states:
         available: Available
@@ -482,6 +540,13 @@ en:
         blocked: Maintenance
         unavailable: Unavailable
         held: Held
+    waitlist:
+      title: Tell me when a court frees up
+      hint: Fully booked at the time you want? Pick a time range and we will email you as soon as a court is free for all of it.
+      limit:
+        one: "Wait for up to %{count} time range at once. First to book gets it."
+        other: "Wait for up to %{count} time ranges at once. First to book gets it."
+      submit: Notify me
     holds:
       title: "Customers holding slots (%{count})"
       staff_only: Only the owner and staff see this.
@@ -508,7 +573,14 @@ en:
       total: Total
       price: Price
     new:
-      tier_discount: "%{label} offer: −%{amount}, taken off the transfer."
+      extras: Extras (optional)
+      extras_hint: Pick them up at the counter when you check in. They are added to the transfer.
+      extras_less: "One less %{name}"
+      extras_more: "One more %{name}"
+      package_title: Pay with prepaid hours
+      package_hint: The booking is confirmed at once and the hours come off your package, with no transfer. Please rent extras at the counter.
+      package_use: "Use %{name}"
+      package_left: "%{hours} left · valid until %{date}"
       voucher_code: Voucher code (if you have one)
       voucher_hint: One offer per order; a voucher replaces the member discount when it saves more.
       title: Confirm your booking
@@ -533,6 +605,9 @@ en:
         one: Your court is booked! We've sent you a confirmation email.
         other: Your %{count} courts are booked! We've sent you a confirmation email.
       payments_unavailable: Online payment is not set up yet. Please call the venue to book.
+      paid_with_package:
+        one: Booked and paid with your prepaid hours. We have sent you a confirmation email.
+        other: Booked and paid with your prepaid hours. We have sent you a confirmation email.
     cancel:
       success: Your booking has been cancelled.
       not_allowed: This booking can no longer be cancelled.
@@ -551,6 +626,15 @@ en:
       skip_confirm: Skip this session? The time will be open for others to book.
       awaiting_payment: "Waiting for your transfer (before %{time}). The court is confirmed as soon as the money arrives."
       cancel_confirm_paid: A paid booking is NOT refunded when you cancel it yourself. Cancel anyway?
+      review:
+        title: How was your game?
+        hint: Your rating helps the venue improve. Only the owner and staff read it.
+        stars:
+          one: "%{count} star"
+          other: "%{count} stars"
+        comment_placeholder: Anything else to tell us (optional)
+        submit: Send rating
+        yours: Your rating
     index:
       title: My bookings
       new: Book a court
@@ -560,6 +644,26 @@ en:
       awaiting_payment: Waiting for your transfer
       awaiting_payment_line: "%{amount} · transfer before %{time} to keep the court"
       pay_now: Pay now
+      groups: Groups
+      groups_hint: Split court fees with friends
+      series: Weekly bookings
+      series_hint: Pay a month, ask for a new one
+      packages: Prepaid hours
+      waits: Waiting for a free court
+      waits_hint: We will email you when a court is free for the whole time range.
+      stop_waiting: Stop waiting
+    group_share:
+      title: Share with a group
+      no_groups_html: "Playing with friends? %{link} to share bookings and see what each player owes."
+      groups_link: Create or join a group
+      shared: "Shared with %{name}: %{players} players, %{amount} each"
+      players_placeholder: Everyone
+    review:
+      success: Thank you for your rating!
+    quote:
+      court: Court fee
+      extras: Extras
+      offer: "%{label} offer"
     lock_notice: "Your account cannot book online until %{until} because of several cancellations in one day. Please call the venue if you need help."
     unverified: Please verify your email before booking. We sent a verification link to your email.
     changed_meanwhile: This booking was just updated elsewhere. Please check its status and try again.
@@ -604,6 +708,32 @@ en:
       advanced: Advanced
       expert: Expert
 
+    index:
+      title: Open play
+      intro: No group to play with? Take places in the venue's open play sessions and meet players of your level. A transfer holds your place.
+      none: There are no open play sessions coming up yet. Please check back later!
+    session:
+      price: "%{price}/player"
+      seats_left:
+        one: "%{count}/%{capacity} place left"
+        other: "%{count}/%{capacity} places left"
+      full: Full
+      mine:
+        confirmed:
+          one: "You have %{count} place (paid %{amount})."
+          other: "You have %{count} places (paid %{amount})."
+        pending:
+          one: "%{count} place held for you, waiting for a transfer of %{amount}."
+          other: "%{count} places held for you, waiting for a transfer of %{amount}."
+      give_up: Give up places
+      give_up_confirm: Give up these places? They go back to other players.
+      give_up_confirm_paid: Paid places are NOT refunded when you give them up. Give them up anyway?
+      quantity: Players
+      buy: Sign up & pay
+      buy_hint:
+        one: "For you and up to 9 friends. Transfer within %{count} minute to keep the places."
+        other: "For you and up to 9 friends. Transfer within %{count} minutes to keep the places."
+      sign_in_to_buy: Sign in to sign up
   booking_batch:
     errors:
       package_no_items: When paying with prepaid hours, please rent extras at the counter.
@@ -642,14 +772,54 @@ en:
       underpaid: "%{received} received, %{remaining} missing. Please transfer the remaining %{remaining} with the content %{code}."
       for: "For:"
       for_series: "Court fee for %{month} – %{name}"
+      for_package: "Prepaid hours: %{name}"
+      paid_package: Your prepaid hours are ready. You can use them when you book.
+      view_packages: View my prepaid hours
       paid_title: Payment received
       paid_bookings: Your booking is confirmed. We sent you a confirmation email.
       paid_series: The month's court fee is recorded. Thank you!
+      paid_tickets: Your open play places are confirmed. See you at the court!
+      view_play_sessions: See open play
+      view_series: See weekly bookings
+      for_tickets:
+        one: "Open play: %{title} · %{time} · %{count} place"
+        other: "Open play: %{title} · %{time} · %{count} places"
       view_bookings: View my bookings
       closed_title: This payment code has expired
       closed_text: This code no longer holds the court. If you just transferred, the booking is confirmed automatically while the slot is still free; otherwise the venue will contact you for a refund.
       book_again: Book another court
 
+  packages:
+    index:
+      title: Prepaid hours
+      intro: Buy hours in advance for less, then use them to pay for courts when you book. Paid by bank transfer; the hours are ready as soon as the money arrives.
+      mine: My packages
+      on_sale: On sale
+      none_on_sale: The venue is not selling prepaid hours at the moment.
+      states:
+        awaiting: Awaiting transfer
+        active: In use
+        used_up: Used up
+        expired: Expired
+      awaiting_line: "%{amount} · transfer before %{time}"
+      left: "%{left} of %{total} left"
+      used: "%{used} used"
+      expires: "Valid until %{date}"
+      hours_window: "Only between %{from} and %{to}"
+      how_to_use: When you book, pick "Use" on the confirmation step to pay with your hours.
+      package_hours: "%{hours} of play"
+      package_valid:
+        one: "Valid for %{count} day after payment"
+        other: "Valid for %{count} days after payment"
+      buy: Buy
+      buy_confirm: "Buy %{name} for %{amount}? You will pay by bank transfer next."
+      no_refund: Prepaid hours are not refundable. A booking paid with hours that you cancel yourself does not give the hours back.
+
+  waitlist_entries:
+    create:
+      success: "Done. We will email you when a court is free at %{time}."
+    destroy:
+      success: You are no longer waiting for this time.
   users:
     registrations:
       destroy:
@@ -657,6 +827,104 @@ en:
         wrong_password: Wrong password.
         scheduled: "Your account is locked and will be deleted after your last booking ends (around %{time}). We have sent you an email."
         deleted: Your account has been deleted. We have sent you a confirmation email.
+
+  play_session_tickets:
+    destroy:
+      success: Your open play places were given up.
+
+  groups:
+    index:
+      title: My groups
+      back: "← My bookings"
+      intro: Invite the people you play with using a 6-character code and share bookings so everyone sees the time and what each player owes. The website does not collect the money.
+      create: Create a group
+      name_placeholder: "e.g. Office badminton"
+      create_submit: Create group
+      join: Join with a code
+      join_submit: Join group
+      none: You are not in any group yet. Create one and send the code to your friends.
+    group:
+      members:
+        one: "%{count} member"
+        other: "%{count} members"
+      members_label: Members
+      code: Group code
+      owner: "· owner"
+      shared: Upcoming shared bookings
+      no_shares: No bookings shared yet.
+      per_player_html: "%{amount} each (%{players} players, %{total} in total)"
+      shared_by: "Shared by %{name}"
+      unshare: Remove
+      unshare_confirm: Remove this booking from the group?
+      share_booking: Share one of your bookings
+      share: Share
+      leave: Leave group
+      leave_confirm: "Leave %{name}? The bookings you shared will be removed."
+      leave_confirm_owner: "Leave %{name}? The group goes to the member who joined first (or is deleted if nobody is left); the bookings you shared will be removed."
+      delete: Delete group
+      delete_confirm: "Delete %{name} for all its members?"
+    create:
+      success: "Group created. Send the code %{code} to your friends to invite them."
+    join:
+      success: "You joined %{name}."
+      wrong_code: Wrong group code.
+    leave:
+      success: You left the group.
+    destroy:
+      success: The group was deleted.
+
+  group_shares:
+    create:
+      success: "The booking is shared with %{name}."
+    destroy:
+      success: The booking was removed from the group.
+      not_allowed: Only the member who shared it or the group's owner can remove it.
+
+  series:
+    index:
+      title: Weekly bookings
+      intro: The weekly sessions the venue keeps for you, paid per calendar month. A skipped session that someone else plays is taken off the next month.
+      new_request: Ask for one
+      series: Your weekly bookings
+      no_series: You have no weekly bookings yet. Send a request and the venue will set one up for you.
+      price: "Special price: %{price}/hour"
+      paid: Paid
+      due: To pay
+      sessions: Sessions
+      amount: Court fee
+      credit: Refunds
+      due_amount: To pay
+      paid_amount: Paid
+      pay_hint: Pay by transfer; it is recorded automatically when the money arrives.
+      waiting: "Code %{code} is waiting for your transfer."
+      pay: Pay
+      requests: Your requests
+      no_requests: You have not sent any requests.
+      decline_reason: "Declined: %{reason}"
+      statuses:
+        pending: Waiting for the venue
+        approved: Booked
+        declined: Declined
+        cancelled: Withdrawn
+      withdraw: Withdraw
+      withdraw_confirm: Withdraw this request?
+    pay:
+      nothing_due: Nothing is left to pay for this month.
+
+  series_requests:
+    new:
+      title: Ask for a weekly booking
+      intro:
+        one: "Pick the courts, days of the week and time you want to play every week. The venue checks its schedule and answers by email; you can have up to %{count} request waiting at a time."
+        other: "Pick the courts, days of the week and time you want to play every week. The venue checks its schedule and answers by email; you can have up to %{count} requests waiting at a time."
+      dates_hint: From tomorrow, for up to 1 year.
+      note_placeholder: "e.g. 8 players, courts next to each other"
+      back: Back
+      submit: Send request
+    create:
+      success: Request sent. The venue will answer by email.
+    destroy:
+      success: The request was withdrawn.
 
   api:
     groups:
@@ -711,6 +979,18 @@ en:
       before: "Before:"
 
   notice_mailer:
+    series_moved:
+      subject:
+        one: "Your weekly booking has a new time (%{count} session)"
+        other: "Your weekly booking has a new time (%{count} sessions)"
+      intro:
+        one: "The venue moved %{count} session of your weekly booking:"
+        other: "The venue moved %{count} sessions of your weekly booking:"
+      line: "%{from} → %{to}"
+      kept:
+        one: "%{count} other session keeps its time."
+        other: "%{count} other sessions keep their time."
+      questions: If the new time does not suit you, please contact the venue.
     play_session_cancelled:
       subject: "The venue cancelled %{title} at %{time}"
       intro: "The venue cancelled the open play session %{title} at %{time} you signed up for."
@@ -724,7 +1004,7 @@ en:
       subject_approved: Your regular booking is set up
       subject_declined: The venue could not take your regular booking
       intro: "Regular booking request: %{courts} · %{days} %{time}."
-      approved: The venue set up the regular booking you asked for. See it and pay each month in the app, under Regular bookings.
+      approved: The venue set up the regular booking you asked for. See it and pay each month on the website (My bookings → Weekly bookings) or in the app.
       declined: Sorry, the venue could not take this booking.
       reason: "Reason: %{reason}"
 
@@ -844,8 +1124,10 @@ en:
         confirm_payment_confirm: "Did you check the account and receive the full %{amount}?"
         refund_due: "%{amount} to refund to the customer (venue problem)."
         refunded: "%{amount} refunded on %{date}."
-        mark_refunded: Refunded
+        mark_refunded: Refunded by transfer
         mark_refunded_confirm: "Confirm you transferred %{amount} back to the customer?"
+        mark_refunded_cash: Refunded in cash
+        mark_refunded_cash_confirm: "Confirm you handed %{amount} in cash back to the customer? It comes out of the open cash shift."
       new:
         title: Book or block a court
         kind: Type
@@ -1053,6 +1335,24 @@ en:
         no_shows: No-shows
         cancelled: Cancelled
         total: Total
+        vs_month: "vs %{month}"
+        collected_share: "%{percent} of expected revenue"
+        court_time: "%{booked} / %{open} court time"
+        revenue_by_day: Revenue by day
+        uncollected: Not yet collected
+        no_revenue: No bookings this month yet.
+        status_title: Booking outcomes
+        status_hint: The month's bookings, cancelled ones included.
+        played: Played / upcoming
+        no_bookings: No data yet.
+        heatmap: Occupancy by weekday and hour
+        heatmap_hint: The darker the cell, the fuller the courts. Hover (or tap) a cell for the number.
+        closed: Closed
+        whole_month: Whole month
+        details: Detailed figures
+        details_hint: Tables for every day and every hour of the month.
+        hour: Time
+        open_time: Open court time
     series:
       form:
         price_placeholder: Empty = price rules
@@ -1110,12 +1410,42 @@ en:
         close_submit: Cancel the sessions
         from: From
         to: To
+        move: Move the whole series
+        move_hint: Move the sessions to come to other courts, days or times. Each session is checked first and conflicts are resolved before anything is saved.
+        move_submit: Move…
         end: End the series
-        end_hint: Cancels the sessions from this date, without refund. To change the time of the whole series, end it and create a new one.
+        end_hint: Cancels the sessions from this date, without refund.
         end_confirm: End the series from this date?
         end_submit: End the series
         request_payment: Create a transfer code
         awaiting_transfer: "Waiting for a transfer of %{amount}, content %{code}. Send this link to the customer:"
+      edit_move:
+        title: Move the whole weekly booking
+        now: "Now: %{courts} · %{days} · %{time}"
+        explanation: "Pick %{courts} court(s) and %{days} day(s) of the week. Each session keeps its place: the first court goes to the first new court, the first day of the week to the first new day (in the same week)."
+        from_hint: Only the sessions not played yet, from this date on, are moved.
+        price_hint: Months already paid keep each session's amount; months not paid yet are priced again for the new time.
+        submit: Preview the sessions
+      preview_move:
+        title: Check before moving
+        pattern: "From %{from}: %{courts} · %{days} · %{time}"
+        moving: To move
+        conflicts: Conflicts
+        sessions: Sessions
+        to: to
+        kept_price: "%{amount} (month paid, amount kept)"
+        choice: Action
+        skip: Keep the old slot (do not move this one)
+        other_court: "Move to %{court}"
+        skipped_hint: This session keeps its old slot.
+        price_hint: Nothing changes until you confirm. Each move is recorded in the booking's history.
+        confirm: Move these sessions?
+        back: Change
+        submit: Confirm the move
+      move:
+        success:
+          one: "%{count} session moved."
+          other: "%{count} sessions moved."
       extend:
         success:
           one: "%{count} session added."
@@ -1137,6 +1467,83 @@ en:
       request_payment:
         success: Transfer code created for this month.
         nothing_due: Nothing left to collect for this month.
+    cash_shifts:
+      difference:
+        over: "%{amount} (over)"
+        short: "%{amount} (short)"
+        even: "%{amount} (even)"
+      lines:
+        empty: No cash collected in this shift yet.
+        series: "Weekly booking %{name} · %{month}"
+        payment_undone: payment undone
+        refunded: cash refund
+      index:
+        blind_count: "Count the cash in the drawer and enter what you find. Only the owner sees the expected amount; the difference shows after the close."
+        title: Cash shifts
+        explanation: Open a shift with the cash in the drawer and close it by counting again. Expected = opening cash + cash collected during the shift.
+        current: Current shift
+        open_badge: Open
+        opened: "Opened at %{time} by %{by}"
+        opening: Opening
+        collected: Cash collected
+        expected: Expected in drawer
+        close: Close the shift
+        counted: Cash counted in the drawer
+        counted_hint: Count all the cash in the drawer, including the opening cash.
+        note: Note
+        note_placeholder: "e.g. gave 20,000 VND change back to a customer"
+        note_hint: Required when the count differs from the expected amount (over or short).
+        close_submit: Close the shift
+        close_confirm: Close the shift with this count?
+        no_shift: No shift open
+        no_shift_hint: Cash collected while no shift is open is not counted in any shift.
+        opening_field: Opening cash in the drawer
+        last_closed: "Last shift closed at %{time} by %{by}, counted %{amount}."
+        open_submit: Open a shift
+        history: Shift history
+        history_empty: No shifts this month.
+        history_total:
+          one: "%{count} shift · total difference"
+          other: "%{count} shifts · total difference"
+        by: "Opened: %{opened} · Closed: %{closed}"
+        amounts: "Opening %{opening} + collected %{collected} = expected %{expected} · counted %{counted}"
+        note_line: "Note: %{note}"
+      show:
+        title: Cash shift
+        opened: "Opened by %{by}"
+        closed: "closed at %{time} by %{by}"
+        counted: Counted
+        back: Shift history
+      create:
+        success: Shift opened.
+      close:
+        success: "Shift closed. Difference: %{difference}."
+    customer_reports:
+      show:
+        title: Customer report
+        explanation: Who plays most, regulars who stopped coming, and each customer's no-show rate.
+        period_label: Period
+        months:
+          one: "%{count} month"
+          other: "%{count} months"
+        period: "%{from} – %{to}"
+        top_hours: Most court time
+        top_amount: Highest spending
+        visits:
+          one: "%{count} visit"
+          other: "%{count} visits"
+        no_data: No data yet.
+        lapsed: Regulars who stopped coming
+        lapsed_hint: "Played at least %{visits} times but no booking for %{days} days (as of today). Call them or send a voucher."
+        no_lapsed: No customers.
+        last_visit: "Last visit %{date} · %{visits}"
+        no_shows: No-show rate
+        no_shows_hint: Bookings already over in the period (cancelled ones excluded). Click a name to add a note or blacklist the customer.
+        no_no_shows: No customer missed a booking.
+        customer: Customer
+        bookings: Bookings
+        no_show_count: No-shows
+        rate: Rate
     bank_transactions:
       index:
         title: Transactions
@@ -1208,6 +1615,9 @@ en:
         success: Saved.
     announcements:
       index:
+        select_all: Select all
+        destroy_selected: Delete
+        destroy_confirm: Delete the selected announcements? This cannot be undone.
         title: Announcements
         explanation: News shown on the booking page and in the app between the dates you pick (holiday closing, off-peak offers, tournaments...).
         new: Post news
@@ -1234,6 +1644,10 @@ en:
         success: Saved.
       destroy:
         success: Announcement deleted.
+      destroy_many:
+        success:
+          one: "Deleted %{count} announcement."
+          other: "Deleted %{count} announcements."
     reviews:
       index:
         title: Reviews

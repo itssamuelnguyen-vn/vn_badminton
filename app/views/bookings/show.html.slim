@@ -24,6 +24,35 @@ div class="card mx-auto max-w-lg overflow-hidden"
   - elsif @booking.payment_unpaid? && !@booking.cancelled?
     p class="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200" = t("bookings.new.pay_at_venue")
 
+  - if @booking.kind_reservation? && @booking.status.in?(BookingsController::UPCOMING_STATUSES) && @booking.ends_at.future?
+    = render "bookings/group_share", booking: @booking
+  / Rating the session once it is played (TI-03), then the rating given.
+  - if (review = @booking.review)
+    div class="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-950 ring-1 ring-amber-200"
+      p class="font-semibold" = t(".review.yours")
+      p class="mt-1 text-lg tracking-wider text-amber-500" role="img" aria-label=t(".review.stars", count: review.rating)
+        = "★" * review.rating
+        span class="text-amber-200" = "★" * (5 - review.rating)
+      - if review.comment
+        p class="mt-1 whitespace-pre-line text-slate-700" = review.comment
+  - elsif @booking.reviewable?
+    = form_with scope: :review, url: review_booking_path(@booking), class: "mt-4 space-y-3 rounded-2xl bg-amber-50 px-4 py-4 ring-1 ring-amber-200" do |f|
+      fieldset
+        legend class="text-sm font-semibold text-amber-950" = t(".review.title")
+        p class="mb-2 text-xs text-amber-900" = t(".review.hint")
+        / Five stars right to left in the markup, shown left to right: a checked or hovered star lights up the ones
+        / after it in the markup, i.e. the lower ones on screen.
+        div class="flex w-fit flex-row-reverse justify-end gap-1 rounded-lg has-focus-visible:ring-2 has-focus-visible:ring-amber-400"
+          - 5.downto(1) do |rating|
+            = f.radio_button :rating, rating, required: true, class: "peer sr-only"
+            = f.label :rating, value: rating, class: "peer cursor-pointer text-3xl leading-none text-amber-200 transition hover:text-amber-500 peer-checked:text-amber-500 peer-hover:text-amber-500" do
+              span aria-hidden="true" = "★"
+              span.sr-only = t(".review.stars", count: rating)
+      div
+        = f.label :comment, Review.human_attribute_name(:comment), class: "form-label"
+        = f.text_area :comment, rows: 2, maxlength: 1000, placeholder: t(".review.comment_placeholder"), class: "form-input bg-white"
+      = f.submit t(".review.submit"), class: "btn-primary w-full sm:w-auto"
+
   / Warn before the cancellation that would lock online booking (Venue#cancellation_lock_threshold).
   - venue = @booking.court.venue
   - if @booking.cancellable_by_customer? && @booking.series_id.nil? && current_user.cancellations_today(venue) + 1 >= venue.cancellation_lock_threshold

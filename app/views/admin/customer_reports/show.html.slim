@@ -1,0 +1,87 @@
+- content_for :title, t(".title")
+- report = @report
+- month_param = ->(month) { month.strftime("%Y-%m") }
+- period = report.months == 1 ? l(report.month, format: :month_year) : t(".period", from: l(report.first_month, format: :month_year), to: l(report.month, format: :month_year))
+- card = "rounded-2xl bg-white ring-1 ring-slate-200"
+- percent = ->(value) { number_to_percentage(value * 100, precision: 0) }
+
+div class="mb-6 flex flex-wrap items-end justify-between gap-4"
+  div
+    h1 class="text-2xl font-bold sm:text-3xl" = t(".title")
+    p class="mt-1 text-sm text-slate-600" = t(".explanation")
+  div class="flex flex-wrap items-center gap-2"
+    = link_to "‹", admin_customer_reports_path(month: month_param.(report.month.prev_month), months: report.months), class: "btn-secondary px-3", aria: { label: t("admin.reports.show.previous_month") }
+    span class="min-w-32 text-center font-semibold" = l(report.month, format: :month_year)
+    = link_to "›", admin_customer_reports_path(month: month_param.(report.month.next_month), months: report.months), class: "btn-secondary px-3", aria: { label: t("admin.reports.show.next_month") }
+
+/ The length of the period, ending with the month shown.
+nav class="mb-6 flex flex-wrap items-center gap-1.5 text-sm" aria-label=t(".period_label")
+  - Reports::Customers::PERIODS.each do |months|
+    - current = months == report.months
+    = link_to t(".months", count: months), admin_customer_reports_path(month: month_param.(report.month), months: months),
+        aria: { current: ("page" if current) },
+        class: [ "rounded-full px-3 py-1 font-medium ring-1", current ? "bg-emerald-600 text-white ring-emerald-600" : "bg-white text-slate-600 ring-slate-200 hover:text-emerald-700" ]
+  span class="ml-1 text-slate-500" = period
+
+div class="mb-6 grid gap-6 lg:grid-cols-2"
+  - [ [ "top-hours", t(".top_hours"), report.top_by_hours, ->(row) { format_duration(row.minutes) }, ->(row) { t(".visits", count: row.played) } ],
+      [ "top-amount", t(".top_amount"), report.top_by_amount, ->(row) { format_vnd(row.amount_vnd) }, ->(row) { format_duration(row.minutes) } ] ].each do |id, title, rows, value, detail|
+    section class=card aria-labelledby=id
+      h2 id=id class="border-b border-slate-100 px-4 py-3 text-base font-semibold sm:px-5" = title
+      - if rows.empty?
+        p class="px-4 py-8 text-center text-sm text-slate-500" = t(".no_data")
+      - else
+        ol class="divide-y divide-slate-100"
+          - rows.each_with_index do |row, index|
+            li
+              = link_to admin_customer_path(row), class: "flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-slate-50 sm:px-5" do
+                span class="w-5 shrink-0 text-right text-xs text-slate-400 tabular-nums" = index + 1
+                span class="min-w-0 flex-1"
+                  span class="block truncate font-medium" = row.name
+                  span class="block text-xs text-slate-500 tabular-nums" = PhoneNumber.to_local(row.phone)
+                span class="shrink-0 text-right"
+                  span class="block font-semibold tabular-nums" = value.(row)
+                  span class="block text-xs text-slate-500 tabular-nums" = detail.(row)
+
+section class="#{card} mb-6" aria-labelledby="lapsed"
+  div class="border-b border-slate-100 px-4 py-3 sm:px-5"
+    h2#lapsed class="text-base font-semibold" = t(".lapsed")
+    p class="text-xs text-slate-500" = t(".lapsed_hint", visits: Reports::Customers::LAPSED_MIN_VISITS, days: Reports::Customers::LAPSED_AFTER.in_days.to_i)
+  - if report.lapsed.empty?
+    p class="px-4 py-8 text-center text-sm text-slate-500" = t(".no_lapsed")
+  - else
+    ul class="divide-y divide-slate-100"
+      - report.lapsed.each do |row|
+        li class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-4 py-2.5 text-sm sm:px-5"
+          div class="min-w-0"
+            = link_to row.name, admin_customer_path(row), class: "font-medium link"
+            - if row.blocked?
+              span class="ml-2 rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 ring-1 ring-red-200" = t("admin.customers.blacklisted")
+            p class="text-xs text-slate-500" = t(".last_visit", date: l(row.last_visit_at.to_date, format: :day_month_year), visits: t(".visits", count: row.visits))
+          = link_to PhoneNumber.to_local(row.phone), "tel:#{row.phone}", class: "btn-secondary px-3 py-1.5 text-xs tabular-nums"
+
+section class=card aria-labelledby="no-shows"
+  div class="border-b border-slate-100 px-4 py-3 sm:px-5"
+    h2#no-shows class="text-base font-semibold" = t(".no_shows")
+    p class="text-xs text-slate-500" = t(".no_shows_hint")
+  - if report.no_shows.empty?
+    p class="px-4 py-8 text-center text-sm text-slate-500" = t(".no_no_shows")
+  - else
+    table class="w-full text-sm"
+      thead class="text-xs text-slate-500"
+        tr
+          th class="px-4 py-2 text-left font-medium sm:px-5" scope="col" = t(".customer")
+          th class="px-2 py-2 text-right font-medium" scope="col" = t(".bookings")
+          th class="px-2 py-2 text-right font-medium" scope="col" = t(".no_show_count")
+          th class="px-4 py-2 text-right font-medium sm:px-5" scope="col" = t(".rate")
+      tbody class="divide-y divide-slate-100"
+        - report.no_shows.each do |row|
+          tr
+            td class="px-4 py-2 sm:px-5"
+              = link_to row.name, admin_customer_path(row), class: "font-medium link"
+              - if row.blocked?
+                span class="ml-2 rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 ring-1 ring-red-200" = t("admin.customers.blacklisted")
+              span class="block text-xs text-slate-500 tabular-nums" = PhoneNumber.to_local(row.phone)
+            td class="px-2 py-2 text-right tabular-nums" = row.ended
+            td class="px-2 py-2 text-right tabular-nums" = row.no_show_count
+            td class=[ "px-4 py-2 text-right font-semibold tabular-nums sm:px-5", (row.no_show_rate >= 0.3 ? "text-red-700" : "text-slate-700") ] = percent.(row.no_show_rate)

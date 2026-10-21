@@ -23,9 +23,14 @@ div class="surface max-h-[70vh] overflow-auto"
               span class="group-aria-pressed:hidden" = "+"
               span class="hidden group-aria-pressed:inline" = "✓"
         - else
-          = tag.div title: label, data: cell_data,
-              class: [ "flex h-10 items-center justify-center border-b border-l border-slate-100 text-[11px] font-medium",
+          / A taken slot can be clicked to wait for a free court at that time (waitlist controller, TI-04).
+          - waitable = local_assigns[:waitlist] && slot.state.in?(%i[booked held])
+          = content_tag (waitable ? :button : :div), title: label, type: ("button" if waitable),
+              aria: ({ label: "#{label}. #{t(".wait")}" } if waitable),
+              data: cell_data.merge(waitable ? { action: "waitlist#pick" } : {}),
+              class: [ "flex h-10 w-full items-center justify-center border-b border-l border-slate-100 text-[11px] font-medium",
                        { "booked" => "bg-slate-100 text-slate-400", "held" => "bg-violet-50 text-violet-700", "mine" => "bg-sky-100 font-medium text-sky-800",
-                         "blocked" => "bg-amber-100 text-amber-800", "unavailable" => "slot-unavailable" }.fetch(slot.state.to_s) ] do
+                         "blocked" => "bg-amber-100 text-amber-800", "unavailable" => "slot-unavailable" }.fetch(slot.state.to_s),
+                       ("cursor-pointer transition hover:bg-sky-50 hover:text-sky-700" if waitable) ] do
             - unless slot.state == :unavailable
               span = t(".states.#{slot.state}")

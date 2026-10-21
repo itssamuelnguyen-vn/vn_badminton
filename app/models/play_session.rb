@@ -13,6 +13,16 @@ class PlaySession < ApplicationRecord
   has_many :blocks, class_name: "Booking", dependent: :restrict_with_error
 
   scope :upcoming, ->(now = Time.current) { open.where("ends_at > ?", now).order(:starts_at) }
+  # What customers see (web and app): the coming ones not started yet.
+  scope :listed, ->(now = Time.current) { upcoming(now).where("starts_at > ?", now).limit(30) }
+
+  # Loads the places taken of many sessions with one query, for the lists.
+  def self.preload_seats_taken(sessions, now = Time.current)
+    taken = PlaySessionTicket.holding(now).where(play_session_id: sessions.map(&:id)).group(:play_session_id).sum(:quantity)
+    sessions.each { |session| session.preloaded_seats_taken = taken.fetch(session.id, 0) }
+  end
+
+  attr_writer :preloaded_seats_taken
 
   normalizes :title, :title_en, with: ->(title) { title.squish.presence }
   normalizes :description, with: ->(text) { text.strip.presence }
@@ -60,7 +70,7 @@ class PlaySession < ApplicationRecord
 
   # Places held now: confirmed tickets and those waiting for a transfer still in time.
   def seats_taken(now = Time.current)
-    tickets.holding(now).sum(:quantity)
+    @preloaded_seats_taken || tickets.holding(now).sum(:quantity)
   end
 
   def seats_left(now = Time.current)
