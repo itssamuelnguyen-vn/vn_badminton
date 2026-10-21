@@ -11,7 +11,7 @@ class QueryCountsTest < ActionDispatch::IntegrationTest
     pages = {
       users(:an) => [ root_path(date: "2026-10-20"), bookings_path ],
       users(:staffer) => [ root_path(date: "2026-10-20"), admin_root_path(date: "2026-10-20") ],
-      users(:owner) => [ admin_bank_transactions_path, admin_customers_path ]
+      users(:owner) => [ admin_bank_transactions_path, admin_customers_path, admin_customer_reports_path(month: "2026-10", months: 3) ]
     }
 
     add_bookings(5) # with none, the preloading queries (includes) would not run at all
@@ -20,6 +20,24 @@ class QueryCountsTest < ActionDispatch::IntegrationTest
     many = query_counts(pages)
 
     assert_equal few, many
+  end
+
+  test "the cash shift pages do not query per cash payment" do
+    Current.user = users(:staffer)
+    shift = CashShift.open!(venue: venues(:phu_nhuan), by: users(:staffer), opening_vnd: 0)
+    pages = { users(:owner) => [ admin_cash_shifts_path, admin_cash_shift_path(shift) ] }
+
+    add_bookings(5)
+    Booking.find_each { |booking| booking.mark_paid! if booking.confirmed? }
+    few = query_counts(pages)
+    add_bookings(30, from: 5)
+    Booking.find_each { |booking| booking.mark_paid! if booking.confirmed? && booking.payment_unpaid? }
+    many = query_counts(pages)
+
+    assert_equal few, many
+    assert_operator shift.events.count, :>, 15
+  ensure
+    Current.reset
   end
 
   private

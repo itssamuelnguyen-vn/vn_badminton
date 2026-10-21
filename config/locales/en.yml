@@ -28,6 +28,7 @@ en:
       court: Court
       price_rule: Price rule
       booking: Booking
+      cash_shift: Cash shift
       booking_series: Regular booking
 
     attributes:
@@ -175,6 +176,10 @@ en:
         total_amount_vnd: Total amount
         note: Note
         expires_at: Hold expiry
+      cash_shift:
+        opening_vnd: Opening cash
+        counted_vnd: Counted cash
+        note: Note
       booking_series:
         customer_name: Customer name
         customer_phone: Customer phone
@@ -278,6 +283,12 @@ en:
             one: "can be at most %{count} day in advance"
             other: "can be at most %{count} days in advance"
           duration_out_of_range: "Duration must be between %{min} and %{max} minutes"
+        cash_shift:
+          already_open: A shift is still open. Please close it first.
+          already_closed: This shift is already closed.
+          attributes:
+            note:
+              blank: "is required when the counted cash differs from the expected amount"
         booking_series:
           before_starts_on: "must be after the start date"
           after_start: "must be after the start time"
@@ -286,6 +297,30 @@ en:
           not_multiple_of_1000: "must be a multiple of 1,000 VND"
           too_far: "at most 1 year after the start date"
 
+  # Form objects (Series::Move).
+  activemodel:
+    attributes:
+      series/move:
+        from: Applies from
+        court_ids: New courts
+        days_of_week: New days of the week
+        start_minute: New start time
+        end_minute: New end time
+    errors:
+      models:
+        series/move:
+          after_start: "must be after the start time"
+          off_slot_grid: "Times must be on the half hour"
+          in_past: "cannot be before today"
+          wrong_count: "must have exactly %{count} selected (as the series has now)"
+          unchanged: The new courts, days and time are the same as now.
+          no_sessions: No sessions to come from this date.
+          conflicts_left: Some conflicting sessions have no choice yet.
+          taken_meanwhile: Someone just booked the new slot of a session. Please check the list below again.
+          taken: The new slot is already booked
+          other_month: The new slot is in another month (the month's payment would no longer match)
+          before_from: The new slot is before the date the change applies from
+          started: The new slot has already started
   layouts:
     application:
       header:
@@ -328,6 +363,8 @@ en:
         customers: Customers
         reports: Reports
         series: Regular bookings
+        cash_shifts: Cash shifts
+        customer_reports: Customer report
         transactions: Transactions
 
 
@@ -1137,12 +1174,42 @@ en:
         close_submit: Cancel the sessions
         from: From
         to: To
+        move: Move the whole series
+        move_hint: Move the sessions to come to other courts, days or times. Each session is checked first and conflicts are resolved before anything is saved.
+        move_submit: Move…
         end: End the series
-        end_hint: Cancels the sessions from this date, without refund. To change the time of the whole series, end it and create a new one.
+        end_hint: Cancels the sessions from this date, without refund.
         end_confirm: End the series from this date?
         end_submit: End the series
         request_payment: Create a transfer code
         awaiting_transfer: "Waiting for a transfer of %{amount}, content %{code}. Send this link to the customer:"
+      edit_move:
+        title: Move the whole weekly booking
+        now: "Now: %{courts} · %{days} · %{time}"
+        explanation: "Pick %{courts} court(s) and %{days} day(s) of the week. Each session keeps its place: the first court goes to the first new court, the first day of the week to the first new day (in the same week)."
+        from_hint: Only the sessions not played yet, from this date on, are moved.
+        price_hint: Months already paid keep each session's amount; months not paid yet are priced again for the new time.
+        submit: Preview the sessions
+      preview_move:
+        title: Check before moving
+        pattern: "From %{from}: %{courts} · %{days} · %{time}"
+        moving: To move
+        conflicts: Conflicts
+        sessions: Sessions
+        to: to
+        kept_price: "%{amount} (month paid, amount kept)"
+        choice: Action
+        skip: Keep the old slot (do not move this one)
+        other_court: "Move to %{court}"
+        skipped_hint: This session keeps its old slot.
+        price_hint: Nothing changes until you confirm. Each move is recorded in the booking's history.
+        confirm: Move these sessions?
+        back: Change
+        submit: Confirm the move
+      move:
+        success:
+          one: "%{count} session moved."
+          other: "%{count} sessions moved."
       extend:
         success:
           one: "%{count} session added."
@@ -1164,6 +1231,81 @@ en:
       request_payment:
         success: Transfer code created for this month.
         nothing_due: Nothing left to collect for this month.
+    cash_shifts:
+      difference:
+        over: "%{amount} (over)"
+        short: "%{amount} (short)"
+        even: "%{amount} (even)"
+      lines:
+        empty: No cash collected in this shift yet.
+        series: "Weekly booking %{name} · %{month}"
+        undone: payment undone
+      index:
+        title: Cash shifts
+        explanation: Open a shift with the cash in the drawer and close it by counting again. Expected = opening cash + cash collected during the shift.
+        current: Current shift
+        open_badge: Open
+        opened: "Opened at %{time} by %{by}"
+        opening: Opening
+        collected: Cash collected
+        expected: Expected in drawer
+        close: Close the shift
+        counted: Cash counted in the drawer
+        counted_hint: Count all the cash in the drawer, including the opening cash.
+        note: Note
+        note_placeholder: "e.g. gave 20,000 VND change back to a customer"
+        note_hint: Required when the count differs from the expected amount (over or short).
+        close_submit: Close the shift
+        close_confirm: Close the shift with this count?
+        no_shift: No shift open
+        no_shift_hint: Cash collected while no shift is open is not counted in any shift.
+        opening_field: Opening cash in the drawer
+        last_closed: "Last shift closed at %{time} by %{by}, counted %{amount}."
+        open_submit: Open a shift
+        history: Shift history
+        history_empty: No shifts this month.
+        history_total:
+          one: "%{count} shift · total difference"
+          other: "%{count} shifts · total difference"
+        by: "Opened: %{opened} · Closed: %{closed}"
+        amounts: "Opening %{opening} + collected %{collected} = expected %{expected} · counted %{counted}"
+        note_line: "Note: %{note}"
+      show:
+        title: Cash shift
+        opened: "Opened by %{by}"
+        closed: "closed at %{time} by %{by}"
+        counted: Counted
+        back: Shift history
+      create:
+        success: Shift opened.
+      close:
+        success: "Shift closed. Difference: %{difference}."
+    customer_reports:
+      show:
+        title: Customer report
+        explanation: Who plays most, regulars who stopped coming, and each customer's no-show rate.
+        period_label: Period
+        months:
+          one: "%{count} month"
+          other: "%{count} months"
+        period: "%{from} – %{to}"
+        top_hours: Most court time
+        top_amount: Highest spending
+        visits:
+          one: "%{count} visit"
+          other: "%{count} visits"
+        no_data: No data yet.
+        lapsed: Regulars who stopped coming
+        lapsed_hint: "Played at least %{visits} times but no booking for %{days} days (as of today). Call them or send a voucher."
+        no_lapsed: No customers.
+        last_visit: "Last visit %{date} · %{visits}"
+        no_shows: No-show rate
+        no_shows_hint: Bookings already over in the period (cancelled ones excluded). Click a name to add a note or blacklist the customer.
+        no_no_shows: No customer missed a booking.
+        customer: Customer
+        bookings: Bookings
+        no_show_count: No-shows
+        rate: Rate
     bank_transactions:
       index:
         title: Transactions
