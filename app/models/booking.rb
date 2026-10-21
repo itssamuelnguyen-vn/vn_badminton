@@ -276,9 +276,11 @@ class Booking < ApplicationRecord
     end
   end
 
-  def mark_refunded!(by:, now: Time.current)
+  # cash: handed back from the drawer, so it comes out of the open cash shift (VH-12); otherwise by transfer.
+  def mark_refunded!(by:, cash: false, now: Time.current)
     raise ArgumentError, "Nothing to refund" if refund_vnd.nil? || refunded_at
 
+    @refund_in_cash = cash
     update!(refunded_at: now, refunded_by: by, payment_status: :refunded)
   end
 
@@ -356,7 +358,8 @@ class Booking < ApplicationRecord
       via = payment_id ? "transfer" : (series_id ? "series" : "cash")
       record(:paid, amount: total_amount_vnd, via: via, cash: (cash_entry(charged_vnd) if via == "cash"))
     when %w[paid unpaid] then record(:payment_undone, amount: total_amount_vnd, cash: cash_undo_entry)
-    when %w[paid refunded] then record(:refunded, amount: refund_vnd)
+    when %w[paid refunded]
+      record(:refunded, amount: refund_vnd, via: @refund_in_cash ? "cash" : "transfer", cash: (cash_entry(-refund_vnd) if @refund_in_cash))
     end
     record(:refund_due, amount: refund_vnd) if changes["refund_vnd"]&.first.nil? && refund_vnd
   end

@@ -979,6 +979,18 @@ en:
       before: "Before:"
 
   notice_mailer:
+    series_moved:
+      subject:
+        one: "Your weekly booking has a new time (%{count} session)"
+        other: "Your weekly booking has a new time (%{count} sessions)"
+      intro:
+        one: "The venue moved %{count} session of your weekly booking:"
+        other: "The venue moved %{count} sessions of your weekly booking:"
+      line: "%{from} → %{to}"
+      kept:
+        one: "%{count} other session keeps its time."
+        other: "%{count} other sessions keep their time."
+      questions: If the new time does not suit you, please contact the venue.
     play_session_cancelled:
       subject: "The venue cancelled %{title} at %{time}"
       intro: "The venue cancelled the open play session %{title} at %{time} you signed up for."
@@ -992,7 +1004,7 @@ en:
       subject_approved: Your regular booking is set up
       subject_declined: The venue could not take your regular booking
       intro: "Regular booking request: %{courts} · %{days} %{time}."
-      approved: The venue set up the regular booking you asked for. See it and pay each month in the app, under Regular bookings.
+      approved: The venue set up the regular booking you asked for. See it and pay each month on the website (My bookings → Weekly bookings) or in the app.
       declined: Sorry, the venue could not take this booking.
       reason: "Reason: %{reason}"
 
@@ -1112,8 +1124,10 @@ en:
         confirm_payment_confirm: "Did you check the account and receive the full %{amount}?"
         refund_due: "%{amount} to refund to the customer (venue problem)."
         refunded: "%{amount} refunded on %{date}."
-        mark_refunded: Refunded
+        mark_refunded: Refunded by transfer
         mark_refunded_confirm: "Confirm you transferred %{amount} back to the customer?"
+        mark_refunded_cash: Refunded in cash
+        mark_refunded_cash_confirm: "Confirm you handed %{amount} in cash back to the customer? It comes out of the open cash shift."
       new:
         title: Book or block a court
         kind: Type
@@ -1461,8 +1475,10 @@ en:
       lines:
         empty: No cash collected in this shift yet.
         series: "Weekly booking %{name} · %{month}"
-        undone: payment undone
+        payment_undone: payment undone
+        refunded: cash refund
       index:
+        blind_count: "Count the cash in the drawer and enter what you find. Only the owner sees the expected amount; the difference shows after the close."
         title: Cash shifts
         explanation: Open a shift with the cash in the drawer and close it by counting again. Expected = opening cash + cash collected during the shift.
         current: Current shift

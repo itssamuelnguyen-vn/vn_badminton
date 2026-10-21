@@ -1,0 +1,17 @@
+- zone = @series.venue.zone
+- slot = ->((court, starts_at, ends_at)) { "#{court} · #{l(starts_at.in_time_zone(zone).to_date, format: :full)} · #{time_range(starts_at.in_time_zone(zone), ends_at.in_time_zone(zone))}" }
+
+p = t("booking_mailer.confirmed.greeting", name: @series.user.full_name)
+
+p = t(".intro", count: @sessions.size)
+
+ul
+  - @sessions.each do |session|
+    li = t(".line", from: slot.(session[:from]), to: slot.(session[:to]))
+
+- if @kept.positive?
+  p = t(".kept", count: @kept)
+
+p = t(".questions")
+
+p = "#{@series.venue.name} · #{@series.venue.address}"

@@ -107,6 +107,14 @@ module Series
       items.count(&:moves?)
     end
 
+    # The sessions moved, old and new slot, for the customer's email (plain values, so the job can carry them).
+    def moved_sessions
+      items.select(&:moves?).map do |item|
+        { from: [ item.booking.court.display_name, item.booking.starts_at, item.booking.ends_at ],
+          to: [ item.court.display_name, item.starts_at, item.ends_at ] }
+      end
+    end
+
     private
 
     def venue

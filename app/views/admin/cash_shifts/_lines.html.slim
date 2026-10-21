@@ -1,15 +1,15 @@
-/ The cash recorded in a shift: bookings paid at the counter (and their undo), series months paid in cash.
+/ The cash recorded in a shift: bookings paid at the counter (and their undo), cash refunds, series months paid in cash.
 - lines = shift.cash_lines
 - if lines.empty?
   p class="border-t border-slate-100 px-4 py-3 text-sm text-slate-500 sm:px-5" = t("admin.cash_shifts.lines.empty")
 - else
   ul class="divide-y divide-slate-100 border-t border-slate-100"
-    - lines.each do |time, record, amount, actor|
+    - lines.each do |time, record, amount, actor, action|
       li class="flex items-center justify-between gap-3 px-4 py-2 text-sm sm:px-5"
         div class="min-w-0"
           - if record.is_a?(Booking)
             = link_to "#{record.customer_name || record.code} · #{record.court.display_name} #{time_range(record.starts_at, record.ends_at)}", admin_booking_path(record), class: "link"
           - else
             = link_to t("admin.cash_shifts.lines.series", name: record.series.customer_name, month: l(record.month, format: :month_year)), admin_series_path(record.series), class: "link"
-          p class="text-xs text-slate-500" = "#{l(time, format: :hour_minute)} · #{actor&.full_name || t("admin.bookings.history.system")}#{" · #{t("admin.cash_shifts.lines.undone")}" if amount.negative?}"
+          p class="text-xs text-slate-500" = "#{l(time, format: :hour_minute)} · #{actor&.full_name || t("admin.bookings.history.system")}#{" · #{t("admin.cash_shifts.lines.#{action}")}" if action.in?(%w[payment_undone refunded])}"
         span class=[ "shrink-0 font-medium tabular-nums", ("text-red-700" if amount.negative?) ] = "#{"−" if amount.negative?}#{format_vnd(amount.abs)}"

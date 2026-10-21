@@ -954,6 +954,15 @@ vi:
       before: "Trước đây:"
 
   notice_mailer:
+    series_moved:
+      subject:
+        other: "Lịch cố định của bạn đã đổi giờ (%{count} buổi)"
+      intro:
+        other: "Sân đã đổi giờ %{count} buổi trong lịch cố định của bạn:"
+      line: "%{from} → %{to}"
+      kept:
+        other: "%{count} buổi khác vẫn giữ giờ cũ."
+      questions: Nếu giờ mới không hợp, bạn liên hệ sân để được sắp xếp lại nhé.
     play_session_cancelled:
       subject: "Sân huỷ buổi %{title} lúc %{time}"
       intro: "Sân đã huỷ buổi giao lưu %{title} lúc %{time} mà bạn đã đăng ký."
@@ -967,7 +976,7 @@ vi:
       subject_approved: Sân đã tạo lịch cố định cho bạn
       subject_declined: Sân chưa nhận được lịch cố định bạn yêu cầu
       intro: "Yêu cầu lịch cố định: %{courts} · %{days} %{time}."
-      approved: Sân đã tạo lịch cố định theo yêu cầu. Bạn xem lịch và đóng tiền tháng trong app, mục Lịch cố định.
+      approved: Sân đã tạo lịch cố định theo yêu cầu. Bạn xem lịch và đóng tiền tháng trên web (Lượt đặt của tôi → Lịch cố định) hoặc trong app.
       declined: Rất tiếc, sân chưa nhận được lịch này.
       reason: "Lý do: %{reason}"
 
@@ -1086,8 +1095,10 @@ vi:
         confirm_payment_confirm: "Bạn đã kiểm tra tài khoản và nhận đủ %{amount}?"
         refund_due: "Cần hoàn %{amount} cho khách (sân có sự cố)."
         refunded: "Đã hoàn %{amount} lúc %{date}."
-        mark_refunded: Đã hoàn tiền
+        mark_refunded: Đã chuyển khoản trả
         mark_refunded_confirm: "Xác nhận đã chuyển trả %{amount} cho khách?"
+        mark_refunded_cash: Đã trả tiền mặt
+        mark_refunded_cash_confirm: "Xác nhận đã trả %{amount} tiền mặt cho khách? Số này được trừ vào ca đang mở."
       new:
         title: Đặt sân / khoá sân
         kind: Loại
@@ -1425,8 +1436,10 @@ vi:
       lines:
         empty: Chưa thu tiền mặt trong ca này.
         series: "Lịch cố định %{name} · %{month}"
-        undone: huỷ “đã thu”
+        payment_undone: huỷ “đã thu”
+        refunded: hoàn tiền mặt cho khách
       index:
+        blind_count: "Đếm tiền trong két rồi nhập số thực tế. Số tiền dự kiến chỉ chủ sân xem được; chênh lệch hiện sau khi chốt ca."
         title: Ca làm
         explanation: Mở ca với số tiền mặt trong két, chốt ca bằng cách đếm lại. Hệ thống tính số dự kiến = tiền đầu ca + tiền mặt đã thu trong ca.
         current: Ca đang mở

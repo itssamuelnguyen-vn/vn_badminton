@@ -74,10 +74,11 @@ class CashShift < ApplicationRecord
     closed || restore_closing
   end
 
-  # What was collected, newest first: [[time, booking or series, amount, actor], ...], for the shift's page.
+  # What was collected, newest first: [[time, booking or series, amount, actor, action], ...], for the shift's page.
+  # action: "paid", "payment_undone" or "refunded" (a booking's event), "series_paid".
   def cash_lines
-    from_events = events.includes(:actor, booking: :court).map { |e| [ e.created_at, e.booking, e.cash_vnd, e.actor ] }
-    from_series = series_periods.includes(:series, :paid_by).map { |p| [ p.paid_at, p, p.due_vnd, p.paid_by ] }
+    from_events = events.includes(:actor, booking: :court).map { |e| [ e.created_at, e.booking, e.cash_vnd, e.actor, e.action ] }
+    from_series = series_periods.includes(:series, :paid_by).map { |p| [ p.paid_at, p, p.due_vnd, p.paid_by, "series_paid" ] }
     (from_events + from_series).sort_by { |line| -line.first.to_i }
   end
 

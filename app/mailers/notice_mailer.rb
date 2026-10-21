@@ -1,5 +1,5 @@
-# Short notices to a customer about the app's extra features: a court that freed up (WaitlistJob) and the
-# venue's answer to a weekly booking request (SeriesRequest).
+# Short notices to a customer about the app's extra features: a court that freed up (WaitlistJob), the
+# venue's answer to a weekly booking request (SeriesRequest) and a weekly booking moved by the venue.
 class NoticeMailer < ApplicationMailer
   helper :bookings
 
@@ -31,6 +31,18 @@ class NoticeMailer < ApplicationMailer
 
     I18n.with_locale(user.locale) do
       mail to: user.email, subject: t(".subject", title: @session.display_title, time: l(@session.starts_at.in_time_zone(@session.venue.zone), format: :slot))
+    end
+  end
+
+  # The venue moved the customer's weekly booking (Series::Move): each session moved, old and new slot.
+  def series_moved
+    @series = params[:series]
+    @sessions = params[:sessions]
+    @kept = params[:kept]
+    user = @series.user
+
+    I18n.with_locale(user.locale) do
+      mail to: user.email, subject: t(".subject", count: @sessions.size)
     end
   end
 end

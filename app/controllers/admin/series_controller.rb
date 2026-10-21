@@ -120,6 +120,7 @@ module Admin
 
       @move.choices = params.fetch(:choices, {}).permit(*@move.items.map { |item| item.booking.id.to_s }).to_h
       if @move.apply!
+        notify_series_moved
         redirect_to admin_series_path(@series), notice: t(".success", count: @move.moved_count)
       else
         render :preview_move, status: :unprocessable_content
@@ -127,6 +128,15 @@ module Admin
     end
 
     private
+
+    # The customer hears which sessions moved, and how many stayed where they were (CD-11).
+    def notify_series_moved
+      user = @series.user
+      return if user.nil? || user.deleted_at || @move.moved_count.zero?
+
+      NoticeMailer.with(series: @series, sessions: @move.moved_sessions, kept: @move.items.count { |item| item.status == :skipped })
+                  .series_moved.deliver_later
+    end
 
     def build_move
       Series::Move.new(@series, by: current_user, **params.require(:move).permit(*MOVE_FIELDS).to_h.symbolize_keys)

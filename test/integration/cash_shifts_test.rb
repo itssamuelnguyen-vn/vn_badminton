@@ -24,11 +24,19 @@ class CashShiftsTest < ActionDispatch::IntegrationTest
     patch mark_paid_admin_booking_path(mistake)
     patch undo_payment_admin_booking_path(mistake)
 
+    get admin_cash_shifts_path # blind count: staff see the opening only
+    assert_select "dd", text: "500.000đ"
+    assert_select "dd", text: "620.000đ", count: 0
+    assert_select "li", text: /Khách lẻ · Sân 1 18:00 – 19:00/, count: 0
+    assert_select "p", text: /Số tiền dự kiến chỉ chủ sân xem được/
+
+    sign_in users(:owner)
     get admin_cash_shifts_path
     assert_select "dd", text: "120.000đ" # collected
     assert_select "dd", text: "620.000đ" # expected
     assert_select "li", text: /Khách lẻ · Sân 1 18:00 – 19:00/
     assert_select "li", text: /huỷ “đã thu”/
+    sign_in users(:staffer)
 
     patch close_admin_cash_shift_path(shift), params: { counted_vnd: "600000", note: "" }
     assert_response :unprocessable_content
@@ -42,6 +50,27 @@ class CashShiftsTest < ActionDispatch::IntegrationTest
     shift.reload
     assert_equal [ 120_000, 620_000, 600_000, -20_000, "Thối nhầm cho khách" ], shift.values_at(:collected_vnd, :expected_vnd, :counted_vnd, :difference_vnd, :note)
     assert_select "input[name=opening_vnd][value='600000']", 1, "the next shift starts from the last count"
+  end
+
+  test "a refund handed back in cash comes out of the open shift; one by transfer does not" do
+    sign_in users(:owner)
+    post admin_cash_shifts_path, params: { opening_vnd: "200000" }
+    shift = CashShift.sole
+    by_cash, by_transfer = book("2026-10-19 18:00"), book("2026-10-19 19:00")
+    [ by_cash, by_transfer ].each do |booking|
+      patch mark_paid_admin_booking_path(booking)
+      patch cancel_venue_fault_admin_booking_path(booking)
+    end
+
+    patch mark_refunded_admin_booking_path(by_cash, via: "cash")
+    patch mark_refunded_admin_booking_path(by_transfer)
+    assert [ by_cash.reload, by_transfer.reload ].all?(&:payment_refunded?)
+    assert_equal [ "cash", "transfer" ], [ by_cash, by_transfer ].map { |b| b.events.find_by!(action: "refunded").details["via"] }
+    assert_equal 120_000, shift.collected_vnd # 2 x 120.000 paid, 120.000 handed back
+
+    get admin_cash_shifts_path
+    assert_select "li", text: /hoàn tiền mặt cho khách/, count: 1
+    assert_select "dd", text: "320.000đ" # expected
   end
 
   test "a second shift cannot be opened while one is open" do

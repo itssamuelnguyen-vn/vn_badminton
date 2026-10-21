@@ -55,8 +55,12 @@ class SeriesMoveTest < ActionDispatch::IntegrationTest
     assert_equal [ "Giữ giờ cũ (không đổi buổi này)", "Đổi sang Sân 1" ], options(second)
     assert_select "select[name='choices[#{first.id}]']", 0
 
-    patch move_admin_series_path(series), params: params.merge(choices: { second.id => "skip" })
+    perform_enqueued_jobs { patch move_admin_series_path(series), params: params.merge(choices: { second.id => "skip" }) }
     assert_redirected_to admin_series_path(series)
+    mail = ActionMailer::Base.deliveries.last # the customer hears what moved and what stayed (CD-11)
+    assert_equal [ [ users(:an).email ], "Lịch cố định của bạn đã đổi giờ (2 buổi)" ], [ mail.to, mail.subject ]
+    assert_match(/Sân 1 · Thứ ba, 20\/10\/2026 · 18:00 – 20:00 → Sân 2 · Thứ ba, 20\/10\/2026 · 06:00 – 08:00/, mail.body.encoded)
+    assert_match "1 buổi khác vẫn giữ giờ cũ.", mail.body.encoded
     assert_equal [ courts(:court_one), at("2026-10-27 18:00") ], [ second.reload.court, second.starts_at ], "kept its old slot"
     assert_equal [ courts(:court_two), at("2026-10-20 06:00") ], [ first.reload.court, first.starts_at ]
 
