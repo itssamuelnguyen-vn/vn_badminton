@@ -3,16 +3,13 @@
 - turbo_refreshes_with method: :morph, scroll: :preserve
 = turbo_stream_from Schedule::Live.stream(@venue, @date)
 
-div class="mb-6 flex flex-wrap items-end justify-between gap-4"
-  div
-    h1 class="text-2xl font-bold sm:text-3xl" = t(".title")
-    p class="mt-1 text-sm text-slate-600" = "#{@venue.name} · #{@venue.address}"
+= render "schedules/hero", venue: @venue, day: @day
 
 = render "bookings/lock_notice"
 = render "schedules/announcements", announcements: @venue.announcements.current(@venue.today)
 
 - if @rescheduling
-  div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-sky-50 px-4 py-3 text-sm text-sky-900 ring-1 ring-sky-200" role="status"
+  div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-sky-50 px-4 py-3 text-sm text-sky-900 ring-1 ring-sky-200" role="status"
     p = t(".rescheduling", code: @rescheduling.code, court: @rescheduling.court.display_name,
           time: "#{l(@rescheduling.starts_at.to_date, format: :day_month_year)} #{time_range(@rescheduling.starts_at, @rescheduling.ends_at)}")
     = link_to t(".stop_rescheduling"), booking_path(@rescheduling), class: "link"
@@ -21,29 +18,33 @@ div class="mb-6 flex flex-wrap items-end justify-between gap-4"
 
 - if @day.open? && !@day.bookable?
   / Today after the last slot started: nothing left to pick, so no grid.
-  p class="mb-3 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200" role="status"
+  p class="mb-3 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200" role="status"
     = t(".no_slots_left")
 - elsif @day.open?
   div#slot-picker data-controller="slot-picker" data-slot-picker-new-url-value=(@rescheduling ? reschedule_booking_path(@rescheduling) : new_booking_path) data-slot-picker-min-minutes-value=@venue.min_booking_minutes data-slot-picker-max-minutes-value=@venue.max_booking_minutes data-slot-picker-currency-value=t("helpers.vnd") data-slot-picker-locale-value=t(".number_locale") data-slot-picker-too-short-value=t(".too_short", minutes: @venue.min_booking_minutes) data-slot-picker-too-long-value=t(".too_long", minutes: @venue.max_booking_minutes) data-slot-picker-total-label-value=t(".total") data-slot-picker-taken-value=t(".taken_meanwhile")
     div class="mb-3 flex flex-wrap items-center justify-between gap-3"
       = render "schedules/legend"
       / Moving a booking keeps it on one court.
-      label class="flex cursor-pointer items-center gap-2 rounded-lg bg-white px-3 py-2 text-sm font-medium ring-1 ring-slate-200 select-none" hidden=@rescheduling.present?
+      label class="flex cursor-pointer items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold shadow-sm ring-1 ring-slate-200 transition select-none hover:ring-emerald-300 has-checked:bg-emerald-50 has-checked:text-emerald-800 has-checked:ring-emerald-300" hidden=@rescheduling.present?
         / Permanent, so a live refresh does not untick it.
         input#multiple-courts type="checkbox" class="size-4 accent-emerald-600" data-turbo-permanent=true data-slot-picker-target="multiple" data-action="slot-picker#toggleMultiple"
         = t(".multiple")
     = render "schedules/grid", day: @day
 
     / Summary of the current selection, filled in by the slot-picker controller.
-    div class="sticky bottom-0 z-20 -mx-4 mt-4 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-xl sm:border sm:shadow-lg" hidden=true data-slot-picker-target="summary"
+    div class="sticky bottom-0 z-20 -mx-4 mt-4 border-t border-ink/5 bg-white/90 px-4 py-3 shadow-[0_-8px_24px_-12px_rgb(15_31_26/0.2)] backdrop-blur-xl sm:bottom-4 sm:mx-0 sm:rounded-3xl sm:border-0 sm:px-5 sm:py-4 sm:shadow-2xl sm:ring-1 sm:ring-ink/5" hidden=true data-slot-picker-target="summary"
       div class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3"
         div
           ul class="font-semibold" data-slot-picker-target="summaryList"
-          p class="text-sm font-semibold text-emerald-700" data-slot-picker-target="total"
+          p class="text-sm font-bold text-emerald-700" data-slot-picker-target="total"
           p class="text-xs text-red-700" data-slot-picker-target="hint"
-        = link_to t(".continue"), new_booking_path, class: "btn-primary aria-disabled:pointer-events-none aria-disabled:opacity-50", data: { slot_picker_target: "continue", turbo_prefetch: false }
+        = link_to t(".continue"), new_booking_path, class: "btn-primary px-6 py-3 aria-disabled:pointer-events-none aria-disabled:opacity-50", data: { slot_picker_target: "continue", turbo_prefetch: false }
 - else
-  div class="card text-center text-slate-600" = t(".closed")
+  div class="card flex flex-col items-center gap-3 text-center text-slate-600"
+    span class="flex size-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-500" aria-hidden="true"
+      svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+        path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z"
+    p = t(".closed")
 
 - if @holds
   = render "schedules/holds", holds: @holds

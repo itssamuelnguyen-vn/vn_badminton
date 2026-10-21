@@ -299,6 +299,7 @@ en:
         label: Language
       footer:
         privacy: Privacy policy
+        tagline: Book a badminton court online any time, see free slots live and pay by bank transfer.
       contact:
         label: Contact
         zalo: Chat on Zalo
@@ -330,6 +331,7 @@ en:
     sessions:
       new:
         title: Sign in
+        subtitle: Welcome back! Sign in to book courts and follow your games.
         login: Email or phone number
         login_hint: "For example: an@example.com or 0901 234 567"
         forgot_password: Forgot your password?
@@ -339,6 +341,7 @@ en:
     registrations:
       new:
         title: Create an account
+        subtitle: It takes a minute, then you can book right away.
         password_hint:
           one: "At least %{count} character"
           other: "At least %{count} characters"
@@ -382,6 +385,12 @@ en:
         new_password: New password
         submit: Change password
     shared:
+      auth_shell:
+        headline: Getting on court is easier with a VN Badminton account
+        benefits:
+          - See the free slots of every court live
+          - Pay by bank transfer, confirmed automatically
+          - Move, cancel and review your own bookings
       error_messages:
         title:
           one: "Please fix the error below:"
@@ -436,6 +445,14 @@ en:
       taken_meanwhile: A slot you picked was just booked or held by someone else. Please pick again.
       rescheduling: "Moving booking %{code} (%{court}, %{time}). Pick the new time on one court."
       stop_rescheduling: Keep it as it is
+    hero:
+      badge: Book online 24/7
+      headline: Pick a court, pick a time, pay by transfer. Done.
+      courts:
+        one: "%{count} court"
+        other: "%{count} courts"
+      hours: "Open %{from} – %{to}"
+      price_from: "From %{price}/hour"
     date_picker:
       label: Choose a date
       today: today
@@ -473,9 +490,6 @@ en:
       none: Nobody is holding a slot on this day.
     price_list:
       title: Prices
-      name: Rate
-      when: Applies
-      price: Price
       per_hour: "%{price}/hour"
       note: Prices are charged per 30-minute slot. Pay at the venue.
 

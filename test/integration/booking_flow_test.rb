@@ -42,7 +42,7 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
   test "an out-of-range date falls back to today" do
     get root_path(date: "2030-01-01")
 
-    assert_select "button[aria-haspopup=dialog]", text: /Thứ hai, 19\/10\/2026\s*\(hôm nay\)/
+    assert_select "button[aria-haspopup=dialog]", text: /Thứ hai, 19\/10\/2026\s*hôm nay/
   end
 
   test "the calendar disables past days and days beyond the booking horizon" do

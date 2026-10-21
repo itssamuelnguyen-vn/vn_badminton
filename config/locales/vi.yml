@@ -296,6 +296,7 @@ vi:
         label: Ngôn ngữ
       footer:
         privacy: Chính sách bảo mật
+        tagline: Đặt sân cầu lông trực tuyến mọi lúc, xem giờ trống ngay lập tức và thanh toán bằng chuyển khoản.
       contact:
         label: Liên hệ
         zalo: Chat Zalo
@@ -327,6 +328,7 @@ vi:
     sessions:
       new:
         title: Đăng nhập
+        subtitle: Chào mừng bạn quay lại! Đăng nhập để đặt sân và theo dõi lịch chơi.
         login: Email hoặc số điện thoại
         login_hint: "Ví dụ: an@example.com hoặc 0901 234 567"
         forgot_password: Quên mật khẩu?
@@ -336,6 +338,7 @@ vi:
     registrations:
       new:
         title: Tạo tài khoản
+        subtitle: Chỉ mất một phút, sau đó bạn có thể đặt sân ngay.
         password_hint:
           other: "Tối thiểu %{count} ký tự"
         submit: Đăng ký
@@ -378,6 +381,12 @@ vi:
         new_password: Mật khẩu mới
         submit: Đổi mật khẩu
     shared:
+      auth_shell:
+        headline: Ra sân dễ dàng hơn với tài khoản VN Badminton
+        benefits:
+          - Xem giờ trống của tất cả các sân theo thời gian thực
+          - Thanh toán bằng chuyển khoản, xác nhận tự động
+          - Tự đổi giờ, huỷ và xem lại các lượt đặt của mình
       error_messages:
         title:
           other: "Vui lòng kiểm tra lại %{count} lỗi bên dưới:"
@@ -430,6 +439,14 @@ vi:
       taken_meanwhile: Một khung giờ bạn chọn vừa có người đặt hoặc giữ chỗ. Vui lòng chọn lại.
       rescheduling: "Đang đổi giờ cho lượt %{code} (%{court}, %{time}). Chọn khung giờ mới trên một sân."
       stop_rescheduling: Thôi, không đổi
+    hero:
+      badge: Đặt sân trực tuyến 24/7
+      headline: Chọn sân, chọn giờ, chuyển khoản là xong
+      courts:
+        one: "%{count} sân"
+        other: "%{count} sân"
+      hours: "Mở cửa %{from} – %{to}"
+      price_from: "Chỉ từ %{price}/giờ"
     date_picker:
       label: Chọn ngày
       today: hôm nay
@@ -466,9 +483,6 @@ vi:
       none: Không có ai đang giữ chỗ trong ngày này.
     price_list:
       title: Bảng giá
-      name: Khung giá
-      when: Áp dụng
-      price: Giá
       per_hour: "%{price}/giờ"
       note: Giá tính theo từng khung 30 phút. Thanh toán tại sân.
 

@@ -7,7 +7,7 @@ div class="card mx-auto max-w-lg"
 
   - if (held_until = @batch.held_until) && !@batch.errors?
     / Server time is the reference: the controller counts down from the seconds left when the page was rendered.
-    = tag.div class: "mb-6 rounded-lg bg-violet-50 px-4 py-3 text-sm text-violet-900 ring-1 ring-violet-200", role: "timer", aria: { live: "off" },
+    = tag.div class: "mb-6 rounded-2xl bg-violet-50 px-4 py-3 text-sm text-violet-900 ring-1 ring-violet-200", role: "timer", aria: { live: "off" },
         data: { controller: "hold-countdown", hold_countdown_seconds_value: [ (held_until - Time.current).ceil, 0 ].max } do
       p data-hold-countdown-target="running"
         = t(".held_html", time: tag.strong("--:--", class: "tabular-nums", data: { hold_countdown_target: "clock" }))
@@ -15,7 +15,7 @@ div class="card mx-auto max-w-lg"
 
   = form_with scope: :booking, url: bookings_path, class: "space-y-6" do |f|
     - if @batch.errors?
-      div#error_explanation role="alert" class="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-200"
+      div#error_explanation role="alert" class="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-200"
         ul class="list-disc space-y-1 pl-5"
           - @batch.errors.each do |message|
             li = message
@@ -24,7 +24,7 @@ div class="card mx-auto max-w-lg"
               li = several ? "#{booking.court.display_name}: #{message}" : message
 
     - bookings.each_with_index do |booking, index|
-      div class=("rounded-lg ring-1 ring-slate-200 px-4" if several)
+      div class=("rounded-2xl ring-1 ring-slate-200 px-4" if several)
         = render "bookings/details", booking: booking, total_label: (t("bookings.details.price") if several)
       = hidden_field_tag "booking[slots][#{index}][court_id]", booking.court_id
       = hidden_field_tag "booking[slots][#{index}][starts_at]", booking.starts_at&.iso8601
@@ -35,7 +35,7 @@ div class="card mx-auto max-w-lg"
         span class="font-semibold" = t(".grand_total", count: bookings.size)
         span class="font-bold text-emerald-700 tabular-nums" = format_vnd(@batch.total_amount_vnd)
 
-    div class="rounded-lg bg-slate-50 p-4 text-sm"
+    div class="rounded-2xl bg-slate-50 p-4 text-sm"
       p class="mb-1 font-medium" = t(".customer")
       p = "#{current_user.full_name} · #{PhoneNumber.to_local(current_user.phone)}"
       p class="mt-1 text-xs text-slate-500"
@@ -44,7 +44,7 @@ div class="card mx-auto max-w-lg"
     / The member tier's discount applies by itself; a voucher code replaces it when it saves more (Pricing::Offer).
     - offer = @batch.offer
     - if offer.kind == "tier"
-      p class="rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-800 ring-1 ring-emerald-200"
+      p class="rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800 ring-1 ring-emerald-200"
         = t(".tier_discount", label: offer.label, amount: format_vnd(offer.discount_vnd))
     div
       = f.label :voucher_code, t(".voucher_code"), class: "form-label"
@@ -54,7 +54,7 @@ div class="card mx-auto max-w-lg"
       = f.label :note, Booking.human_attribute_name(:note), class: "form-label"
       = f.text_area :note, value: bookings.first&.note, rows: 2, maxlength: 500, placeholder: t(".note_placeholder"), class: "form-input"
 
-    p class="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200" = t(".pay_by_transfer", count: (Payment::WINDOW / 60).to_i)
+    p class="rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200" = t(".pay_by_transfer", count: (Payment::WINDOW / 60).to_i)
 
     div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"
       / A second submit button of this form that frees the held slots (a form cannot contain another form).

@@ -5,7 +5,7 @@ div class="card mx-auto max-w-lg"
   h1 class="mb-6 text-2xl font-bold" = t(".title", code: @booking.code)
 
   - if @booking.errors.any?
-    div#error_explanation role="alert" class="mb-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-200"
+    div#error_explanation role="alert" class="mb-6 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-200"
       ul class="list-disc space-y-1 pl-5"
         - @booking.errors.full_messages.each do |message|
           li = message

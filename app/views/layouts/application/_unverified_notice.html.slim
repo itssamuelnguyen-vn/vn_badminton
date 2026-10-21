@@ -1,7 +1,7 @@
 / Until the email is verified the customer can browse but not book (BookingsController).
 - if user_signed_in? && !current_user.confirmed?
-  div class="border-b border-amber-200 bg-amber-50" role="status"
+  div class="border-b border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50" role="status"
     div class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-2 px-4 py-2 text-sm text-amber-900 sm:px-6"
       p = t(".message", email: current_user.email)
       = button_to t(".resend"), user_confirmation_path, params: { user: { email: current_user.email } },
-          class: "btn-secondary px-3 py-1 text-xs"
+          class: "btn-secondary px-3.5 py-1 text-xs"
