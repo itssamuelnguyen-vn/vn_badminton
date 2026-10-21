@@ -41,6 +41,17 @@ class ReportsTest < ActionDispatch::IntegrationTest
     assert_select "dd", text: /▲ \+100%/ # 2 bookings against 1
   end
 
+  test "the admin tabs show the current group and its tabs" do
+    sign_in users(:owner)
+    get admin_reports_path
+
+    assert_select "nav[aria-label='Quản lý'] a[aria-current=true][href='#{admin_bank_transactions_path}']", text: "Thu chi"
+    assert_select "nav[aria-label='Quản lý'] a", text: "Giao dịch"
+    assert_select "nav[aria-label='Quản lý'] a[aria-current=page]", text: "Báo cáo"
+    assert_select "nav[aria-label='Quản lý'] a[href='#{admin_price_rules_path}']", text: "Bán hàng" # a group opens its first tab
+    assert_select "nav[aria-label='Quản lý'] a", text: "Bảng giá", count: 0 # another group's tab
+  end
+
   test "exports the month's reservations as CSV" do
     sign_in users(:owner)
     get admin_reports_path(month: "2026-10", format: :csv)

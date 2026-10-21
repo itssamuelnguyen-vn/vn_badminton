@@ -1,6 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Keeps the current tab in view when the tab bar scrolls sideways (phones): each visit renders a new bar
+// Keeps the current tab in view when the tab row scrolls sideways (phones): each visit renders a new row
 // scrolled to the start, which would hide a tab near the end.
 export default class extends Controller {
   connect() {
