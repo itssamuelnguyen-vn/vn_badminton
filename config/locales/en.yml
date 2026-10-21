@@ -1615,6 +1615,9 @@ en:
         success: Saved.
     announcements:
       index:
+        select_all: Select all
+        destroy_selected: Delete
+        destroy_confirm: Delete the selected announcements? This cannot be undone.
         title: Announcements
         explanation: News shown on the booking page and in the app between the dates you pick (holiday closing, off-peak offers, tournaments...).
         new: Post news
@@ -1641,6 +1644,10 @@ en:
         success: Saved.
       destroy:
         success: Announcement deleted.
+      destroy_many:
+        success:
+          one: "Deleted %{count} announcement."
+          other: "Deleted %{count} announcements."
     reviews:
       index:
         title: Reviews

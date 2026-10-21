@@ -1571,6 +1571,9 @@ vi:
         success: Đã lưu.
     announcements:
       index:
+        select_all: Chọn tất cả
+        destroy_selected: Xoá
+        destroy_confirm: Xoá các tin đã chọn? Không thể hoàn tác.
         title: Bảng tin
         explanation: Thông báo hiện trên trang Đặt sân và trong app trong khoảng ngày bạn chọn (nghỉ lễ, khuyến mãi giờ thấp điểm, giải đấu...).
         new: Đăng tin
@@ -1597,6 +1600,9 @@ vi:
         success: Đã lưu.
       destroy:
         success: Đã xoá tin.
+      destroy_many:
+        success:
+          other: "Đã xoá %{count} tin."
     reviews:
       index:
         title: Đánh giá

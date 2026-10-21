@@ -91,7 +91,9 @@ Rails.application.routes.draw do
       resources :products, except: %i[show destroy]
       resources :vouchers, except: %i[show destroy]
       resources :packages, except: %i[show destroy]
-      resources :announcements, except: :show
+      resources :announcements, except: :show do
+        delete :destroy_many, on: :collection
+      end
       resources :reviews, only: :index
       resources :play_sessions, only: %i[index new create show] do
         member do

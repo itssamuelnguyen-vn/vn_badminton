@@ -89,6 +89,25 @@ class Api::AppExtrasTest < ActionDispatch::IntegrationTest
     assert_redirected_to admin_root_path
   end
 
+  test "the owner deletes several announcements at once; only ticked ones of this venue go" do
+    sign_in users(:owner)
+    first, second, kept = %w[Một Hai Ba].map { |title| @venue.announcements.create!(title: title, starts_on: "2026-10-19", ends_on: "2026-10-30") }
+
+    get admin_announcements_path
+    assert_select "form[data-turbo-confirm][action=?] input[type=checkbox][name='ids[]']", destroy_many_admin_announcements_path, 3
+    assert_select "button[type=submit][disabled]", text: "Xoá"
+
+    delete destroy_many_admin_announcements_path, params: { ids: [ first.id, second.id ] }
+    assert_redirected_to admin_announcements_path
+    assert_equal "Đã xoá 2 tin.", flash[:notice]
+    assert_equal [ kept ], @venue.announcements.to_a
+
+    sign_in users(:staffer)
+    delete destroy_many_admin_announcements_path, params: { ids: [ kept.id ] }
+    assert_redirected_to admin_root_path
+    assert kept.reload
+  end
+
   test "a played session can be reviewed once, within 14 days; the owner and staff read the reviews" do
     token = sign_in_api(users(:an))
     booking = book_and_pay(token)
