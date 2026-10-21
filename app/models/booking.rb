@@ -144,11 +144,14 @@ class Booking < ApplicationRecord
   attr_accessor :staff_change
   # Set when a customer moves a paid booking: the new slot must not cost more than what was paid.
   attr_accessor :price_cap_vnd
+  # Set when a series session of a month already paid is moved (Series::Move): the amount paid stays.
+  attr_accessor :keep_price
 
   # Moves a confirmed booking (or a block) to another court and/or time, with the court locks of #reserve
   # (old and new courts) and a new price. Customers: see #reschedulable_by_customer?. Returns true when saved.
   #   booking.reschedule(court: court, starts_at: from, ends_at: to, by: current_user)
-  def reschedule(court:, starts_at:, ends_at:, by:)
+  # keep_price: the venue moves it without pricing it again (a series month already paid, see Series::Move).
+  def reschedule(court:, starts_at:, ends_at:, by:, keep_price: false)
     unless by.manager? ? movable_by_staff? : reschedulable_by_customer?
       errors.add(:base, :not_reschedulable)
       return false
@@ -161,6 +164,7 @@ class Booking < ApplicationRecord
       self.class.release_expired_holds!([ old_court_id, court&.id ])
       assign_attributes(court: court, starts_at: starts_at, ends_at: ends_at, reminder_sent_at: nil)
       self.staff_change = by.manager?
+      self.keep_price = keep_price && by.manager?
       # Customers moving a paid booking: not to a dearer slot, and the cheaper price is not refunded.
       self.price_cap_vnd = paid_vnd unless by.manager?
       save && (paid_vnd.nil? || by.manager? || total_amount_vnd >= paid_vnd || update_columns(total_amount_vnd: paid_vnd))
@@ -348,8 +352,10 @@ class Booking < ApplicationRecord
       record(action, **({ reason: cancellation_reason } if action == :cancelled).to_h)
     end
     case changes["payment_status"]
-    when %w[unpaid paid] then record(:paid, amount: total_amount_vnd, via: payment_id ? "transfer" : (series_id ? "series" : "cash"))
-    when %w[paid unpaid] then record(:payment_undone, amount: total_amount_vnd)
+    when %w[unpaid paid]
+      via = payment_id ? "transfer" : (series_id ? "series" : "cash")
+      record(:paid, amount: total_amount_vnd, via: via, cash: (cash_entry(charged_vnd) if via == "cash"))
+    when %w[paid unpaid] then record(:payment_undone, amount: total_amount_vnd, cash: cash_undo_entry)
     when %w[paid refunded] then record(:refunded, amount: refund_vnd)
     end
     record(:refund_due, amount: refund_vnd) if changes["refund_vnd"]&.first.nil? && refund_vnd
@@ -370,8 +376,25 @@ class Booking < ApplicationRecord
     end
   end
 
-  def record(action, **details)
-    events.create!(action: action, actor: Current.user, details: details)
+  # cash: { cash_shift:, cash_vnd: } when the event moves cash in the open cash shift (see CashShift).
+  def record(action, cash: nil, **details)
+    events.create!(action: action, actor: Current.user, details: details, **cash.to_h)
+  end
+
+  # Cash taken at the counter goes into the open cash shift, if any.
+  def cash_entry(amount)
+    shift = CashShift.current(court.venue, lock: true)
+    { cash_shift: shift, cash_vnd: amount } if shift
+  end
+
+  # Undoing a cash payment of the open shift takes it out again; a payment of an earlier (closed) shift or a
+  # transfer is left alone, so nothing is counted twice.
+  def cash_undo_entry
+    paid = events.where(action: "paid").reorder(id: :desc).first
+    return unless paid&.cash_shift_id
+
+    shift = CashShift.current(court.venue, lock: true)
+    { cash_shift: shift, cash_vnd: -paid.cash_vnd } if shift&.id == paid.cash_shift_id
   end
 
   def slot_details(court, starts_at, ends_at)
@@ -404,7 +427,7 @@ class Booking < ApplicationRecord
   end
 
   def needs_pricing?
-    kind_reservation? && court && starts_at && ends_at &&
+    kind_reservation? && court && starts_at && ends_at && !keep_price &&
       (new_record? || will_save_change_to_starts_at? || will_save_change_to_ends_at? || will_save_change_to_court_id?)
   end
 

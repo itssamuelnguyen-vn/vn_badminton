@@ -3,8 +3,9 @@ module Admin
   class SeriesController < BaseController
     FIELDS = [ :customer_name, :customer_phone, :start_minute, :end_minute, :starts_on, :ends_on, :price_per_hour_vnd, :note,
                { court_ids: [], days_of_week: [] } ].freeze
+    MOVE_FIELDS = [ :from, :start_minute, :end_minute, { court_ids: [], days_of_week: [] } ].freeze
 
-    before_action :set_series, only: %i[show extend end_from close_range mark_paid request_payment update_price]
+    before_action :set_series, only: %i[show extend end_from close_range mark_paid request_payment update_price edit_move preview_move move]
 
     def index
       @series = BookingSeries.includes(:user).order(ends_on: :desc, customer_name: :asc)
@@ -84,7 +85,7 @@ module Admin
     end
 
     def mark_paid
-      @series.billing(Date.iso8601(params.require(:month))).mark_paid!(by: current_user)
+      @series.billing(Date.iso8601(params.require(:month))).mark_paid!(by: current_user, cash: true)
       @series.payments.awaiting.where(series_month: Date.iso8601(params[:month]).beginning_of_month).find_each { |p| p.update!(status: :cancelled) }
       redirect_to admin_series_path(@series), notice: t(".success")
     rescue ArgumentError
@@ -102,7 +103,34 @@ module Admin
       redirect_to admin_series_path(@series), alert: e.record.errors.full_messages.to_sentence
     end
 
+    # Moving the sessions to come to other courts or another weekly time (Series::Move): the form, then the plan
+    # with every conflict to resolve (skip or another court), then the move. Nothing changes before the last step.
+    def edit_move
+      @move = Series::Move.blank(@series, by: current_user)
+    end
+
+    def preview_move
+      @move = build_move
+      render :edit_move, status: :unprocessable_content unless @move.valid?
+    end
+
+    def move
+      @move = build_move
+      return render(:edit_move, status: :unprocessable_content) unless @move.valid?
+
+      @move.choices = params.fetch(:choices, {}).permit(*@move.items.map { |item| item.booking.id.to_s }).to_h
+      if @move.apply!
+        redirect_to admin_series_path(@series), notice: t(".success", count: @move.moved_count)
+      else
+        render :preview_move, status: :unprocessable_content
+      end
+    end
+
     private
+
+    def build_move
+      Series::Move.new(@series, by: current_user, **params.require(:move).permit(*MOVE_FIELDS).to_h.symbolize_keys)
+    end
 
     def set_series
       @series = BookingSeries.find(params[:id])

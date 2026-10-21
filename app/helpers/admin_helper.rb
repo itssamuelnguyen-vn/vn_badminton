@@ -35,6 +35,16 @@ module AdminHelper
     [ change, points ? t("helpers.change_points", sign: sign, number: number) : "#{sign}#{number}%" ]
   end
 
+  # A cash shift's difference: "+20.000đ (thừa)", "−10.000đ (thiếu)", "0đ (khớp)".
+  def cash_difference(amount)
+    key = amount.positive? ? "over" : (amount.negative? ? "short" : "even")
+    t("admin.cash_shifts.difference.#{key}", amount: "#{"+" if amount.positive?}#{"−" if amount.negative?}#{format_vnd(amount.abs)}")
+  end
+
+  def cash_difference_class(amount)
+    amount.zero? ? "text-emerald-700" : (amount.negative? ? "text-red-700" : "text-amber-700")
+  end
+
   # Options for a time select, every 30 minutes: [["05:00", 300], ["05:30", 330], ...]
   def minute_options(range = 0..1440)
     range.step(30).map { |minute| [ OpeningHour.format_minute(minute), minute ] }

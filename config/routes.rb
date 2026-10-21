@@ -79,6 +79,10 @@ Rails.application.routes.draw do
           post :mark_paid
           post :request_payment
           patch :update_price
+          # Moving the future sessions to another court or time: form -> plan (conflicts resolved) -> move.
+          get :move, action: :edit_move
+          post :move, action: :preview_move
+          patch :move
         end
       end
       resources :series_requests, only: [] do
@@ -97,6 +101,11 @@ Rails.application.routes.draw do
         end
       end
       get "reports", to: "reports#show", as: :reports
+      get "reports/customers", to: "customer_reports#show", as: :customer_reports
+      # The cash drawer per shift ("chốt ca"): open, close by counting; the owner sees the history.
+      resources :cash_shifts, path: "shifts", only: %i[index show create] do
+        patch :close, on: :member
+      end
       resources :bank_transactions, path: "transactions", only: %i[index update] do
         patch :assign, on: :member
       end

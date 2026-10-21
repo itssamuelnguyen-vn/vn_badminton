@@ -5,7 +5,7 @@ module Series
   #   bill = series.billing(Date.new(2026, 11, 1))
   #   bill.amount_vnd / bill.credit_vnd / bill.due_vnd
   #   bill.request_payment!(by: user)  # the transfer (Payment) for the amount due
-  #   bill.mark_paid!(by: owner)   # records the payment and marks the month's sessions paid
+  #   bill.mark_paid!(by: owner)   # records the payment and marks the month's sessions paid (cash: true at the counter)
   class Billing
     attr_reader :series, :month
 
@@ -60,12 +60,15 @@ module Series
       end
     end
 
-    def mark_paid!(by:, now: Time.current)
+    # cash: paid at the counter ("Đã thu"), so it goes into the open cash shift (CashShift), if any.
+    def mark_paid!(by:, now: Time.current, cash: false)
       BookingSeries.transaction do
         series.lock!
         raise ArgumentError, "Month already paid" if series.periods.exists?(month: month)
 
-        @period = series.periods.create!(month: month, amount_vnd: amount_vnd, credit_vnd: credit_vnd, paid_at: now, paid_by: by)
+        shift = CashShift.current(series.venue, lock: true) if cash
+        @period = series.periods.create!(month: month, amount_vnd: amount_vnd, credit_vnd: credit_vnd, paid_at: now, paid_by: by,
+                                         cash_shift: shift)
         apply_refunds(@period)
         billable.where(payment_status: :unpaid).find_each { |booking| booking.update!(payment_status: :paid, paid_at: now) }
       end

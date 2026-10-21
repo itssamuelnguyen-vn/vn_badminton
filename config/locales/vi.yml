@@ -28,6 +28,7 @@ vi:
       court: Sân
       price_rule: Bảng giá
       booking: Lượt đặt sân
+      cash_shift: Ca làm
       booking_series: Lịch cố định
 
     attributes:
@@ -175,6 +176,10 @@ vi:
         total_amount_vnd: Tổng tiền
         note: Ghi chú
         expires_at: Hạn giữ chỗ
+      cash_shift:
+        opening_vnd: Tiền đầu ca
+        counted_vnd: Tiền đếm được
+        note: Ghi chú
       booking_series:
         customer_name: Tên khách
         customer_phone: Số điện thoại khách
@@ -275,6 +280,12 @@ vi:
           beyond_horizon:
             other: "chỉ được đặt trước tối đa %{count} ngày"
           duration_out_of_range: "Thời lượng phải từ %{min} đến %{max} phút"
+        cash_shift:
+          already_open: Đang có một ca chưa chốt. Vui lòng chốt ca đó trước.
+          already_closed: Ca này đã được chốt.
+          attributes:
+            note:
+              blank: "cần ghi lý do khi số tiền đếm được khác số dự kiến"
         booking_series:
           before_starts_on: "phải sau ngày bắt đầu"
           after_start: "phải sau giờ bắt đầu"
@@ -283,6 +294,30 @@ vi:
           not_multiple_of_1000: "phải là bội số của 1.000đ"
           too_far: "tối đa 1 năm kể từ ngày bắt đầu"
 
+  # Form objects (Series::Move).
+  activemodel:
+    attributes:
+      series/move:
+        from: Áp dụng từ ngày
+        court_ids: Sân mới
+        days_of_week: Các ngày mới trong tuần
+        start_minute: Giờ bắt đầu mới
+        end_minute: Giờ kết thúc mới
+    errors:
+      models:
+        series/move:
+          after_start: "phải sau giờ bắt đầu"
+          off_slot_grid: "Giờ phải tròn 30 phút"
+          in_past: "không được trước hôm nay"
+          wrong_count: "phải chọn đúng %{count} (bằng lịch hiện tại)"
+          unchanged: Sân, ngày và giờ mới giống hệt lịch hiện tại.
+          no_sessions: Không còn buổi nào sắp tới từ ngày này để đổi.
+          conflicts_left: Còn buổi bị trùng chưa chọn cách xử lý.
+          taken_meanwhile: Có buổi vừa bị người khác đặt mất giờ mới. Vui lòng xem lại danh sách bên dưới.
+          taken: Giờ mới đã có người đặt
+          other_month: Giờ mới sang tháng khác (tiền tháng không còn khớp)
+          before_from: Giờ mới trước ngày áp dụng
+          started: Giờ mới đã qua
   layouts:
     application:
       header:
@@ -327,6 +362,8 @@ vi:
         customers: Khách hàng
         reports: Báo cáo
         series: Lịch cố định
+        cash_shifts: Ca làm
+        customer_reports: Báo cáo khách
         transactions: Giao dịch
 
 
@@ -1327,12 +1364,41 @@ vi:
         close_submit: Huỷ các buổi
         from: Từ ngày
         to: Đến ngày
+        move: Đổi giờ cả lịch
+        move_hint: Chuyển các buổi sắp tới sang sân, ngày hoặc giờ khác. Xem trước từng buổi và xử lý buổi bị trùng trước khi lưu.
+        move_submit: Đổi giờ…
         end: Kết thúc lịch
-        end_hint: Huỷ các buổi từ ngày này trở đi, không hoàn tiền. Muốn đổi giờ cả lịch thì kết thúc rồi tạo lịch mới.
+        end_hint: Huỷ các buổi từ ngày này trở đi, không hoàn tiền.
         end_confirm: Kết thúc lịch từ ngày này?
         end_submit: Kết thúc lịch
         request_payment: Tạo mã chuyển khoản
         awaiting_transfer: "Chờ khách chuyển %{amount}, nội dung %{code}. Gửi link này cho khách:"
+      edit_move:
+        title: Đổi giờ cả lịch cố định
+        now: "Hiện tại: %{courts} · %{days} · %{time}"
+        explanation: "Chọn %{courts} sân và %{days} ngày trong tuần. Mỗi buổi giữ vị trí của nó: sân thứ nhất sang sân mới thứ nhất, ngày thứ nhất trong tuần sang ngày mới thứ nhất (cùng tuần)."
+        from_hint: Chỉ đổi các buổi chưa chơi từ ngày này trở đi.
+        price_hint: Tháng đã đóng tiền giữ nguyên số tiền từng buổi; các tháng chưa đóng tính lại giá theo giờ mới.
+        submit: Xem trước các buổi
+      preview_move:
+        title: Kiểm tra trước khi đổi giờ
+        pattern: "Từ %{from}: %{courts} · %{days} · %{time}"
+        moving: Sẽ đổi
+        conflicts: Bị trùng
+        sessions: Tổng số buổi
+        to: sang
+        kept_price: "%{amount} (tháng đã đóng, giữ giá)"
+        choice: Xử lý
+        skip: Giữ giờ cũ (không đổi buổi này)
+        other_court: "Đổi sang %{court}"
+        skipped_hint: Buổi này giữ nguyên giờ cũ.
+        price_hint: Chưa có gì thay đổi cho đến khi bấm xác nhận. Mỗi buổi được ghi vào lịch sử lượt đặt.
+        confirm: Đổi giờ các buổi này?
+        back: Sửa lại
+        submit: Xác nhận đổi giờ
+      move:
+        success:
+          other: "Đã đổi giờ %{count} buổi."
       extend:
         success:
           other: "Đã thêm %{count} buổi."
@@ -1351,6 +1417,78 @@ vi:
       request_payment:
         success: Đã tạo mã chuyển khoản cho tháng này.
         nothing_due: Tháng này không còn khoản cần thu.
+    cash_shifts:
+      difference:
+        over: "%{amount} (thừa)"
+        short: "%{amount} (thiếu)"
+        even: "%{amount} (khớp)"
+      lines:
+        empty: Chưa thu tiền mặt trong ca này.
+        series: "Lịch cố định %{name} · %{month}"
+        undone: huỷ “đã thu”
+      index:
+        title: Ca làm
+        explanation: Mở ca với số tiền mặt trong két, chốt ca bằng cách đếm lại. Hệ thống tính số dự kiến = tiền đầu ca + tiền mặt đã thu trong ca.
+        current: Ca đang mở
+        open_badge: Đang mở
+        opened: "Mở lúc %{time} bởi %{by}"
+        opening: Đầu ca
+        collected: Thu tiền mặt
+        expected: Dự kiến trong két
+        close: Chốt ca
+        counted: Tiền đếm được trong két
+        counted_hint: Đếm toàn bộ tiền mặt trong két, gồm cả tiền đầu ca.
+        note: Ghi chú
+        note_placeholder: "Ví dụ: trả lại khách 20.000đ tiền thừa"
+        note_hint: Bắt buộc khi số đếm được khác số dự kiến (thừa hoặc thiếu).
+        close_submit: Chốt ca
+        close_confirm: Chốt ca với số tiền đã đếm?
+        no_shift: Chưa mở ca
+        no_shift_hint: Tiền mặt thu khi chưa mở ca sẽ không được tính vào ca nào.
+        opening_field: Tiền mặt đầu ca trong két
+        last_closed: "Ca trước chốt lúc %{time} bởi %{by}, đếm được %{amount}."
+        open_submit: Mở ca
+        history: Lịch sử chốt ca
+        history_empty: Không có ca nào trong tháng này.
+        history_total:
+          other: "%{count} ca · tổng chênh lệch"
+        by: "Mở: %{opened} · Chốt: %{closed}"
+        amounts: "Đầu ca %{opening} + thu %{collected} = dự kiến %{expected} · đếm được %{counted}"
+        note_line: "Ghi chú: %{note}"
+      show:
+        title: Ca làm
+        opened: "Mở bởi %{by}"
+        closed: "chốt lúc %{time} bởi %{by}"
+        counted: Đếm được
+        back: Lịch sử chốt ca
+      create:
+        success: Đã mở ca.
+      close:
+        success: "Đã chốt ca. Chênh lệch: %{difference}."
+    customer_reports:
+      show:
+        title: Báo cáo khách hàng
+        explanation: Khách chơi nhiều nhất, khách quen lâu không quay lại và tỷ lệ không đến của từng khách.
+        period_label: Khoảng thời gian
+        months:
+          other: "%{count} tháng"
+        period: "%{from} – %{to}"
+        top_hours: Chơi nhiều giờ nhất
+        top_amount: Chi nhiều nhất
+        visits:
+          other: "%{count} lượt"
+        no_data: Chưa có số liệu.
+        lapsed: Khách quen lâu không quay lại
+        lapsed_hint: "Đã chơi ít nhất %{visits} lần nhưng %{days} ngày nay không đặt sân (tính đến hôm nay). Gọi hỏi thăm hoặc gửi mã giảm giá."
+        no_lapsed: Không có khách nào.
+        last_visit: "Lần cuối %{date} · %{visits}"
+        no_shows: Tỷ lệ không đến
+        no_shows_hint: Lượt đã qua giờ trong khoảng thời gian (không tính lượt đã huỷ). Bấm tên khách để ghi chú hoặc đưa vào danh sách đen.
+        no_no_shows: Không có khách nào bỏ lượt.
+        customer: Khách
+        bookings: Lượt
+        no_show_count: Không đến
+        rate: Tỷ lệ
     bank_transactions:
       index:
         title: Giao dịch

@@ -69,6 +69,10 @@ div class="mx-auto max-w-3xl space-y-6"
         = f.date_field :to, required: true, class: "form-input", aria: { label: t(".to") }
       p class="form-hint" = t(".close_hint")
       = f.submit t(".close_submit"), class: "btn-secondary"
+    div class="card space-y-3"
+      h2 class="font-semibold" = t(".move")
+      p class="form-hint" = t(".move_hint")
+      = link_to t(".move_submit"), move_admin_series_path(series), class: "btn-secondary"
     = form_with url: end_from_admin_series_path(series), method: :post, class: "card space-y-3", data: { turbo_confirm: t(".end_confirm") } do |f|
       h2 class="font-semibold" = t(".end")
       = f.date_field :date, value: @today.iso8601, required: true, class: "form-input", aria: { label: t(".from") }

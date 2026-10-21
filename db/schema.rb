@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_20_000024) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_21_000025) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "citext"
@@ -103,9 +103,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_20_000024) do
     t.string "action", null: false
     t.jsonb "details", default: {}, null: false
     t.datetime "created_at", precision: 0, null: false
+    t.bigint "cash_shift_id"
+    t.bigint "cash_vnd"
     t.index ["actor_id"], name: "index_booking_events_on_actor_id"
     t.index ["booking_id", "id"], name: "index_booking_events_on_booking_id_and_id"
     t.index ["booking_id"], name: "index_booking_events_on_booking_id"
+    t.index ["cash_shift_id"], name: "index_booking_events_on_cash_shift_id"
+    t.check_constraint "(cash_shift_id IS NULL) = (cash_vnd IS NULL)", name: "booking_events_cash_consistent"
   end
 
   create_table "booking_items", force: :cascade do |t|
@@ -158,6 +162,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_20_000024) do
     t.bigint "paid_by_id", null: false
     t.datetime "created_at", precision: 0, null: false
     t.datetime "updated_at", precision: 0, null: false
+    t.bigint "cash_shift_id"
+    t.index ["cash_shift_id"], name: "index_booking_series_periods_on_cash_shift_id"
     t.index ["paid_by_id"], name: "index_booking_series_periods_on_paid_by_id"
     t.index ["series_id", "month"], name: "index_booking_series_periods_on_series_id_and_month", unique: true
     t.index ["series_id"], name: "index_booking_series_periods_on_series_id"
@@ -239,6 +245,33 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_20_000024) do
     t.check_constraint "status::text = ANY (ARRAY['pending'::character varying, 'confirmed'::character varying, 'checked_in'::character varying, 'completed'::character varying, 'cancelled'::character varying, 'no_show'::character varying]::text[])", name: "bookings_status_valid"
     t.check_constraint "total_amount_vnd >= 0", name: "bookings_amount_non_negative"
     t.exclusion_constraint "court_id WITH =, tstzrange(starts_at, ends_at, '[)'::text) WITH &&", where: "(status)::text = ANY (ARRAY[('pending'::character varying)::text, ('confirmed'::character varying)::text, ('checked_in'::character varying)::text, ('completed'::character varying)::text, ('no_show'::character varying)::text])", using: :gist, name: "bookings_no_overlap"
+  end
+
+  create_table "cash_shifts", force: :cascade do |t|
+    t.bigint "venue_id", null: false
+    t.bigint "opened_by_id", null: false
+    t.datetime "opened_at", precision: 0, null: false
+    t.bigint "opening_vnd", null: false
+    t.bigint "closed_by_id"
+    t.datetime "closed_at", precision: 0
+    t.bigint "collected_vnd"
+    t.bigint "expected_vnd"
+    t.bigint "counted_vnd"
+    t.bigint "difference_vnd"
+    t.text "note"
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
+    t.index ["closed_by_id"], name: "index_cash_shifts_on_closed_by_id"
+    t.index ["opened_at"], name: "index_cash_shifts_on_opened_at"
+    t.index ["opened_by_id"], name: "index_cash_shifts_on_opened_by_id"
+    t.index ["venue_id"], name: "index_cash_shifts_on_venue_id"
+    t.index ["venue_id"], name: "index_cash_shifts_one_open_per_venue", unique: true, where: "(closed_at IS NULL)"
+    t.check_constraint "(closed_at IS NULL) = (closed_by_id IS NULL) AND (closed_at IS NULL) = (collected_vnd IS NULL) AND (closed_at IS NULL) = (expected_vnd IS NULL) AND (closed_at IS NULL) = (counted_vnd IS NULL) AND (closed_at IS NULL) = (difference_vnd IS NULL)", name: "cash_shifts_closed_consistent"
+    t.check_constraint "closed_at IS NULL OR closed_at >= opened_at", name: "cash_shifts_range_valid"
+    t.check_constraint "counted_vnd IS NULL OR counted_vnd >= 0", name: "cash_shifts_counted_valid"
+    t.check_constraint "difference_vnd IS NULL OR difference_vnd = 0 OR COALESCE(length(btrim(note)), 0) > 0", name: "cash_shifts_note_when_different"
+    t.check_constraint "expected_vnd = (opening_vnd + collected_vnd) AND difference_vnd = (counted_vnd - expected_vnd)", name: "cash_shifts_amounts_valid"
+    t.check_constraint "opening_vnd >= 0", name: "cash_shifts_opening_valid"
   end
 
   create_table "courts", force: :cascade do |t|
@@ -657,12 +690,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_20_000024) do
   add_foreign_key "bank_transactions", "payments"
   add_foreign_key "bank_transactions", "users", column: "resolved_by_id"
   add_foreign_key "booking_events", "bookings", on_delete: :cascade
+  add_foreign_key "booking_events", "cash_shifts"
   add_foreign_key "booking_events", "users", column: "actor_id"
   add_foreign_key "booking_items", "bookings", on_delete: :cascade
   add_foreign_key "booking_items", "products"
   add_foreign_key "booking_series", "users"
   add_foreign_key "booking_series", "users", column: "created_by_id"
   add_foreign_key "booking_series_periods", "booking_series", column: "series_id"
+  add_foreign_key "booking_series_periods", "cash_shifts"
   add_foreign_key "booking_series_periods", "users", column: "paid_by_id"
   add_foreign_key "bookings", "booking_series", column: "series_id"
   add_foreign_key "bookings", "booking_series_periods", column: "series_refund_period_id"
@@ -674,6 +709,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_20_000024) do
   add_foreign_key "bookings", "users", column: "cancelled_by_id"
   add_foreign_key "bookings", "users", column: "created_by_id"
   add_foreign_key "bookings", "users", column: "refunded_by_id"
+  add_foreign_key "cash_shifts", "users", column: "closed_by_id"
+  add_foreign_key "cash_shifts", "users", column: "opened_by_id"
+  add_foreign_key "cash_shifts", "venues"
   add_foreign_key "courts", "venues"
   add_foreign_key "customer_profiles", "users", column: "blocked_by_id"
   add_foreign_key "group_memberships", "groups", on_delete: :cascade

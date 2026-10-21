@@ -5,6 +5,7 @@
                 [ t(".series"), admin_series_index_path, controller_name == "series" ],
                 [ t(".play_sessions"), admin_play_sessions_path, controller_name == "play_sessions" ],
                 [ t(".customers"), admin_customers_path, controller_name == "customers" ],
+                [ t(".cash_shifts"), admin_cash_shifts_path, controller_name == "cash_shifts" ],
                 [ t(".reviews"), admin_reviews_path, controller_name == "reviews" ] ] ] ]
 - if current_user.owner?
   - groups += [ [ t(".group_sales"), [ "M12.6 2.6A2 2 0 0 0 11.2 2H4a2 2 0 0 0-2 2v7.2a2 2 0 0 0 .6 1.4l8.7 8.7a2.4 2.4 0 0 0 3.4 0l6.6-6.6a2.4 2.4 0 0 0 0-3.4Z", "M7.5 7.5h.01" ],
@@ -14,7 +15,8 @@
                     [ t(".vouchers"), admin_vouchers_path, controller_name == "vouchers" ] ] ],
                 [ t(".group_money"), [ "M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1", "M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4" ],
                   [ [ t(".transactions"), admin_bank_transactions_path, controller_name == "bank_transactions" ],
-                    [ t(".reports"), admin_reports_path, controller_name == "reports" ] ] ],
+                    [ t(".reports"), admin_reports_path, controller_name == "reports" ],
+                    [ t(".customer_reports"), admin_customer_reports_path, controller_name == "customer_reports" ] ] ],
                 [ t(".group_system"), [ "M20 7h-9M14 17H5", "M14 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM20 17a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" ],
                   [ [ t(".announcements"), admin_announcements_path, controller_name == "announcements" ],
                     [ t(".staff"), admin_staff_members_path, controller_name == "staff_members" ],
