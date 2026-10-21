@@ -1,4 +1,4 @@
-# Customers who play together (app only): the owner creates it and shares the invite code; members see the
+# Customers who play together (web and app): the owner creates it and shares the invite code; members see the
 # bookings shared with the group (GroupShare) and each player's share of the price. The app collects nothing.
 class Group < ApplicationRecord
   MAX_MEMBERS = 20
@@ -36,6 +36,20 @@ class Group < ApplicationRecord
     errors.add(:base, :full, count: MAX_MEMBERS) if memberships.count >= MAX_MEMBERS
     errors.add(:base, :too_many, count: MAX_PER_USER) if user.groups.count >= MAX_PER_USER
     errors.empty? && memberships.create!(user: user)
+  end
+
+  # Shows a member's booking to the group, or changes its players (by default every member plays).
+  # Returns the share, with errors when it was not saved.
+  def share(booking, by:, players: nil)
+    share = shares.find_or_initialize_by(booking: booking)
+    share.assign_attributes(shared_by: by, players: players.presence || memberships.count)
+    share.save
+    share
+  end
+
+  # The shared bookings still to play, soonest first (from the loaded shares: preload shares: { booking: :court }).
+  def upcoming_shares(now = Time.current)
+    shares.select { |share| share.booking.ends_at > now && share.booking.status.in?(%w[confirmed checked_in]) }.sort_by { |share| share.booking.starts_at }
   end
 
   # Leaving: the member's shares go too. The owner leaving hands the group to the oldest member, or deletes it.

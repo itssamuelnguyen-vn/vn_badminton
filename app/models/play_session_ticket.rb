@@ -17,6 +17,8 @@ class PlaySessionTicket < ApplicationRecord
                                                  .where("payments.expires_at + make_interval(secs => ?) > ?", Payment::GRACE.to_i, now))
   }
 
+  scope :active, -> { where.not(status: :cancelled) }
+
   validates :quantity, numericality: { only_integer: true, in: 1..MAX_QUANTITY }
 
   # Takes the places and the transfer to pay them; nil with errors when they cannot be taken.

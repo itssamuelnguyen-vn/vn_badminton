@@ -1,0 +1,52 @@
+- content_for :title, t(".title")
+- check = "flex cursor-pointer items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium ring-1 ring-slate-200 transition has-checked:bg-emerald-50 has-checked:text-emerald-800 has-checked:ring-emerald-500"
+
+div class="card mx-auto max-w-lg"
+  h1 class="text-2xl font-bold" = t(".title")
+  p class="mt-2 mb-6 text-sm text-slate-600" = t(".intro", count: SeriesRequest::MAX_PENDING)
+
+  = form_with model: @series_request, url: series_requests_path, class: "space-y-5" do |f|
+    - if @series_request.errors.any?
+      div class="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-200" role="alert"
+        ul class="list-inside list-disc space-y-1"
+          - @series_request.errors.full_messages.each do |message|
+            li = message
+
+    fieldset
+      legend class="form-label" = SeriesRequest.human_attribute_name(:court_ids)
+      div class="flex flex-wrap gap-2"
+        = f.collection_check_boxes :court_ids, Venue.main.courts.active.order(:position, :id), :id, :display_name do |b|
+          = b.label class: check do
+            = b.check_box class: "accent-emerald-600"
+            = b.text
+
+    fieldset
+      legend class="form-label" = SeriesRequest.human_attribute_name(:days_of_week)
+      div class="flex flex-wrap gap-2"
+        = f.collection_check_boxes :days_of_week, Admin::VenueSettings::WEEK.map { |day| [ day, t("date.abbr_day_names")[day] ] }, :first, :last do |b|
+          = b.label class: check do
+            = b.check_box class: "accent-emerald-600"
+            = b.text
+
+    div class="grid grid-cols-2 gap-3"
+      div
+        = f.label :start_minute, class: "form-label"
+        = f.select :start_minute, minute_options(0..1410), {}, class: "form-input"
+      div
+        = f.label :end_minute, class: "form-label"
+        = f.select :end_minute, minute_options(30..1440), {}, class: "form-input"
+      div
+        = f.label :starts_on, class: "form-label"
+        = f.date_field :starts_on, required: true, min: (Venue.main.today + 1).iso8601, class: "form-input px-3"
+      div
+        = f.label :ends_on, class: "form-label"
+        = f.date_field :ends_on, required: true, class: "form-input px-3"
+    p class="form-hint -mt-2" = t(".dates_hint")
+
+    div
+      = f.label :note, class: "form-label"
+      = f.text_area :note, rows: 2, maxlength: 500, placeholder: t(".note_placeholder"), class: "form-input"
+
+    div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between"
+      = link_to t(".back"), series_index_path, class: "btn-secondary"
+      = f.submit t(".submit"), class: "btn-primary"

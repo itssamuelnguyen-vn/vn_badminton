@@ -4,6 +4,7 @@ module Series
   #
   #   bill = series.billing(Date.new(2026, 11, 1))
   #   bill.amount_vnd / bill.credit_vnd / bill.due_vnd
+  #   bill.request_payment!(by: user)  # the transfer (Payment) for the amount due
   #   bill.mark_paid!(by: owner)   # records the payment and marks the month's sessions paid
   class Billing
     attr_reader :series, :month
@@ -42,6 +43,21 @@ module Series
 
     def due_vnd
       amount_vnd - credit_vnd
+    end
+
+    # A month of the series, not paid yet, with something to pay.
+    def payable?
+      !paid? && due_vnd.positive? && series.months.include?(month)
+    end
+
+    # The transfer for the amount due (CD-03), asked by the staff or the customer (CD-10): the one waiting already
+    # for that amount, or a new one that replaces the month's older ones.
+    def request_payment!(by:)
+      awaiting = series.payments.awaiting.where(series_month: month)
+      awaiting.find_by(amount_vnd: due_vnd) || Payment.transaction do
+        awaiting.find_each { |old| old.update!(status: :cancelled) }
+        Payment.create!(purpose: :series_period, series: series, series_month: month, amount_vnd: due_vnd, user: series.user, created_by: by)
+      end
     end
 
     def mark_paid!(by:, now: Time.current)

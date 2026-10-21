@@ -24,6 +24,9 @@ div class="card mx-auto max-w-lg overflow-hidden"
   - elsif @booking.payment_unpaid? && !@booking.cancelled?
     p class="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200" = t("bookings.new.pay_at_venue")
 
+  - if @booking.kind_reservation? && @booking.status.in?(BookingsController::UPCOMING_STATUSES) && @booking.ends_at.future?
+    = render "bookings/group_share", booking: @booking
+
   / Warn before the cancellation that would lock online booking (Venue#cancellation_lock_threshold).
   - venue = @booking.court.venue
   - if @booking.cancellable_by_customer? && @booking.series_id.nil? && current_user.cancellations_today(venue) + 1 >= venue.cancellation_lock_threshold

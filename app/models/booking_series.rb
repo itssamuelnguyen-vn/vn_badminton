@@ -32,6 +32,9 @@ class BookingSeries < ApplicationRecord
   validates :price_per_hour_vnd, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
   validate :ranges_valid
 
+  # A customer's series still worth showing: those ending last month or later.
+  scope :shown_to, ->(user, today = Venue.main.today) { where(user: user).where(ends_on: today.beginning_of_month.prev_month..).order(:starts_on) }
+
   def venue
     courts.first&.venue || Venue.main
   end
@@ -68,6 +71,11 @@ class BookingSeries < ApplicationRecord
   # Months with sessions, first to last.
   def months
     dates.map(&:beginning_of_month).uniq
+  end
+
+  # The months the customer sees a bill for: last month and later.
+  def billed_months(today = venue.today)
+    months.select { |month| month >= today.beginning_of_month.prev_month }
   end
 
   private

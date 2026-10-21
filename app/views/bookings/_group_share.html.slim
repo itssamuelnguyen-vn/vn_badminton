@@ -1,0 +1,23 @@
+/ Sharing an upcoming booking with the customer's groups (NH-02): where it is shared already, and a form to share it.
+- groups = current_user.groups.order(:name).to_a
+- shares = GroupShare.where(booking: booking, group: groups).includes(:group).sort_by { |share| share.group.name }
+div class="mt-4 rounded-2xl bg-slate-50 px-4 py-3 text-sm ring-1 ring-slate-200"
+  p class="font-semibold" = t(".title")
+  - if groups.empty?
+    p class="mt-1 text-slate-600"
+      = t(".no_groups_html", link: link_to(t(".groups_link"), groups_path, class: "link"))
+  - else
+    - shares.each do |share|
+      div class="mt-2 flex items-center justify-between gap-3"
+        p class="text-slate-700" = t(".shared", name: share.group.name, players: share.players, amount: format_vnd(share.per_player_vnd))
+        - if share.removable_by?(current_user)
+          = button_to t("groups.group.unshare"), group_share_path(share.group, share), method: :delete, class: "btn-secondary shrink-0 px-3 py-1 text-xs"
+    = form_with scope: :group_share, url: group_shares_path, class: "mt-3 grid grid-cols-[1fr_7rem] items-end gap-2 sm:grid-cols-[1fr_7rem_auto]" do |f|
+      = f.hidden_field :booking_code, value: booking.code
+      div
+        = f.label :group_id, GroupShare.human_attribute_name(:group), class: "form-label"
+        = f.select :group_id, groups.map { |group| [ group.name, group.id ] }, {}, class: "form-input"
+      div
+        = f.label :players, GroupShare.human_attribute_name(:players), class: "form-label"
+        = f.number_field :players, min: 1, max: 50, placeholder: t(".players_placeholder"), class: "form-input"
+      = f.submit t("groups.group.share"), class: "btn-primary col-span-2 sm:col-span-1"

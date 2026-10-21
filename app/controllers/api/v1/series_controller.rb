@@ -5,25 +5,17 @@ module Api
     class SeriesController < BaseController
       def index
         venue = Venue.main
-        series = BookingSeries.where(user: current_user).where(ends_on: venue.today.beginning_of_month.prev_month..).order(:starts_on)
-        render json: { series: series.map { |one| ApiJson.series(one, venue) } }
+        render json: { series: BookingSeries.shown_to(current_user, venue.today).map { |one| ApiJson.series(one, venue) } }
       end
 
       # { month: "YYYY-MM" } -> payment (the one waiting already, or a new one for the amount due).
       def pay
         venue = Venue.main
-        series = BookingSeries.where(user: current_user).find(params[:id])
-        month = Date.strptime(params.require(:month), "%Y-%m")
-        bill = series.billing(month)
+        bill = BookingSeries.where(user: current_user).find(params[:id]).billing(Date.strptime(params.require(:month), "%Y-%m"))
         return render_error(:payments_unavailable, [ t("bookings.create.payments_unavailable") ], status: :unprocessable_content) unless venue.payments_enabled?
-        return render_error(:not_allowed, [ t("api.series.nothing_due") ], status: :unprocessable_content) if bill.paid? || bill.due_vnd <= 0 || !series.months.include?(month)
+        return render_error(:not_allowed, [ t("api.series.nothing_due") ], status: :unprocessable_content) unless bill.payable?
 
-        payment = series.payments.awaiting.where(series_month: month).find_by(amount_vnd: bill.due_vnd)
-        payment ||= Payment.transaction do
-          series.payments.awaiting.where(series_month: month).find_each { |old| old.update!(status: :cancelled) }
-          Payment.create!(purpose: :series_period, series: series, series_month: month, amount_vnd: bill.due_vnd, user: current_user, created_by: current_user)
-        end
-        render json: ApiJson.payment(payment, venue)
+        render json: ApiJson.payment(bill.request_payment!(by: current_user), venue)
       rescue Date::Error
         render_error :invalid, [], status: :unprocessable_content
       end

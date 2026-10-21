@@ -34,6 +34,12 @@ class ApplicationController < ActionController::Base
     request.env["devise.skip_trackable"] = true if request.headers["X-Background-Refresh"] == "1"
   end
 
+  # Booking and buying need a verified email. The banner under the header (layouts/application/_unverified_notice)
+  # has the button to resend it.
+  def require_verified_email
+    redirect_to root_path, alert: t("bookings.unverified") unless current_user.confirmed?
+  end
+
   # Answer to a request over a rate limit: back to the form with a message, instead of a bare 429.
   def rate_limited(path)
     redirect_to path, alert: t("rate_limited")
