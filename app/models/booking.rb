@@ -225,6 +225,11 @@ class Booking < ApplicationRecord
     ends_at <= now
   end
 
+  # Its customer can still rate it (Review): played, over, not too long ago, and not rated yet.
+  def reviewable?(now = Time.current)
+    persisted? && user.present? && review.nil? && Review.allowed?(self, user, now)
+  end
+
   # Over without check-in or no-show: the owner and staff are reminded to record which.
   def unrecorded?(now = Time.current)
     kind_reservation? && confirmed? && ended?(now)

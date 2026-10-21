@@ -49,7 +49,7 @@ module ApiJson
       # Cancelling a paid booking gives no refund (only a venue fault does).
       cancel_without_refund: booking.payment_paid?,
       payment_token: (booking.payment&.token if booking.pending?),
-      can_review: booking.persisted? && booking.user && booking.review.nil? && Review.allowed?(booking, booking.user, now),
+      can_review: booking.reviewable?(now),
       review: (review(booking.review) if booking.review)
     }
   end

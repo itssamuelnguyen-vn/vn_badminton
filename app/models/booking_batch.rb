@@ -7,6 +7,7 @@
 #   batch.reserve  # => true when every booking was saved as confirmed
 #   batch.reserve_for_payment   # => the Payment to transfer (court price less the best offer, plus extras)
 #   batch.reserve_with_package(purchase) # => true when booked and paid with prepaid hours (PackagePurchase)
+#   batch.quote(purchase: nil)  # => what the order will cost (Quote), nothing saved
 #
 # A customer has at most one held selection: holding or confirming replaces the previous one, so confirming
 # turns the held slots into bookings, and someone else's hold that expired no longer blocks anything.
@@ -14,6 +15,12 @@
 # Besides each booking's own checks, the customer must not be locked out for cancelling too often,
 # and may hold at most Venue#max_upcoming_bookings upcoming bookings.
 class BookingBatch
+  # The price of an order before booking it: court price, extras and the discount (best offer, or the whole court
+  # price when prepaid hours pay it), with the problems to tell the customer (a voucher or package that cannot be used).
+  Quote = Data.define(:court_vnd, :items_vnd, :discount_vnd, :offer_kind, :offer_label, :messages) do
+    def total_vnd = court_vnd - discount_vnd + items_vnd
+  end
+
   attr_reader :bookings, :errors, :venue
 
   def initialize(user:, slots:, note: nil, items: [], voucher_code: nil, venue: Venue.main)
@@ -119,6 +126,27 @@ class BookingBatch
   def offer
     bookings.each(&:quote_price) unless bookings.all?(&:persisted?)
     Pricing::Offer.best(user: @user, bookings: bookings, voucher_code: @voucher_code, venue: venue)
+  end
+
+  # Priced without saving (the confirmation page and the app's quote). purchase: the prepaid hours the customer
+  # would pay with; when they cannot pay this order, the usual offer applies and the reason is in the messages.
+  def quote(purchase: nil, now: Time.current)
+    bookings.each(&:quote_price)
+    court_vnd = bookings.sum(&:total_amount_vnd)
+    problem = purchase && (purchase.problem(bookings, now) || (:no_items if items_amount_vnd.positive?))
+    if purchase && problem.nil?
+      return Quote.new(court_vnd: court_vnd, items_vnd: 0, discount_vnd: court_vnd, offer_kind: "package", offer_label: purchase.display_name, messages: [])
+    end
+
+    offer = self.offer
+    messages = [ *@item_errors, offer.voucher_message, (I18n.t("booking_batch.errors.package.#{problem}") if problem) ].compact
+    Quote.new(court_vnd: court_vnd, items_vnd: items_amount_vnd, discount_vnd: offer.discount_vnd, offer_kind: offer.kind, offer_label: offer.label,
+              messages: messages)
+  end
+
+  # The customer's prepaid hours that can pay this order (UD-05), soonest to expire first.
+  def payable_packages(now = Time.current)
+    @user.package_purchases.usable(now).includes(package: :venue).order(:expires_at).select { |purchase| purchase.problem(bookings, now).nil? }
   end
 
   def errors?

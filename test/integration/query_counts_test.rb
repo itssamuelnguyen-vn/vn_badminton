@@ -7,9 +7,9 @@ class QueryCountsTest < ActionDispatch::IntegrationTest
     travel_to Time.zone.parse("2026-10-19 10:00")
   end
 
-  test "the booking page, the day board and the customer's bookings do not query per booking" do
+  test "the booking page, the day board, the customer's bookings and packages do not query per booking" do
     pages = {
-      users(:an) => [ root_path(date: "2026-10-20"), bookings_path ],
+      users(:an) => [ root_path(date: "2026-10-20"), bookings_path, packages_path ],
       users(:staffer) => [ root_path(date: "2026-10-20"), admin_root_path(date: "2026-10-20") ],
       users(:owner) => [ admin_bank_transactions_path, admin_customers_path ]
     }

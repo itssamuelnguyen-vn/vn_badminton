@@ -4,9 +4,7 @@ module Api
     class PackagesController < BaseController
       def index
         venue = Venue.main
-        purchases = current_user.package_purchases.includes(:package)
-                                .where(status: :active).or(current_user.package_purchases.where(status: :awaiting, created_at: PackagePurchase::PAYMENT_WINDOW.ago..))
-                                .order(created_at: :desc)
+        purchases = current_user.package_purchases.listed.includes(:package, :payment).order(created_at: :desc)
         render json: { packages: venue.packages.active.order(:price_vnd).map { |package| ApiJson.package(package) },
                        purchases: purchases.map { |purchase| ApiJson.package_purchase(purchase) } }
       end

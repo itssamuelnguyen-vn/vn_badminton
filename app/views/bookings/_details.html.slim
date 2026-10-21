@@ -1,6 +1,8 @@
 / Court, date, time and price of a booking (new, unsaved bookings included).
 / total_label: "Tổng tiền" for a single booking, "Thành tiền" for one court among several.
+/ court_only: the court's own price, without extras or discount (the confirmation page shows those in its price box).
 - total_label = local_assigns.fetch(:total_label, t("bookings.details.total"))
+- court_only = local_assigns.fetch(:court_only, false)
 
 dl class="divide-y divide-slate-100 text-sm"
   div class="flex justify-between gap-4 py-2"
@@ -17,10 +19,12 @@ dl class="divide-y divide-slate-100 text-sm"
       div class="flex justify-between gap-4 py-2 text-slate-500"
         dt class="tabular-nums" = "#{time_range(Time.zone.parse(line["from"]), Time.zone.parse(line["to"]))} · #{t("schedules.price_list.per_hour", price: format_vnd(line["price_per_hour_vnd"]))}"
         dd class="tabular-nums" = format_vnd(line["amount_vnd"])
-  - booking.items.each do |item|
-    div class="flex justify-between gap-4 py-2"
-      dt class="text-slate-500" = "#{item.display_name} × #{item.quantity}"
-      dd class="tabular-nums" = format_vnd(item.amount_vnd)
-  div class="flex justify-between gap-4 py-3 text-base"
-    dt class="font-semibold" = total_label
-    dd class="font-bold text-emerald-700 tabular-nums" = format_vnd(booking.charged_vnd)
+  - unless court_only
+    - booking.items.each do |item|
+      div class="flex justify-between gap-4 py-2"
+        dt class="text-slate-500" = "#{item.display_name} × #{item.quantity}"
+        dd class="tabular-nums" = format_vnd(item.amount_vnd)
+  - if total_label
+    div class="flex justify-between gap-4 py-3 text-base"
+      dt class="font-semibold" = total_label
+      dd class="font-bold text-emerald-700 tabular-nums" = format_vnd(court_only ? booking.total_amount_vnd : booking.charged_vnd)
