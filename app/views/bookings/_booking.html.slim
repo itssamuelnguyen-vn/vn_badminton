@@ -1,8 +1,17 @@
-= link_to booking_path(booking), class: "flex items-center justify-between gap-4 rounded-xl bg-white p-4 ring-1 ring-slate-200 transition hover:ring-emerald-400" do
-  div
-    p class="font-semibold"
-      = "#{booking.court.display_name} · #{l(booking.starts_at.to_date, format: :full)}"
-    p class="text-sm text-slate-600 tabular-nums"
+/ A booking in the customer's list: a date tile (green while it is still to come), court and time, status.
+- date = booking.starts_at.to_date
+- upcoming = !booking.cancelled? && booking.ends_at.future?
+= link_to booking_path(booking), class: "surface group flex items-center gap-4 p-3 pr-4 transition hover:-translate-y-0.5 hover:ring-emerald-300 sm:p-4 sm:pr-5" do
+  div class=[ "flex w-16 shrink-0 flex-col items-center rounded-2xl py-2 leading-none", upcoming ? "brand-gradient text-white shadow-md shadow-emerald-700/25" : "bg-slate-100 text-slate-500" ]
+    span class="text-[11px] font-semibold uppercase opacity-80" = t("schedules.date_picker.weekdays")[date.cwday - 1]
+    span class="my-1 text-2xl font-bold tabular-nums" = date.day
+    span class="text-[11px] font-medium opacity-80 tabular-nums" = l(date, format: "%m/%Y")
+  div class="min-w-0 flex-1"
+    p class="truncate font-bold" title=l(date, format: :full) = booking.court.display_name
+    p class="mt-0.5 text-sm text-slate-600 tabular-nums"
       = "#{time_range(booking.starts_at, booking.ends_at)} · #{format_vnd(booking.charged_vnd)}"
     p class="mt-1 font-mono text-xs text-slate-400" = booking.code
-  = booking_status_badge(booking)
+  div class="flex shrink-0 flex-col items-end gap-2"
+    = booking_status_badge(booking)
+    svg class="size-5 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-emerald-600" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"
+      path d="M7.3 14.7a1 1 0 0 1 0-1.4l3.3-3.3-3.3-3.3a1 1 0 0 1 1.4-1.4l4 4a1 1 0 0 1 0 1.4l-4 4a1 1 0 0 1-1.4 0Z"

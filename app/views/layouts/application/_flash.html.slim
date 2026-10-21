@@ -1,4 +1,8 @@
-- { notice: "bg-emerald-50 text-emerald-800 ring-emerald-200", alert: "bg-red-50 text-red-800 ring-red-200" }.each do |type, classes|
+- { notice: [ "bg-emerald-50 text-emerald-900 ring-emerald-200", "bg-emerald-600", "M5 12.5l4.5 4.5L19 7.5" ],
+    alert: [ "bg-red-50 text-red-900 ring-red-200", "bg-red-600", "M12 7v6m0 4h.01" ] }.each do |type, (classes, icon_bg, icon)|
   - if flash[type].present?
-    div role=(type == :alert ? "alert" : "status") class="mx-auto mb-6 max-w-md rounded-lg px-4 py-3 text-sm ring-1 #{classes}"
-      = flash[type]
+    div role=(type == :alert ? "alert" : "status") class="mx-auto mb-6 flex max-w-md items-start gap-3 rounded-2xl px-4 py-3 text-sm font-medium shadow-sm ring-1 #{classes}"
+      span class="mt-px flex size-5 shrink-0 items-center justify-center rounded-full text-white #{icon_bg}" aria-hidden="true"
+        svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
+          path d=icon
+      span = flash[type]

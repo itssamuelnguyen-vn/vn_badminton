@@ -1,27 +1,30 @@
-/ Desktop: one row. Phones: logo and language switcher on top, the links on a second row.
-header class="border-b border-slate-200 bg-white"
+/ Stays on top while scrolling. Desktop: one row. Phones: logo and language switcher on top, the links on a second row.
+- nav_link = ->(active) { [ "rounded-full px-2.5 py-1.5 font-semibold transition sm:px-3.5",
+                            active ? "bg-emerald-50 text-emerald-700" : "text-slate-600 hover:bg-slate-100 hover:text-ink" ] }
+header class="sticky top-0 z-40 border-b border-ink/5 bg-white/80 backdrop-blur-xl"
   nav class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3 sm:px-6"
-    = link_to root_path, class: "flex items-center gap-2 text-lg font-bold text-emerald-700" do
-      = image_tag "logo-mark.png", alt: "", class: "h-9 w-auto", width: 78, height: 96
-      | VN Badminton
+    = link_to root_path, class: "group flex items-center gap-2.5" do
+      span class="flex size-10 items-center justify-center rounded-2xl bg-emerald-50 ring-1 ring-emerald-100 transition group-hover:scale-105"
+        = image_tag "logo-mark.png", alt: "", class: "h-7 w-auto", width: 78, height: 96
+      span class="bg-gradient-to-r from-emerald-800 to-teal-600 bg-clip-text text-lg font-bold tracking-tight text-transparent"
+        | VN Badminton
 
     div class="sm:order-last"
       = render "layouts/application/locale_switcher"
 
     / -m-1 p-1: room inside the scroll area for the buttons' rings, which overflow-x-auto would clip.
-    div class="-m-1 flex w-full items-center gap-4 overflow-x-auto p-1 text-sm whitespace-nowrap sm:w-auto sm:flex-1 sm:justify-end"
-      = link_to t(".schedule"), root_path, class: "font-medium text-slate-700 hover:text-emerald-700"
+    div class="-m-1 flex w-full items-center gap-1 overflow-x-auto p-1 text-sm whitespace-nowrap sm:w-auto sm:flex-1 sm:justify-end"
+      = link_to t(".schedule"), root_path, class: nav_link.(controller_name == "schedules")
       - if user_signed_in?
-        = link_to t(".my_bookings"), bookings_path, class: "font-medium text-slate-700 hover:text-emerald-700"
+        = link_to t(".my_bookings"), bookings_path, class: nav_link.(controller_name == "bookings")
         - if current_user.manager?
-          = link_to t(".admin"), admin_root_path, class: "font-medium text-slate-700 hover:text-emerald-700"
+          = link_to t(".admin"), admin_root_path, class: nav_link.(controller_path.start_with?("admin/"))
         / Phones show an account icon instead of the (possibly long) name.
-        = link_to edit_user_registration_path, class: "font-medium text-slate-700 hover:text-emerald-700", aria: { label: current_user.full_name } do
+        = link_to edit_user_registration_path, class: [ *nav_link.(controller_name == "registrations"), "flex items-center gap-2" ], aria: { label: current_user.full_name } do
+          span class="flex size-7 items-center justify-center rounded-full brand-gradient text-xs font-bold text-white" aria-hidden="true"
+            = current_user.full_name.split.last.to_s.first.upcase
           span class="hidden max-w-40 truncate sm:inline" = current_user.full_name
-          svg viewBox="0 0 24 24" class="size-6 sm:hidden" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"
-            circle cx="12" cy="8" r="4"
-            path d="M4 20c1.5-3.5 4.5-5 8-5s6.5 1.5 8 5"
-        = button_to t(".sign_out"), destroy_user_session_path, method: :delete, class: "btn-secondary ml-auto px-3 py-1.5 sm:ml-0"
+        = button_to t(".sign_out"), destroy_user_session_path, method: :delete, class: "btn-secondary ml-auto px-3 py-1.5 sm:ml-1 sm:px-4"
       - else
-        = link_to t(".sign_in"), new_user_session_path, class: "ml-auto font-medium text-slate-700 hover:text-emerald-700 sm:ml-0"
-        = link_to t(".sign_up"), new_user_registration_path, class: "btn-primary px-3 py-1.5"
+        = link_to t(".sign_in"), new_user_session_path, class: [ *nav_link.(controller_name == "sessions"), "ml-auto sm:ml-0" ]
+        = link_to t(".sign_up"), new_user_registration_path, class: "btn-primary ml-1 px-4 py-1.5"

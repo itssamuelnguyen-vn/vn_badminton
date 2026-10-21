@@ -1,0 +1,27 @@
+/ The top of the booking page: what the venue offers at a glance (courts, the day's hours, the lowest price).
+- opening = day.opening
+- lowest_price = venue.price_rules.active.where(court_id: nil).minimum(:price_per_hour_vnd)
+- chip = "inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold ring-1 ring-white/20 backdrop-blur sm:text-sm"
+section class="brand-gradient relative mb-6 overflow-hidden rounded-[2rem] px-6 py-7 text-white shadow-xl shadow-emerald-900/20 sm:px-10 sm:py-10"
+  div class="pointer-events-none absolute -top-20 -right-16 size-72 rounded-full bg-white/10" aria-hidden="true"
+  div class="pointer-events-none absolute -bottom-28 left-1/4 size-72 rounded-full bg-lime-300/25 blur-3xl" aria-hidden="true"
+  div class="pointer-events-none absolute top-6 right-8 hidden sm:block" aria-hidden="true"
+    = image_tag "logo-mark.png", alt: "", class: "h-28 w-auto opacity-90 drop-shadow-2xl", width: 78, height: 96
+
+  div class="relative max-w-2xl"
+    p class="inline-flex items-center gap-2 rounded-full bg-lime-300 px-3 py-1 text-xs font-bold text-emerald-950"
+      span class="size-1.5 animate-pulse rounded-full bg-emerald-700" aria-hidden="true"
+      = t(".badge")
+    h1 class="mt-4 text-3xl leading-tight font-bold tracking-tight text-balance sm:text-4xl" = t(".headline")
+    p class="mt-2 flex items-start gap-1.5 text-sm text-emerald-50/90"
+      svg class="mt-0.5 size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"
+        path stroke-linecap="round" stroke-linejoin="round" d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z"
+        circle cx="12" cy="9.5" r="2.5"
+      = "#{venue.name} · #{venue.address}"
+
+    ul class="mt-5 flex flex-wrap gap-2"
+      li class=chip = t(".courts", count: day.courts.size)
+      - if opening
+        li class=chip = t(".hours", from: OpeningHour.format_minute(opening.opens_minute), to: OpeningHour.format_minute(opening.closes_minute))
+      - if lowest_price
+        li class=chip = t(".price_from", price: format_vnd(lowest_price))

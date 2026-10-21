@@ -1,4 +1,4 @@
 / Shown to a customer who cancelled too often and cannot book online for now.
 - if user_signed_in? && current_user.booking_locked?
-  p class="mb-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-200" role="alert"
+  p class="mb-6 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-200" role="alert"
     = t("bookings.lock_notice", until: l(current_user.booking_locked_until, format: :slot))

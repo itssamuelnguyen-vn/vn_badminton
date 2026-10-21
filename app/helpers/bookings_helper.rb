@@ -34,7 +34,7 @@ module BookingsHelper
       "cancelled" => "bg-red-50 text-red-700 ring-red-200",
       "no_show" => "bg-red-50 text-red-700 ring-red-200"
     }.fetch(booking.status)
-    tag.span t("bookings.statuses.#{booking.status}"), class: "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 #{classes}"
+    tag.span t("bookings.statuses.#{booking.status}"), class: "inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap ring-1 #{classes}"
   end
 
   # For the owner and staff: the session is over and neither check-in nor no-show was recorded.
