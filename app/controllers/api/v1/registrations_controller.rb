@@ -8,12 +8,37 @@ module Api
 
       def create
         attributes = params.permit(:full_name, :phone, :email, :password, :locale)
-        user = User.new(attributes.merge(privacy_consent: ActiveModel::Type::Boolean.new.cast(params[:privacy_consent]) ? "1" : "0"))
-        user.locale = I18n.locale.to_s unless I18n.available_locales.map(&:to_s).include?(user.locale)
+        user = User.new(attributes.merge(privacy_consent: privacy_consent))
+        save_and_sign_in(user)
+      end
 
+      # The end of a Google sign-in for someone new (SessionsController#google): { signup_token, full_name, phone,
+      # privacy_consent, locale }. The email is Google's, already verified (no verification email); the password
+      # is random: "Forgot password" on the web sets one, Google is enough in the app.
+      def google
+        identity = Accounts::GoogleIdentity.from_signup_token(params[:signup_token])
+        return render_error(:signup_expired, [ t("api.google.signup_expired") ], status: :unprocessable_content) unless identity
+
+        user = User.new(full_name: params[:full_name].presence || identity.name, phone: params[:phone], email: identity.email,
+                        google_uid: identity.uid, password: SecureRandom.base58(32), locale: params[:locale],
+                        privacy_consent: privacy_consent)
+        user.skip_confirmation!
+        save_and_sign_in(user)
+      rescue ActiveRecord::RecordNotUnique
+        # The same Google account signed up at the same moment.
+        render_error :invalid, [ t("api.google.already_registered") ], status: :unprocessable_content
+      end
+
+      private
+
+      def privacy_consent
+        ActiveModel::Type::Boolean.new.cast(params[:privacy_consent]) ? "1" : "0"
+      end
+
+      def save_and_sign_in(user)
+        user.locale = I18n.locale.to_s unless I18n.available_locales.map(&:to_s).include?(user.locale)
         if user.save
-          _token, secret = ApiToken.issue(user, device_name: params[:device_name])
-          render json: { token: secret, user: ApiJson.user(user) }, status: :created
+          render_signed_in(user)
         else
           render_error :invalid, user.errors.full_messages, status: :unprocessable_content
         end

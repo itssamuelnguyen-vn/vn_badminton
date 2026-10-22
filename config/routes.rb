@@ -139,8 +139,14 @@ Rails.application.routes.draw do
   # The customer mobile app (Api::V1). No locale prefix: the language comes from Accept-Language.
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
-      resource :session, only: %i[create destroy]
-      resource :registration, only: :create
+      resource :session, only: %i[create destroy] do
+        post :google
+      end
+      resource :registration, only: :create do
+        post :google
+      end
+      # Push notifications: the phone's FCM token (POST to add or refresh, DELETE to stop).
+      resource :device_tokens, only: %i[create destroy]
       resource :account, only: %i[show update destroy] do
         post :export
         post :resend_verification
@@ -183,6 +189,9 @@ Rails.application.routes.draw do
   end
 
   get "up" => "rails/health#show", as: :rails_health_check
+
+  # Android App Links: which app may open this server's links (no locale, no session).
+  get ".well-known/assetlinks.json", to: "well_known/asset_links#show", as: :android_asset_links, format: false
 
   # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest

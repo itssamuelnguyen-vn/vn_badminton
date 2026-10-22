@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_21_000025) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_22_000026) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gist"
   enable_extension "citext"
@@ -301,6 +301,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_21_000025) do
     t.check_constraint "phone::text ~ '^\\+84[0-9]{9}$'::text", name: "customer_profiles_phone_format"
   end
 
+  create_table "device_tokens", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "api_token_id", null: false
+    t.string "token", null: false
+    t.string "platform", default: "android", null: false
+    t.string "app_version"
+    t.datetime "last_seen_at", precision: 0, null: false
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
+    t.index ["api_token_id"], name: "index_device_tokens_on_api_token_id"
+    t.index ["token"], name: "index_device_tokens_on_token", unique: true
+    t.index ["user_id"], name: "index_device_tokens_on_user_id"
+  end
+
   create_table "group_memberships", force: :cascade do |t|
     t.bigint "group_id", null: false
     t.bigint "user_id", null: false
@@ -572,10 +586,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_21_000025) do
     t.integer "birth_year"
     t.string "gender"
     t.string "skill_level"
+    t.string "google_uid"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["deletion_requested_at"], name: "index_users_on_deletion_requested_at", where: "((deletion_requested_at IS NOT NULL) AND (deleted_at IS NULL))"
     t.index ["deletion_requested_by_id"], name: "index_users_on_deletion_requested_by_id"
     t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["google_uid"], name: "index_users_on_google_uid", unique: true, where: "(google_uid IS NOT NULL)"
     t.index ["phone"], name: "index_users_on_phone", unique: true, where: "(phone IS NOT NULL)"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
     t.check_constraint "birth_year >= 1900 AND birth_year <= 2100", name: "users_birth_year_range"
@@ -714,6 +730,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_21_000025) do
   add_foreign_key "cash_shifts", "venues"
   add_foreign_key "courts", "venues"
   add_foreign_key "customer_profiles", "users", column: "blocked_by_id"
+  add_foreign_key "device_tokens", "api_tokens", on_delete: :cascade
+  add_foreign_key "device_tokens", "users"
   add_foreign_key "group_memberships", "groups", on_delete: :cascade
   add_foreign_key "group_memberships", "users", on_delete: :cascade
   add_foreign_key "group_shares", "bookings", on_delete: :cascade

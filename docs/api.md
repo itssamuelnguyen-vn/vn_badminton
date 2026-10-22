@@ -10,15 +10,19 @@ Quy tắc nghiệp vụ: `docs/business-rules.md`. Test: `test/integration/api/v
 - Lỗi: mã HTTP + `{ "error": "<mã>", "messages": ["câu cho người dùng", ...] }`.
   Mã: `unauthorized` (401, đăng nhập lại), `invalid_login`, `account_deleted`, `wrong_password`, `email_unverified` (403),
   `not_bookable`, `invalid`, `payments_unavailable`, `not_allowed` (422), `changed_meanwhile` (409), `not_found` (404),
-  `rate_limited` (429).
+  `rate_limited` (429), `invalid_google` (401), `signup_expired` (422), `google_unavailable` (503).
 
 ## Tài khoản
 
 | Gọi | Vào | Ra |
 |---|---|---|
 | `POST /api/v1/session` | `login` (email hoặc SĐT), `password`, `device_name` | 201 `{ token, user }` |
-| `DELETE /api/v1/session` | | 204 |
+| `DELETE /api/v1/session` | | 204 (token đăng ký thông báo của máy cũng bị xoá) |
 | `POST /api/v1/registration` | `full_name`, `phone`, `email`, `password`, `privacy_consent: true`, `locale`, `device_name` | 201 `{ token, user }` (email xác minh được gửi) |
+| `POST /api/v1/session/google` | `id_token` (ID token Google cho web client ID), `device_name` | 201 `{ token, user }`; người mới: 200 `{ needs_phone: true, signup_token, name, email }` (AP-05) |
+| `POST /api/v1/registration/google` | `signup_token` (hạn 15 phút), `full_name`, `phone`, `privacy_consent: true`, `locale`, `device_name` | 201 `{ token, user }` (email đã xác minh, không gửi email xác minh) |
+| `POST /api/v1/device_tokens` | `token` (FCM), `platform: "android"`, `app_version` | 204; gửi lại mỗi lần mở app / Firebase đổi token (TB-01) |
+| `DELETE /api/v1/device_tokens` | `token` | 204 (tắt thông báo) |
 | `GET /api/v1/account` | | `{ user, can_delete, loyalty, bookings_to_play: [booking], deleted_after }` |
 | `PATCH /api/v1/account` | `full_name`, `phone`, `locale`, `birth_year`, `gender` (`male`/`female`/`other`), `skill_level` (`beginner`/`intermediate`/`advanced`/`expert`) | `{ user }` |
 | `POST /api/v1/account/resend_verification` | | 204 |
@@ -31,6 +35,9 @@ Quy tắc nghiệp vụ: `docs/business-rules.md`. Test: `test/integration/api/v
 
 `user`: `{ id, full_name, email, phone, locale, email_verified, booking_locked_until, birth_year, gender, skill_level, avatar_path }`.
 `avatar_path` là đường dẫn trên máy chủ (ghép với địa chỉ máy chủ), `null` khi chưa có ảnh. Hồ sơ không bắt buộc (TK-10).
+
+Thông báo đẩy (TB-01…04): `notification { title, body }` theo ngôn ngữ của khách, kênh Android `updates`, và
+`data.path` là trang cần mở (`/bookings/<mã>`, `/bookings`, `/payments/<token>`, `/`), đọc như link trong email (AP-04).
 
 ## Sân và lịch (không cần đăng nhập)
 

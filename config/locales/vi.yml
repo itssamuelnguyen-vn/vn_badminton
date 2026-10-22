@@ -909,6 +909,44 @@ vi:
       nothing_due: Tháng này không còn tiền cần đóng.
     unauthorized: Vui lòng đăng nhập lại.
     avatar_missing: Vui lòng chọn một ảnh.
+    google:
+      invalid: Không đăng nhập được bằng Google. Vui lòng thử lại.
+      unavailable: Chưa kết nối được Google, vui lòng thử lại sau ít phút.
+      signup_expired: Đã quá thời gian đăng ký, vui lòng đăng nhập bằng Google lại.
+      already_registered: Tài khoản Google này vừa được đăng ký. Vui lòng đăng nhập lại.
+  # Push notifications to the app (Push): short, the details are in the email and the app.
+  push:
+    booking_confirmed:
+      title: Đã xác nhận đặt sân
+      body: "%{courts} lúc %{time}. Hẹn gặp bạn ở sân!"
+    payment_received:
+      title: Sân đã nhận tiền
+      body: "Đã nhận đủ tiền cho mã %{code}."
+    booking_reminder:
+      title: Sắp đến giờ chơi
+      body: "%{court} lúc %{time}. Nhớ mang vợt nhé!"
+    booking_cancelled:
+      title: "Sân đã huỷ lượt %{code}"
+      body: "%{court} lúc %{time}. Xem chi tiết trong email hoặc trong app."
+    booking_rescheduled:
+      title: "Sân đã đổi giờ lượt %{code}"
+      body: "Giờ mới: %{court} lúc %{time}."
+    slot_freed:
+      title: Có sân trống
+      body: "Có sân trống lúc %{time}. Ai đặt trước được trước!"
+    series_request_approved:
+      title: Đã có lịch cố định
+      body: Sân đã tạo lịch cố định bạn yêu cầu. Các buổi có trong Sân đã đặt.
+    series_request_declined:
+      title: Sân chưa nhận lịch cố định
+      body: Sân chưa nhận được lịch cố định bạn yêu cầu. Xem lý do trong email.
+    series_moved:
+      title: Sân đã đổi giờ lịch cố định
+      body:
+        other: "%{count} buổi đã chuyển sang giờ mới. Xem chi tiết trong email."
+    play_session_cancelled:
+      title: "Sân huỷ buổi %{title}"
+      body: "Buổi lúc %{time} đã bị huỷ. Chỗ đã trả tiền sẽ được hoàn lại."
   account_mailer:
     deletion_requested:
       subject: Tài khoản VN Badminton của bạn sẽ được xoá

@@ -28,7 +28,10 @@ module Admin
         if transfer
           redirect_to admin_booking_path(booking), notice: t(".awaiting_payment", court: booking.court.display_name)
         else
-          BookingMailer.with(bookings: [ booking ]).confirmed.deliver_later if booking.user
+          if booking.user
+            BookingMailer.with(bookings: [ booking ]).confirmed.deliver_later
+            Push.booking_confirmed([ booking ])
+          end
           redirect_to admin_root_path(date: @form.date&.iso8601), notice: t(".success.#{booking.kind}", court: booking.court.display_name)
         end
       else
@@ -51,7 +54,7 @@ module Admin
     # The venue could not provide the court: cancelled, and a paid booking is owed back in full.
     def cancel_venue_fault
       @booking.cancel_for_venue_fault!(by: current_user)
-      BookingMailer.with(booking: @booking).cancelled.deliver_later if @booking.user
+      notify_cancelled
       redirect_back_or_to admin_booking_path(@booking), notice: t(".success")
     rescue ArgumentError
       redirect_back_or_to admin_booking_path(@booking), alert: t("admin.bookings.not_allowed")
@@ -87,7 +90,10 @@ module Admin
       @form = BookingForm.new(venue: venue, attributes: params.require(:booking).permit(:court_id, :date, :start_minute, :end_minute).to_h)
 
       if @booking.reschedule(court: venue.courts.find_by(id: @form.court_id), starts_at: @form.starts_at, ends_at: @form.ends_at, by: current_user)
-        BookingMailer.with(booking: @booking, previous: previous).rescheduled.deliver_later if @booking.user
+        if @booking.user
+          BookingMailer.with(booking: @booking, previous: previous).rescheduled.deliver_later
+          Push.booking_rescheduled(@booking)
+        end
         redirect_to admin_booking_path(@booking), notice: t(".success")
       else
         render :edit_schedule, status: :unprocessable_content
@@ -108,7 +114,7 @@ module Admin
 
     def cancel
       @booking.cancel!(by: current_user)
-      BookingMailer.with(booking: @booking).cancelled.deliver_later if @booking.user
+      notify_cancelled
       redirect_back_or_to admin_booking_path(@booking), notice: t(".success.#{@booking.kind}")
     rescue ArgumentError
       redirect_back_or_to admin_booking_path(@booking), alert: t("admin.bookings.not_allowed")
@@ -117,6 +123,14 @@ module Admin
     end
 
     private
+
+    # Cancelled by the venue: the customer (with an account) gets the email and a push notification.
+    def notify_cancelled
+      return unless @booking.user
+
+      BookingMailer.with(booking: @booking).cancelled.deliver_later
+      Push.booking_cancelled(@booking)
+    end
 
     def reserve_for_payment(booking, now: Time.current)
       Booking.transaction do
