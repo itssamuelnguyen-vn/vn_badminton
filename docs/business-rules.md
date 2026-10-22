@@ -7,7 +7,7 @@ Test là bản mô tả chính xác nhất: nếu tài liệu và test khác nha
 **Cách giữ tài liệu luôn đúng:** PR nào thay đổi một quy tắc thì sửa luôn mục tương ứng ở đây trong cùng PR
 (xem `CLAUDE.md`). Các con số có thể chỉnh trong **Quản lý → Cài đặt** được đánh dấu ⚙️ và ghi giá trị mặc định.
 
-> Cập nhật: 21/10/2026, theo `main` sau PR #26, cộng các thay đổi đang chờ PR #27: báo cáo tháng dạng biểu đồ (VH-07), chốt ca tiền mặt có đếm mù và hoàn tiền mặt (VH-12, VH-04), email đổi lịch cố định (EM-10), xoá nhiều tin bảng tin (TI-02), báo cáo khách (VH-13), đổi giờ cả lịch cố định (CD-11), mã chuyển khoản đang chờ được dùng lại (CD-03) và các tiện ích của app đưa lên web (TI-01, TI-03, TI-04, UD-01, UD-04, UD-05, GL-02, GL-03, NH-01, NH-02, CD-09, CD-10). Mục đánh dấu ⏳ (nhánh `deploy-config`) là quy tắc chưa có trên `main`;
+> Cập nhật: 22/10/2026, theo `main` sau PR #27, cộng các thay đổi của PR tiếp theo: link trong email mở thẳng app Android (AP-04), đăng nhập bằng Google trong app (AP-05) và thông báo đẩy qua Firebase (TB-01…TB-04). Mục đánh dấu ⏳ (nhánh `deploy-config`) là quy tắc chưa có trên `main`;
 > khi merge, bỏ dấu ⏳.
 
 ---
