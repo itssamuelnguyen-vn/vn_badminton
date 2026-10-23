@@ -11,6 +11,9 @@ vi:
     models:
       play_session: Buổi giao lưu
       play_session_ticket: Chỗ giao lưu
+      tournament: Giải đấu
+      tournament_entry: Suất thi đấu
+      tournament_match: Trận đấu
       group: Nhóm
       group_share: Lượt đặt chia sẻ
       voucher: Mã giảm giá
@@ -45,6 +48,29 @@ vi:
         level: Trình độ
       play_session_ticket:
         quantity: Số người
+      tournament:
+        title: Tên giải
+        title_en: Tên tiếng Anh
+        description: Mô tả, giải thưởng, luật
+        play_format: Thể thức
+        discipline: Nội dung
+        gender: Giới tính
+        level: Trình độ
+        court_ids: Sân
+        date: Ngày thi đấu
+        starts_at: Giờ bắt đầu
+        ends_at: Giờ kết thúc
+        registration_closes_at: Hạn đăng ký
+        max_entries: Số suất tối đa
+        fee_vnd: Lệ phí mỗi suất
+        group_size: Số người/cặp mỗi bảng
+        advance_per_group: Số vào vòng trong mỗi bảng
+      tournament_entry:
+        partner_name: Tên đồng đội
+        partner_phone: Số điện thoại đồng đội
+        partner_gender: Giới tính đồng đội
+      tournament_match:
+        scores: Tỉ số
       group:
         name: Tên nhóm
       group_share:
@@ -203,6 +229,27 @@ vi:
           not_bookable: Buổi này không còn nhận đăng ký.
           blacklisted: Tài khoản của bạn hiện không thể đặt online. Vui lòng liên hệ sân.
           full: "Buổi này chỉ còn %{left} chỗ."
+        tournament:
+          after_start: "phải sau giờ bắt đầu"
+          after_tournament_start: "phải trước giờ bắt đầu giải"
+          off_slot_grid: "Giờ phải tròn 30 phút"
+          not_in_future: "phải ở tương lai"
+          invalid: "không hợp lệ"
+          not_multiple_of_1000: "phải là bội số của 1.000đ"
+        tournament_entry:
+          not_open: Giải này không còn nhận đăng ký.
+          blacklisted: Tài khoản của bạn hiện không thể đăng ký online. Vui lòng liên hệ sân.
+          full: Giải đã đủ suất.
+          already_entered: Bạn hoặc đồng đội đã đăng ký giải này rồi.
+          gender_missing: Nội dung này chia theo giới tính, vui lòng chọn giới tính trong trang tài khoản trước.
+          mixed_genders: Đôi nam nữ cần một nam và một nữ.
+          only_male: Nội dung này chỉ dành cho nam.
+          only_female: Nội dung này chỉ dành cho nữ.
+          yourself: "không được là số của chính bạn"
+        tournament_match:
+          not_editable: Trận này không sửa kết quả được nữa.
+          invalid_winner: Người thắng không hợp lệ.
+          invalid: "không hợp lệ: nhập từ 1 ván, mỗi ván phải có bên thắng, và số ván thắng của hai bên phải khác nhau"
         group:
           too_many: "Mỗi người tham gia tối đa %{count} nhóm."
           full: "Nhóm đã đủ %{count} người."
@@ -325,6 +372,7 @@ vi:
         my_bookings: Lượt đặt của tôi
         my_bookings_short: Lượt đặt
         play_sessions: Giao lưu
+        tournaments: Giải đấu
         sign_in: Đăng nhập
         sign_up: Đăng ký
         sign_out: Đăng xuất
@@ -349,6 +397,7 @@ vi:
         group_sales: Bán hàng
         group_system: Hệ thống
         play_sessions: Giao lưu
+        tournaments: Giải đấu
         vouchers: Mã giảm giá
         packages: Gói giờ
         reviews: Đánh giá
@@ -763,6 +812,10 @@ vi:
       paid_series: Tiền sân của tháng đã được ghi nhận. Cảm ơn bạn!
       paid_tickets: Chỗ giao lưu của bạn đã được xác nhận. Hẹn gặp bạn ở sân!
       view_play_sessions: Xem buổi giao lưu
+      view_tournament: Xem giải đấu
+      paid_tournament: Bạn đã có suất thi đấu. Hẹn gặp bạn ở giải!
+      for_tournament: "Lệ phí giải %{title} – %{name}"
+      cancel_tournament: Huỷ đăng ký giải
       view_series: Xem lịch cố định
       for_tickets:
         other: "Giao lưu: %{title} · %{time} · %{count} chỗ"
@@ -825,6 +878,101 @@ vi:
         scheduled: "Tài khoản đã được khoá và sẽ bị xoá sau khi lượt chơi cuối kết thúc (khoảng %{time}). Chúng tôi đã gửi email cho bạn."
         deleted: Tài khoản của bạn đã được xoá. Chúng tôi đã gửi email xác nhận.
 
+  tournaments:
+    block_note: "Giải đấu: %{title}"
+    events:
+      singles: Đơn
+      singles_male: Đơn nam
+      singles_female: Đơn nữ
+      doubles: Đôi
+      doubles_male: Đôi nam
+      doubles_female: Đôi nữ
+      mixed_doubles: Đôi nam nữ
+    formats:
+      knockout: Loại trực tiếp
+      groups_knockout: Vòng bảng + loại trực tiếp
+      round_robin: Vòng tròn
+    disciplines:
+      singles: Đơn
+      doubles: Đôi
+      mixed_doubles: Đôi nam nữ
+    genders:
+      open: Tự do (nam, nữ)
+      male: Nam
+      female: Nữ
+    fee: "Lệ phí %{fee}"
+    fee_pair: "Lệ phí %{fee}/cặp"
+    free: Miễn phí
+    entered: Bạn đã đăng ký
+    walkover: Thắng do đối thủ bỏ cuộc
+    bye: Miễn đấu
+    on_court: "Đang đấu ở %{court}"
+    status:
+      registering: "Nhận đăng ký · còn %{left}/%{max} suất"
+      full: Đã đủ suất
+      closed: Đã hết hạn đăng ký
+      in_progress: Đang thi đấu
+      finished: Đã kết thúc
+      champion: "Vô địch: %{name}"
+      cancelled: Đã huỷ
+    rounds:
+      final: Chung kết
+      semi_final: Bán kết
+      quarter_final: Tứ kết
+      last_16: Vòng 1/8
+      round: "Vòng %{number}"
+    standings:
+      table: Bảng xếp hạng
+      group: "Bảng %{name}"
+      player: Người chơi
+      played: Tr
+      played_long: Số trận đã đấu
+      won: T
+      won_long: Số trận thắng
+      games: Ván
+      games_long: Ván thắng – ván thua
+      points: HS
+      points_long: Hiệu số điểm
+    draw:
+      not_open: Giải này đã bốc thăm hoặc đã kết thúc.
+      too_few: Cần ít nhất 2 suất đã xác nhận để bốc thăm.
+      too_few_for_groups: Chưa đủ người để chia bảng (cần ít nhất 2 người vào vòng trong). Hãy giảm số người mỗi bảng hoặc tạo giải vòng tròn.
+    index:
+      title: Giải đấu
+      intro: Giải đấu nội bộ của sân. Đăng ký online, chuyển khoản lệ phí, rồi theo dõi sơ đồ thi đấu và kết quả ngay tại đây.
+      none: Hiện chưa có giải đấu nào. Quay lại sau nhé!
+    show:
+      back: "← Tất cả giải đấu"
+      champion: Vô địch
+      mine:
+        pending: "Bạn đã đăng ký (%{name}), đang chờ chuyển khoản lệ phí."
+        confirmed: "Bạn đã có suất thi đấu: %{name}."
+      withdraw: Rút khỏi giải
+      withdraw_confirm: Rút khỏi giải này?
+      withdraw_confirm_paid: Rút khỏi giải này? Lệ phí đã đóng sẽ không được hoàn lại.
+      register_title: Đăng ký thi đấu
+      closes: "Hạn đăng ký: %{time} · còn %{left}/%{max} suất."
+      gender_needed_html: "Nội dung này chia theo giới tính: vui lòng chọn giới tính trong %{link} trước khi đăng ký."
+      account: trang tài khoản
+      partner: Đồng đội
+      partner_name: Họ tên
+      partner_phone: Số điện thoại
+      partner_gender: Giới tính
+      partner_hint: Nếu đồng đội có tài khoản với số điện thoại này, suất được gắn vào tài khoản của họ và họ cũng thấy giải trong mục của mình.
+      register: Đăng ký
+      register_hint: "Sau khi đăng ký, bạn có %{minutes} phút để chuyển khoản lệ phí; suất được giữ trong lúc đó. Tên người chơi hiện công khai trên trang giải."
+      register_hint_free: Giải miễn phí, suất được xác nhận ngay. Tên người chơi hiện công khai trên trang giải.
+      sign_in_to_register: Đăng nhập để đăng ký
+      entries: "Danh sách thi đấu (%{number})"
+      no_entries: Chưa có ai đăng ký.
+      groups: Vòng bảng
+      bracket: Sơ đồ loại trực tiếp
+    enter:
+      success: Đăng ký thành công, bạn đã có suất thi đấu!
+  tournament_entries:
+    destroy:
+      success: Đã rút khỏi giải.
+      not_allowed: Không thể rút khỏi giải nữa (đã hết hạn đăng ký).
   play_session_tickets:
     destroy:
       success: Đã huỷ chỗ giao lưu.
@@ -966,6 +1114,12 @@ vi:
     play_session_cancelled:
       title: "Sân huỷ buổi %{title}"
       body: "Buổi lúc %{time} đã bị huỷ. Chỗ đã trả tiền sẽ được hoàn lại."
+    tournament_cancelled:
+      title: "Sân huỷ giải %{title}"
+      body: "Giải lúc %{time} đã bị huỷ. Lệ phí đã đóng sẽ được hoàn lại."
+    tournament_match_called:
+      title: "Mời vào %{court}"
+      body: "Trận của bạn với %{opponent} bắt đầu, mời ra sân."
   account_mailer:
     deletion_requested:
       subject: Tài khoản VN Badminton của bạn sẽ được xoá
@@ -1024,6 +1178,10 @@ vi:
       subject: "Sân huỷ buổi %{title} lúc %{time}"
       intro: "Sân đã huỷ buổi giao lưu %{title} lúc %{time} mà bạn đã đăng ký."
       refund: "Sân sẽ hoàn lại %{amount} bạn đã chuyển khoản."
+    tournament_cancelled:
+      subject: "Sân huỷ giải %{title} lúc %{time}"
+      intro: "Sân đã huỷ giải %{title} lúc %{time} mà bạn đã đăng ký."
+      refund: "Sân sẽ hoàn lại %{amount} lệ phí bạn đã chuyển khoản."
     slot_freed:
       subject: "Có sân trống lúc %{time}"
       intro: "Khung giờ bạn đang chờ (%{from} – %{to}) vừa có sân trống."
@@ -1759,6 +1917,87 @@ vi:
         success: Đã huỷ buổi; khách đã nhận email.
       mark_refunded:
         success: Đã ghi nhận hoàn tiền.
+    tournaments:
+      index:
+        title: Giải đấu
+        explanation: Giải đấu nội bộ một ngày trên một số sân. Khách đăng ký và đóng lệ phí online; bạn bốc thăm, gọi trận và nhập tỉ số tại đây.
+        new: Tạo giải
+        upcoming: Sắp diễn ra và đang đấu
+        past: Đã qua
+        entries: "%{taken}/%{max} suất"
+        empty: Chưa có giải nào.
+      new:
+        title: Tạo giải đấu
+        explanation: Tạo giải sẽ khoá các sân đã chọn trong khung giờ thi đấu. Sân đã có người đặt thì không tạo được.
+        title_placeholder: "Ví dụ: Giải đơn nam tháng 11"
+        description_placeholder: Giải thưởng, luật tính điểm (vd 3 ván 21 điểm), quy định trang phục…
+        gender_hint: Không áp dụng cho đôi nam nữ.
+        format_hints:
+          knockout: Thua là bị loại. Hạt giống được xếp xa nhau và được miễn đấu vòng đầu nếu thiếu người.
+          groups_knockout: Chia bảng đấu vòng tròn, người đứng đầu mỗi bảng vào vòng loại trực tiếp.
+          round_robin: Ai cũng gặp ai, xếp hạng theo số trận thắng rồi hiệu số. Tối đa 10 suất.
+        groups_hint: Chỉ dùng cho thể thức vòng bảng + loại trực tiếp.
+        registration_time: Giờ hết hạn
+        max_entries_hint: "Đơn: số người; đôi: số cặp. Vòng tròn tối đa %{count}."
+        fee_hint: "Bội số 1.000đ; 0 = miễn phí. Giải đôi tính theo cặp."
+        back: Quay lại
+        submit: Tạo giải
+      create:
+        success: Đã tạo giải đấu và khoá sân.
+      show:
+        kicker: Giải đấu
+        summary: "Lệ phí %{fee} · %{taken}/%{max} suất · hạn đăng ký %{closes}"
+        public_page: Xem trang của khách
+        back: Quay lại
+        draw_explanation: Bốc thăm khi đã hết hạn đăng ký (hoặc sớm hơn để chốt danh sách). Suất đang chờ chuyển khoản sẽ bị huỷ; hạt giống được xếp trước, còn lại xếp ngẫu nhiên.
+        draw: Bốc thăm & xếp lịch
+        draw_confirm: "Bốc thăm với %{entries} suất đã xác nhận? Sau khi bốc thăm sẽ không nhận thêm đăng ký."
+        entries: Danh sách đăng ký
+        statuses:
+          pending: Chờ chuyển khoản
+          confirmed: Đã xác nhận
+          cancelled: Đã huỷ
+        group: "Bảng %{name}"
+        refunded: Đã hoàn tiền
+        refund_due: "Cần hoàn %{amount}"
+        seed: Hạt giống
+        save: Lưu
+        seeded: "Hạt giống %{seed}"
+        remove: Loại khỏi giải
+        remove_confirm: "Loại %{name} khỏi giải? Lệ phí đã đóng sẽ ghi là cần hoàn."
+        mark_refunded: Đã hoàn tiền
+        no_entries: Chưa có ai đăng ký.
+        groups: Bảng xếp hạng
+        matches: Các trận đấu
+        matches_explanation: Chọn sân rồi bấm Gọi vào sân để báo cho người chơi qua app. Nhập tỉ số từng ván theo thứ tự hai bên như hiển thị.
+        cancel: Huỷ giải
+        cancel_confirm: Huỷ giải này? Các sân được mở lại, lệ phí đã đóng sẽ được ghi là cần hoàn, người chơi nhận email và thông báo.
+      match:
+        versus: gặp
+        court: Sân
+        call: Gọi vào sân
+        call_again: Gọi lại
+        correct: Sửa kết quả
+        enter_result: Nhập kết quả
+        game: "Ván %{number}"
+        save_result: Lưu kết quả
+        or_walkover: hoặc xử thắng do bỏ cuộc cho
+        walkover_for: "%{name}"
+        walkover_confirm: "Xử %{name} thắng do đối thủ bỏ cuộc?"
+      draw:
+        success: Đã bốc thăm và xếp lịch thi đấu.
+      cancel:
+        success: Đã huỷ giải.
+      remove_entry:
+        success: Đã loại khỏi giải.
+      mark_refunded:
+        success: Đã ghi nhận hoàn tiền.
+    tournament_matches:
+      call:
+        success: Đã gọi người chơi vào sân.
+        not_ready: Trận này chưa đủ hai bên hoặc đã xong.
+      update:
+        success: Đã lưu kết quả.
   profile:
     genders:
       male: Nam

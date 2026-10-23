@@ -1,0 +1,97 @@
+- tournament = @tournament
+- content_for :title, tournament.display_title
+- now = Time.current
+- zone = tournament.venue.zone
+
+div class="mx-auto max-w-4xl space-y-6"
+  div
+    = link_to t(".back"), tournaments_path, class: "link text-sm"
+    h1 class="mt-2 text-2xl font-bold text-balance sm:text-3xl" = tournament.display_title
+    p class="mt-1 text-sm text-slate-600"
+      = "#{tournament.event_name} · #{t("tournaments.formats.#{tournament.play_format}")} · #{l(tournament.starts_at.to_date, format: :full)} · #{time_range(tournament.starts_at, tournament.ends_at)} · #{tournament.courts.map(&:display_name).join(", ")}"
+    div class="mt-3 flex flex-wrap gap-1.5 text-xs font-semibold"
+      = render "tournaments/status", tournament: tournament
+      span class="rounded-full bg-emerald-50 px-2.5 py-0.5 text-emerald-700 ring-1 ring-emerald-200"
+        = tournament.fee_vnd.positive? ? t(tournament.doubles? ? "tournaments.fee_pair" : "tournaments.fee", fee: format_vnd(tournament.fee_vnd)) : t("tournaments.free")
+      span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-slate-700" = t("play_sessions.levels.#{tournament.level || "any"}")
+    - if tournament.description.present?
+      p class="mt-3 text-sm whitespace-pre-line text-slate-600" = tournament.description
+
+  - if (champion = tournament.champion)
+    div class="flex items-center gap-4 rounded-3xl bg-gradient-to-br from-amber-400 to-orange-500 p-5 text-white shadow-lg shadow-orange-600/25"
+      = render "tournaments/trophy", css: "size-10 shrink-0"
+      div
+        p class="text-sm font-medium opacity-90" = t(".champion")
+        p class="text-xl font-bold" = champion.display_name
+
+  / The customer's entry: pay, withdraw.
+  - if @mine
+    - entry = @mine
+    div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm ring-1 #{entry.confirmed? ? "bg-emerald-50 text-emerald-900 ring-emerald-200" : "bg-violet-50 text-violet-900 ring-violet-200"}"
+      p = t(".mine.#{entry.status}", name: entry.display_name)
+      div class="flex flex-wrap gap-2"
+        - if entry.pending? && entry.payment&.open?(now)
+          = link_to t("bookings.index.pay_now"), payment_path(entry.payment), class: "btn-primary px-3 py-1.5 text-xs"
+        - if entry.user_id == current_user.id && entry.cancellable_by_customer?(now)
+          = button_to t(".withdraw"), tournament_entry_path(entry), method: :delete, class: "btn-secondary px-3 py-1.5 text-xs",
+              form: { data: { turbo_confirm: (entry.confirmed? && entry.amount_vnd.positive? ? t(".withdraw_confirm_paid") : t(".withdraw_confirm")) } }
+
+  - if tournament.registration_open?(now)
+    section class="card"
+      h2 class="section-title" = t(".register_title")
+      p class="mt-1 text-sm text-slate-600"
+        = t(".closes", time: l(tournament.registration_closes_at.in_time_zone(zone), format: :slot), left: tournament.spots_left(now), max: tournament.max_entries)
+      - if @mine
+        / Already entered: the box above.
+      - elsif tournament.spots_left(now).zero?
+        p class="mt-3 text-sm font-medium text-red-700" = t("tournaments.status.full")
+      - elsif user_signed_in?
+        - if (tournament.gender || tournament.mixed_doubles?) && !current_user.gender.in?(Tournament::GENDERS)
+          p class="mt-3 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-900 ring-1 ring-amber-200"
+            = t(".gender_needed_html", link: link_to(t(".account"), edit_user_registration_path, class: "link"))
+        = form_with url: enter_tournament_path(tournament), class: "mt-4 space-y-4" do |f|
+          - if tournament.doubles?
+            fieldset class="space-y-3"
+              legend class="form-label" = t(".partner")
+              div class="grid gap-3 sm:grid-cols-2"
+                div
+                  = label_tag "partner_name", t(".partner_name"), class: "form-label"
+                  = text_field_tag "partner[name]", nil, id: "partner_name", required: true, maxlength: 100, class: "form-input"
+                div
+                  = label_tag "partner_phone", t(".partner_phone"), class: "form-label"
+                  = telephone_field_tag "partner[phone]", nil, id: "partner_phone", required: true, placeholder: "0901 234 567", class: "form-input"
+              - if tournament.gender || tournament.mixed_doubles?
+                div
+                  = label_tag "partner_gender", t(".partner_gender"), class: "form-label"
+                  = select_tag "partner[gender]", options_for_select(Tournament::GENDERS.map { |gender| [ t("profile.genders.#{gender}"), gender ] }),
+                      id: "partner_gender", include_blank: true, required: true, class: "form-input sm:w-48"
+              p class="form-hint" = t(".partner_hint")
+          = f.submit t(".register"), class: "btn-primary w-full sm:w-auto"
+          p class="form-hint"
+            = tournament.fee_vnd.positive? ? t(".register_hint", minutes: Payment::WINDOW.in_minutes.to_i) : t(".register_hint_free")
+      - else
+        = link_to t(".sign_in_to_register"), new_user_session_path, class: "btn-primary mt-4 w-full sm:w-auto"
+
+  - if @matches.empty?
+    section
+      h2 class="section-title" = t(".entries", number: @entries.size)
+      - if @entries.any?
+        ol class="mt-3 grid gap-2 text-sm sm:grid-cols-2"
+          - @entries.each do |entry|
+            li class="surface px-4 py-2.5 font-medium" = entry.display_name
+      - else
+        p class="mt-3 text-sm text-slate-600" = t(".no_entries")
+  - else
+    - mine_id = @mine&.id
+    - if @standings.present?
+      section
+        h2 class="section-title" = t(".groups")
+        div class="mt-3 grid gap-4 md:grid-cols-2"
+          - @standings.each do |number, rows|
+            = render "tournaments/standings", tournament: tournament, number: number, rows: rows, mine_id: mine_id,
+                matches: @matches.select { |match| match.group? && match.group_number == number }
+    - knockout = @matches.select(&:knockout?)
+    - if knockout.any?
+      section
+        h2 class="section-title" = t(".bracket")
+        = render "tournaments/bracket", matches: knockout, mine_id: mine_id

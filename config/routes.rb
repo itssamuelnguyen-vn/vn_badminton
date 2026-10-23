@@ -33,6 +33,12 @@ Rails.application.routes.draw do
     end
     resources :play_session_tickets, only: :destroy
 
+    # In-house tournaments: public pages (entries, bracket, results); entering leads to the payment page.
+    resources :tournaments, only: %i[index show] do
+      post :enter, on: :member
+    end
+    resources :tournament_entries, only: :destroy
+
     # The customer's groups. A booking is shared with the group picked in the form (groups page or booking page).
     resources :groups, only: %i[index create destroy] do
       post :join, on: :collection
@@ -104,6 +110,20 @@ Rails.application.routes.draw do
           patch :cancel
           patch :check_in
           patch :mark_refunded
+        end
+      end
+      resources :tournaments, only: %i[index new create show] do
+        member do
+          patch :cancel
+          post :draw
+          # Per entry (?entry_id=): its seed, removing it (refunded if paid), marking its refund done.
+          patch :seed
+          patch :remove_entry
+          patch :mark_refunded
+        end
+        # Calling a match to a court, entering its result.
+        resources :matches, only: :update, controller: :tournament_matches do
+          patch :call, on: :member
         end
       end
       get "reports", to: "reports#show", as: :reports
@@ -182,6 +202,10 @@ Rails.application.routes.draw do
         post :tickets, on: :member, action: :buy
       end
       resources :tickets, only: :destroy, controller: :play_session_tickets
+      resources :tournaments, only: %i[index show] do
+        post :entries, on: :member, action: :enter
+      end
+      resources :tournament_entries, only: :destroy
       resources :groups, only: %i[index create destroy] do
         post :join, on: :collection
         delete :leave, on: :member

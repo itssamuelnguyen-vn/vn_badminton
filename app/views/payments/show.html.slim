@@ -13,11 +13,14 @@ div class="card mx-auto max-w-lg"
         svg class="size-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
           path d="M5 12.5l4.5 4.5L19 7.5"
       h1 class="mt-4 text-2xl font-bold text-emerald-700" = t(".paid_title")
-      p class="mt-2 text-sm text-slate-600" = t({ "bookings" => ".paid_bookings", "tickets" => ".paid_tickets", "package" => ".paid_package" }.fetch(payment.purpose, ".paid_series"))
+      p class="mt-2 text-sm text-slate-600" = t({ "bookings" => ".paid_bookings", "tickets" => ".paid_tickets", "package" => ".paid_package",
+                                                   "tournament" => ".paid_tournament" }.fetch(payment.purpose, ".paid_series"))
       - if payment.for_bookings? && user_signed_in? && @bookings.first&.user == current_user
         = link_to t(".view_bookings"), (@bookings.one? ? booking_path(@bookings.first) : bookings_path), class: "btn-primary mt-6"
       - elsif payment.for_package? && user_signed_in? && payment.user == current_user
         = link_to t(".view_packages"), packages_path, class: "btn-primary mt-6"
+      - elsif payment.for_tournament? && payment.tournament_entry
+        = link_to t(".view_tournament"), tournament_path(payment.tournament_entry.tournament_id), class: "btn-primary mt-6"
       - elsif user_signed_in? && payment.user_id == current_user.id && (payment.for_tickets? || payment.for_series_period?)
         = link_to t(payment.for_tickets? ? ".view_play_sessions" : ".view_series"), (payment.for_tickets? ? play_sessions_path : series_index_path), class: "btn-primary mt-6"
   - elsif !payment.open?
@@ -63,7 +66,7 @@ div class="card mx-auto max-w-lg"
     / Giving up before transferring releases the courts or places at once (Payment#cancel_by!).
     - if payment.cancellable_by?(current_user)
       div class="mt-4 text-center"
-        = button_to t(payment.for_tickets? ? ".cancel_tickets" : ".cancel_bookings"), cancel_payment_path(payment), method: :patch,
+        = button_to t({ "tickets" => ".cancel_tickets", "tournament" => ".cancel_tournament" }.fetch(payment.purpose, ".cancel_bookings")), cancel_payment_path(payment), method: :patch,
             class: "btn w-full bg-white text-red-600 ring-1 ring-red-200 hover:bg-red-50", form: { data: { turbo_confirm: t(".cancel_confirm") } }
         p class="mt-1 text-xs text-slate-500" = t(".cancel_hint")
 
@@ -77,6 +80,9 @@ div class="card mx-auto max-w-lg"
     p class="mt-6 border-t border-slate-100 pt-4 text-sm text-slate-600"
       = t(".for_tickets", title: ticket.play_session.display_title, count: ticket.quantity,
           time: "#{l(ticket.play_session.starts_at.to_date, format: :full)} · #{time_range(ticket.play_session.starts_at, ticket.play_session.ends_at)}")
+  - elsif payment.for_tournament? && (entry = payment.tournament_entry)
+    p class="mt-6 border-t border-slate-100 pt-4 text-sm text-slate-600"
+      = t(".for_tournament", title: entry.tournament.display_title, name: entry.display_name)
   - elsif payment.for_package? && payment.package_purchase
     p class="mt-6 border-t border-slate-100 pt-4 text-sm text-slate-600"
       = t(".for_package", name: payment.package_purchase.display_name)

@@ -1,0 +1,21 @@
+/ The knockout bracket: one column per round (scrolls sideways on phones), each match with both sides, the
+/ winner in bold, the scores; a bye shows the one side alone.
+- rounds = matches.group_by(&:round).sort.to_h
+div class="-mx-4 mt-3 overflow-x-auto px-4 pb-2"
+  div class="flex min-w-max gap-4"
+    - rounds.each do |round, list|
+      div class="flex w-56 flex-col"
+        p class="mb-2 text-xs font-semibold tracking-wide text-slate-500 uppercase" = list.first.round_name
+        div class="flex flex-1 flex-col justify-around gap-3"
+          - list.sort_by(&:position).each do |match|
+            div id=dom_id(match) class="surface overflow-hidden text-sm #{"ring-2 ring-violet-300" if mine_id && [ match.entry_a_id, match.entry_b_id ].include?(mine_id)}"
+              - [ [ match.entry_a, 0 ], [ match.entry_b, 1 ] ].each do |entry, side|
+                - won = entry && match.winner_id == entry.id
+                div class="flex items-center justify-between gap-2 px-3 py-2 #{"border-t border-slate-100" if side == 1} #{won ? "bg-emerald-50 font-semibold text-emerald-900" : ""}"
+                  span class="truncate" = entry ? entry.display_name : (match.bye? ? t("tournaments.bye") : "…")
+                  - unless match.walkover || match.scores.empty?
+                    span class="shrink-0 text-xs tabular-nums" = match.scores.map { |game| game[side] }.join(" ")
+              - if match.walkover
+                p class="border-t border-slate-100 px-3 py-1 text-xs text-slate-500" = t("tournaments.walkover")
+              - elsif match.ready? && match.court
+                p class="border-t border-slate-100 bg-orange-50 px-3 py-1 text-xs font-medium text-orange-800" = t("tournaments.on_court", court: match.court.display_name)

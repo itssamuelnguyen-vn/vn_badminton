@@ -11,6 +11,9 @@ en:
     models:
       play_session: Open play session
       play_session_ticket: Open play place
+      tournament: Tournament
+      tournament_entry: Tournament entry
+      tournament_match: Match
       group: Group
       group_share: Shared booking
       voucher: Voucher
@@ -45,6 +48,29 @@ en:
         level: Level
       play_session_ticket:
         quantity: Players
+      tournament:
+        title: Name
+        title_en: English name
+        description: Description, prizes, rules
+        play_format: Format
+        discipline: Event
+        gender: Gender
+        level: Level
+        court_ids: Courts
+        date: Day
+        starts_at: Starts at
+        ends_at: Ends at
+        registration_closes_at: Registration closes
+        max_entries: Maximum entries
+        fee_vnd: Fee per entry
+        group_size: Players/pairs per group
+        advance_per_group: Going through per group
+      tournament_entry:
+        partner_name: Partner's name
+        partner_phone: Partner's phone number
+        partner_gender: Partner's gender
+      tournament_match:
+        scores: Scores
       group:
         name: Group name
       group_share:
@@ -203,6 +229,27 @@ en:
           not_bookable: This session no longer takes players.
           blacklisted: Your account cannot book online at the moment. Please contact the venue.
           full: "Only %{left} places left in this session."
+        tournament:
+          after_start: "must be after the start"
+          after_tournament_start: "must be before the tournament starts"
+          off_slot_grid: "Times must be on the half hour"
+          not_in_future: "must be in the future"
+          invalid: "is not valid"
+          not_multiple_of_1000: "must be a multiple of 1,000đ"
+        tournament_entry:
+          not_open: This tournament no longer takes entries.
+          blacklisted: Your account cannot register online at the moment. Please contact the venue.
+          full: The tournament is full.
+          already_entered: You or your partner already entered this tournament.
+          gender_missing: This event is by gender; please set your gender on your account page first.
+          mixed_genders: Mixed doubles need one man and one woman.
+          only_male: This event is for men only.
+          only_female: This event is for women only.
+          yourself: "cannot be your own number"
+        tournament_match:
+          not_editable: This match's result can no longer be changed.
+          invalid_winner: The winner is not valid.
+          invalid: "are not valid: enter at least one game, each with a winner, and the two sides must not have won as many games"
         group:
           too_many: "You can be in at most %{count} groups."
           full: "The group already has %{count} members."
@@ -328,6 +375,7 @@ en:
         my_bookings: My bookings
         my_bookings_short: Bookings
         play_sessions: Open play
+        tournaments: Tournaments
         sign_in: Sign in
         sign_up: Sign up
         sign_out: Sign out
@@ -352,6 +400,7 @@ en:
         group_sales: Sales
         group_system: System
         play_sessions: Open play
+        tournaments: Tournaments
         vouchers: Vouchers
         packages: Prepaid hours
         reviews: Reviews
@@ -783,6 +832,10 @@ en:
       paid_series: The month's court fee is recorded. Thank you!
       paid_tickets: Your open play places are confirmed. See you at the court!
       view_play_sessions: See open play
+      view_tournament: See the tournament
+      paid_tournament: Your place is confirmed. See you at the tournament!
+      for_tournament: "Fee for %{title} – %{name}"
+      cancel_tournament: Cancel my entry
       view_series: See weekly bookings
       for_tickets:
         one: "Open play: %{title} · %{time} · %{count} place"
@@ -847,6 +900,101 @@ en:
         scheduled: "Your account is locked and will be deleted after your last booking ends (around %{time}). We have sent you an email."
         deleted: Your account has been deleted. We have sent you a confirmation email.
 
+  tournaments:
+    block_note: "Tournament: %{title}"
+    events:
+      singles: Singles
+      singles_male: Men's singles
+      singles_female: Women's singles
+      doubles: Doubles
+      doubles_male: Men's doubles
+      doubles_female: Women's doubles
+      mixed_doubles: Mixed doubles
+    formats:
+      knockout: Knockout
+      groups_knockout: Groups + knockout
+      round_robin: Round robin
+    disciplines:
+      singles: Singles
+      doubles: Doubles
+      mixed_doubles: Mixed doubles
+    genders:
+      open: Open (men and women)
+      male: Men
+      female: Women
+    fee: "Fee %{fee}"
+    fee_pair: "Fee %{fee}/pair"
+    free: Free
+    entered: You entered
+    walkover: Won by walkover
+    bye: Bye
+    on_court: "Playing on %{court}"
+    status:
+      registering: "Open for entries · %{left}/%{max} left"
+      full: Full
+      closed: Registration closed
+      in_progress: In progress
+      finished: Finished
+      champion: "Champion: %{name}"
+      cancelled: Cancelled
+    rounds:
+      final: Final
+      semi_final: Semi-finals
+      quarter_final: Quarter-finals
+      last_16: Round of 16
+      round: "Round %{number}"
+    standings:
+      table: Standings
+      group: "Group %{name}"
+      player: Player
+      played: P
+      played_long: Matches played
+      won: W
+      won_long: Matches won
+      games: Games
+      games_long: Games won – lost
+      points: +/-
+      points_long: Point difference
+    draw:
+      not_open: This tournament is already drawn or over.
+      too_few: At least 2 confirmed entries are needed for the draw.
+      too_few_for_groups: Not enough entries for groups (at least 2 must go through). Make the groups smaller or use a round robin.
+    index:
+      title: Tournaments
+      intro: The venue's in-house tournaments. Enter online, pay the fee by transfer, then follow the draw and the results here.
+      none: No tournament at the moment. Check back soon!
+    show:
+      back: "← All tournaments"
+      champion: Champion
+      mine:
+        pending: "You entered (%{name}); the fee transfer is pending."
+        confirmed: "You have a place: %{name}."
+      withdraw: Withdraw
+      withdraw_confirm: Withdraw from this tournament?
+      withdraw_confirm_paid: Withdraw from this tournament? The fee paid is not refunded.
+      register_title: Enter the tournament
+      closes: "Registration closes %{time} · %{left}/%{max} places left."
+      gender_needed_html: "This event is by gender: please set your gender on your %{link} before entering."
+      account: account page
+      partner: Partner
+      partner_name: Full name
+      partner_phone: Phone number
+      partner_gender: Gender
+      partner_hint: If your partner has an account with this phone number, the entry is linked to it and they see the tournament too.
+      register: Enter
+      register_hint: "Once entered, you have %{minutes} minutes to transfer the fee; the place is held meanwhile. Players' names are shown publicly on the tournament page."
+      register_hint_free: Free tournament, the place is confirmed at once. Players' names are shown publicly on the tournament page.
+      sign_in_to_register: Sign in to enter
+      entries: "Entries (%{number})"
+      no_entries: Nobody has entered yet.
+      groups: Groups
+      bracket: Knockout bracket
+    enter:
+      success: You're in, your place is confirmed!
+  tournament_entries:
+    destroy:
+      success: You withdrew from the tournament.
+      not_allowed: You can no longer withdraw (registration is closed).
   play_session_tickets:
     destroy:
       success: Your open play places were given up.
@@ -991,6 +1139,12 @@ en:
     play_session_cancelled:
       title: "The venue cancelled %{title}"
       body: "The session at %{time} is cancelled. Places you paid for will be refunded."
+    tournament_cancelled:
+      title: "The venue cancelled %{title}"
+      body: "The tournament at %{time} is cancelled. The fee you paid will be refunded."
+    tournament_match_called:
+      title: "Please go to %{court}"
+      body: "Your match against %{opponent} is starting."
   account_mailer:
     deletion_requested:
       subject: Your VN Badminton account will be deleted
@@ -1053,6 +1207,10 @@ en:
       subject: "The venue cancelled %{title} at %{time}"
       intro: "The venue cancelled the open play session %{title} at %{time} you signed up for."
       refund: "The venue will refund the %{amount} you transferred."
+    tournament_cancelled:
+      subject: "The venue cancelled %{title} at %{time}"
+      intro: "The venue cancelled the tournament %{title} at %{time} you entered."
+      refund: "The venue will refund the %{amount} fee you transferred."
     slot_freed:
       subject: "A court is free at %{time}"
       intro: "The time you were waiting for (%{from} – %{to}) has a free court now."
@@ -1807,6 +1965,87 @@ en:
         success: Session cancelled; the players were emailed.
       mark_refunded:
         success: Refund recorded.
+    tournaments:
+      index:
+        title: Tournaments
+        explanation: One-day in-house tournaments on some courts. Customers enter and pay online; you make the draw, call matches and enter scores here.
+        new: New tournament
+        upcoming: Coming and in progress
+        past: Past
+        entries: "%{taken}/%{max} entries"
+        empty: No tournament yet.
+      new:
+        title: New tournament
+        explanation: The courts picked are blocked during the tournament. Courts already booked cannot be used.
+        title_placeholder: "E.g. November men's singles"
+        description_placeholder: Prizes, scoring (e.g. best of 3 games to 21), dress code…
+        gender_hint: Not for mixed doubles.
+        format_hints:
+          knockout: Lose and you are out. Seeds are kept apart and get the byes when entries are short.
+          groups_knockout: Round robin groups, the best of each group go on to a knockout.
+          round_robin: Everyone meets everyone, ranked by wins then differences. Up to 10 entries.
+        groups_hint: Only for groups + knockout.
+        registration_time: Closing time
+        max_entries_hint: "Singles: players; doubles: pairs. Round robin up to %{count}."
+        fee_hint: "Multiple of 1,000đ; 0 = free. Doubles pay per pair."
+        back: Back
+        submit: Create tournament
+      create:
+        success: Tournament created, courts blocked.
+      show:
+        kicker: Tournament
+        summary: "Fee %{fee} · %{taken}/%{max} entries · registration closes %{closes}"
+        public_page: See the customers' page
+        back: Back
+        draw_explanation: Make the draw once registration is closed (or earlier to settle the list). Entries waiting for their transfer are dropped; seeds are placed first, the others at random.
+        draw: Make the draw
+        draw_confirm: "Make the draw with %{entries} confirmed entries? No more entries are taken afterwards."
+        entries: Entries
+        statuses:
+          pending: Awaiting transfer
+          confirmed: Confirmed
+          cancelled: Cancelled
+        group: "Group %{name}"
+        refunded: Refunded
+        refund_due: "%{amount} to refund"
+        seed: Seed
+        save: Save
+        seeded: "Seed %{seed}"
+        remove: Remove
+        remove_confirm: "Remove %{name} from the tournament? A paid fee is recorded as to refund."
+        mark_refunded: Mark refunded
+        no_entries: Nobody has entered yet.
+        groups: Standings
+        matches: Matches
+        matches_explanation: Pick a court and press Call to court to tell the players in the app. Enter each game's score in the order the sides are shown.
+        cancel: Cancel tournament
+        cancel_confirm: Cancel this tournament? The courts are freed, paid fees are recorded as to refund, players get an email and a notification.
+      match:
+        versus: vs
+        court: Court
+        call: Call to court
+        call_again: Call again
+        correct: Correct the result
+        enter_result: Enter the result
+        game: "Game %{number}"
+        save_result: Save result
+        or_walkover: or a walkover for
+        walkover_for: "%{name}"
+        walkover_confirm: "Give %{name} the match by walkover?"
+      draw:
+        success: Draw made, matches scheduled.
+      cancel:
+        success: Tournament cancelled.
+      remove_entry:
+        success: Entry removed.
+      mark_refunded:
+        success: Refund recorded.
+    tournament_matches:
+      call:
+        success: Players called to the court.
+        not_ready: This match does not have both sides yet, or is over.
+      update:
+        success: Result saved.
   profile:
     genders:
       male: Male

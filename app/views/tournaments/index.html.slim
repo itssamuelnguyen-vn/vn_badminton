@@ -1,0 +1,16 @@
+- content_for :title, t(".title")
+
+div class="mx-auto max-w-2xl"
+  div class="mb-8"
+    h1 class="text-2xl font-bold sm:text-3xl" = t(".title")
+    p class="mt-2 text-sm text-slate-600" = t(".intro")
+
+  - if @tournaments.empty?
+    div class="card flex flex-col items-center gap-3 text-center"
+      span class="flex size-14 items-center justify-center rounded-2xl bg-amber-50 text-amber-600" aria-hidden="true"
+        = render "tournaments/trophy", css: "size-7"
+      p class="text-sm text-slate-600" = t(".none")
+  - else
+    div class="space-y-4"
+      - @tournaments.each do |tournament|
+        = render "tournaments/card", tournament: tournament, mine: @mine[tournament.id]

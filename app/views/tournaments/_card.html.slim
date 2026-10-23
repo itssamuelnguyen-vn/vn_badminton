@@ -1,0 +1,19 @@
+/ One tournament in the list: a date tile, title, event and format, fee, places left or how far it got.
+- date = tournament.starts_at.to_date
+= link_to tournament_path(tournament), id: dom_id(tournament), class: "surface block p-4 transition hover:ring-emerald-300 sm:p-5" do
+  div class="flex items-start gap-4"
+    div class="flex w-16 shrink-0 flex-col items-center rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 py-2 leading-none text-white shadow-md shadow-orange-600/25"
+      span class="text-[11px] font-semibold uppercase opacity-90" = t("schedules.date_picker.weekdays")[date.cwday - 1]
+      span class="my-1 text-2xl font-bold tabular-nums" = date.day
+      span class="text-[11px] font-medium opacity-90 tabular-nums" = l(date, format: "%m/%Y")
+    div class="min-w-0 flex-1"
+      h2 class="font-bold text-balance" = tournament.display_title
+      p class="mt-0.5 text-sm text-slate-600" = "#{tournament.event_name} · #{t("tournaments.formats.#{tournament.play_format}")} · #{time_range(tournament.starts_at, tournament.ends_at)}"
+      div class="mt-2 flex flex-wrap gap-1.5 text-xs font-semibold"
+        = render "tournaments/status", tournament: tournament
+        span class="rounded-full bg-emerald-50 px-2.5 py-0.5 text-emerald-700 ring-1 ring-emerald-200"
+          = tournament.fee_vnd.positive? ? t("tournaments.fee", fee: format_vnd(tournament.fee_vnd)) : t("tournaments.free")
+        - if tournament.level
+          span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-slate-700" = t("play_sessions.levels.#{tournament.level}")
+        - if mine
+          span class="rounded-full bg-violet-50 px-2.5 py-0.5 text-violet-700 ring-1 ring-violet-200" = t("tournaments.entered")

@@ -36,6 +36,7 @@ class User < ApplicationRecord
   has_many :reviews, dependent: :delete_all
   has_many :package_purchases, dependent: :restrict_with_error
   has_many :play_session_tickets, dependent: :restrict_with_error
+  has_many :tournament_entries, dependent: :restrict_with_error
   has_many :group_memberships, dependent: :delete_all
   has_many :groups, through: :group_memberships
 

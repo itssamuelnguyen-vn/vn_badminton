@@ -85,6 +85,44 @@ module ApiJson
       payment_token: (ticket.payment&.token if ticket.pending? && ticket.payment&.open?(now)) }
   end
 
+  # mine: the viewer's entry (as registrant or partner); only the registrant can withdraw it.
+  def tournament(tournament, mine = nil, viewer: nil, now: Time.current)
+    { id: tournament.id, title: tournament.display_title, description: tournament.description, event: tournament.event_name,
+      discipline: tournament.discipline, gender: tournament.gender, play_format: tournament.play_format, level: tournament.level,
+      courts: tournament.courts.map(&:display_name), starts_at: tournament.starts_at.iso8601, ends_at: tournament.ends_at.iso8601,
+      registration_closes_at: tournament.registration_closes_at.iso8601, max_entries: tournament.max_entries,
+      spots_left: tournament.spots_left(now), fee_vnd: tournament.fee_vnd, status: tournament.status,
+      registration_open: tournament.registration_open?(now), my_entry: mine && tournament_entry(mine, viewer: viewer, now: now) }
+  end
+
+  def tournament_entry(entry, viewer: nil, now: Time.current)
+    { id: entry.id, name: entry.display_name, status: entry.status, amount_vnd: entry.amount_vnd,
+      can_cancel: entry.user_id == viewer&.id && entry.cancellable_by_customer?(now),
+      payment_token: (entry.payment&.token if entry.pending? && entry.payment&.open?(now)) }
+  end
+
+  # The tournament with its confirmed entries, the group tables and every match, for its page in the app.
+  def tournament_details(tournament, mine = nil, viewer: nil, now: Time.current)
+    side = ->(entry) { entry && { id: entry.id, name: entry.display_name } }
+    standings = tournament.knockout? ? {} : Tournaments::Standings.new(tournament).groups
+    matches = tournament.matches.ordered.includes(:court, entry_a: %i[user partner], entry_b: %i[user partner])
+    tournament(tournament, mine, viewer: viewer, now: now).merge(
+      champion: tournament.champion&.display_name,
+      entries: tournament.entries.confirmed.includes(:user, :partner).order(:created_at).map { |entry| { id: entry.id, name: entry.display_name, seed: entry.seed } },
+      groups: standings.map do |number, rows|
+        { number: number, rows: rows.map do |row|
+          { entry: side.(row.entry), played: row.played, won: row.won, lost: row.lost, games_for: row.games_for,
+            games_against: row.games_against, point_difference: row.point_difference }
+        end }
+      end,
+      matches: matches.map do |match|
+        { id: match.id, stage: match.stage, group: match.group_number, round: match.round, round_name: match.round_name, position: match.position,
+          a: side.(match.entry_a), b: side.(match.entry_b), winner_id: match.winner_id, scores: match.scores, walkover: match.walkover,
+          bye: match.bye?, court: match.court&.display_name, called_at: match.called_at&.iso8601 }
+      end
+    )
+  end
+
   # Upcoming shared bookings only; members are shown by name.
   def group(group, viewer, now: Time.current)
     { id: group.id, name: group.name, invite_code: group.invite_code, owner: group.owner_id == viewer.id,

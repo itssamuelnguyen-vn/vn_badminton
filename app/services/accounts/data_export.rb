@@ -27,6 +27,7 @@ module Accounts
         packages: packages,
         vouchers_used: vouchers_used,
         play_session_tickets: play_session_tickets,
+        tournament_entries: tournament_entries,
         groups: groups
       }
     end
@@ -112,6 +113,14 @@ module Accounts
       @user.play_session_tickets.includes(:play_session).order(:created_at).map do |ticket|
         { session: ticket.play_session.title, starts_at: ticket.play_session.starts_at.iso8601, quantity: ticket.quantity,
           amount_vnd: ticket.amount_vnd, status: ticket.status, refund_vnd: ticket.refund_vnd }
+      end
+    end
+
+    # As registrant or partner.
+    def tournament_entries
+      TournamentEntry.where(user: @user).or(TournamentEntry.where(partner: @user)).includes(:tournament, :user, :partner).order(:created_at).map do |entry|
+        { tournament: entry.tournament.title, starts_at: entry.tournament.starts_at.iso8601, entry: entry.display_name,
+          registered_by_you: entry.user_id == @user.id, amount_vnd: entry.amount_vnd, status: entry.status, refund_vnd: entry.refund_vnd }
       end
     end
 

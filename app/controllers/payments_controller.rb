@@ -8,12 +8,16 @@ class PaymentsController < ApplicationController
   end
 
   # The customer gives up before transferring (Payment#cancel_by!): back to the schedule of that day to pick
-  # another time, or to the open play list.
+  # another time, to the open play list or to the tournament.
   def cancel
     payment = Payment.find_by!(token: params[:token])
     payment.cancel_by!(current_user)
     day = payment.bookings.minimum(:starts_at)&.in_time_zone(Venue.main.zone)&.to_date
-    redirect_to (payment.for_tickets? ? play_sessions_path : root_path(date: day)), notice: t(".success")
+    back = if payment.for_tickets? then play_sessions_path
+    elsif payment.for_tournament? then tournament_path(payment.tournament_entry.tournament_id)
+    else root_path(date: day)
+    end
+    redirect_to back, notice: t(".success")
   rescue ArgumentError
     redirect_to payment_path(payment), alert: t(".not_allowed")
   end

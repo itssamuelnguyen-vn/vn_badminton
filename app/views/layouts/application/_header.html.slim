@@ -16,6 +16,7 @@ header class="sticky top-0 z-40 border-b border-ink/5 bg-white/80 backdrop-blur-
     div class="-m-1 flex w-full items-center gap-1 overflow-x-auto p-1 text-sm whitespace-nowrap sm:w-auto sm:flex-1 sm:justify-end"
       = link_to t(".schedule"), root_path, class: nav_link.(controller_name == "schedules")
       = link_to t(".play_sessions"), play_sessions_path, class: nav_link.(controller_name == "play_sessions")
+      = link_to t(".tournaments"), tournaments_path, class: nav_link.(controller_name == "tournaments")
       - if user_signed_in?
         / A short label on phones, where "Giao lưu" shares the row.
         = link_to bookings_path, class: nav_link.(controller_name.in?(%w[bookings groups series series_requests])) do
