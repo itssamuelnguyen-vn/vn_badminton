@@ -62,6 +62,26 @@ class Payment < ApplicationRecord
     "https://vietqr.app/img?#{query}"
   end
 
+  # The customer can give up on the payment page before transferring (bookings and open play places), which
+  # releases what is held at once instead of at the deadline. Not once money has arrived: the owner sorts that out.
+  def cancellable_by?(customer, now = Time.current)
+    customer.present? && user_id == customer.id && (for_bookings? || for_tickets?) && open?(now) && received_vnd.zero?
+  end
+
+  # Locked like Payments::Webhook, so a transfer arriving meanwhile is either counted first or sent to the
+  # owner's review list as "cancelled".
+  def cancel_by!(customer, now: Time.current)
+    with_lock do
+      raise ArgumentError, "Payment cannot be cancelled" unless cancellable_by?(customer, now)
+
+      bookings.pending.each do |booking|
+        booking.update!(status: :cancelled, cancelled_at: now, cancellation_reason: Booking::PAYMENT_CANCELLED)
+      end
+      play_session_ticket.update!(status: :cancelled, cancelled_at: now) if play_session_ticket&.pending?
+      update!(status: :cancelled)
+    end
+  end
+
   def self.code_in(text)
     text.to_s.upcase[CODE_PATTERN]
   end

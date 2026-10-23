@@ -7,7 +7,7 @@ Test là bản mô tả chính xác nhất: nếu tài liệu và test khác nha
 **Cách giữ tài liệu luôn đúng:** PR nào thay đổi một quy tắc thì sửa luôn mục tương ứng ở đây trong cùng PR
 (xem `CLAUDE.md`). Các con số có thể chỉnh trong **Quản lý → Cài đặt** được đánh dấu ⚙️ và ghi giá trị mặc định.
 
-> Cập nhật: 23/10/2026, theo `main` sau PR #28, cộng thay đổi của PR tiếp theo: mã giảm giá mà số tiền giảm làm tròn xuống còn 0đ thì báo lý do, không đặt (UD-02). Mục đánh dấu ⏳ (nhánh `deploy-config`) là quy tắc chưa có trên `main`;
+> Cập nhật: 23/10/2026, theo `main` sau PR #28, cộng thay đổi của PR tiếp theo: mã giảm giá mà số tiền giảm làm tròn xuống còn 0đ thì báo lý do, không đặt (UD-02); khách tự huỷ đơn đang chờ chuyển khoản (TT-11). Mục đánh dấu ⏳ (nhánh `deploy-config`) là quy tắc chưa có trên `main`;
 > khi merge, bỏ dấu ⏳.
 
 ---
@@ -192,6 +192,7 @@ Nguồn: `config/recurring.yml`.
 | TT-08 | "Lượt đặt của tôi" hiện các **lượt đang chờ chuyển khoản** kèm nút chuyển khoản.                                                                                                                                                                                                                                             | `app/views/bookings/index.html.slim`                                             |
 | TT-09 | **Chuyển trễ** (sau 15 phút + 2 phút ân hạn): nếu **giờ đó vẫn còn trống** và chưa bắt đầu → **tự xác nhận lại** lượt đặt; nếu đã có người đặt hoặc đã qua giờ → "Cần xử lý", **hoàn tiền**. Xác nhận tay (TT-06) theo cùng quy tắc.                                                                                         | `app/services/payments/confirm.rb`, `test/integration/payments_test.rb`          |
 | TT-10 | **Nội dung sai / thiếu mã** → "Cần xử lý"; chủ sân **gán giao dịch vào đơn** bằng mã thanh toán (VNB…) hoặc mã đặt sân, rồi giao dịch được xử lý như có mã đúng.                                                                                                                                                             | `app/controllers/admin/bank_transactions_controller.rb`, `test/integration/payments_test.rb` |
+| TT-11 | Trên trang chuyển khoản (web và app), khách **tự huỷ đơn đang chờ chuyển khoản** (đặt sân hoặc chỗ giao lưu) bằng nút **Huỷ đặt sân / Huỷ giữ chỗ**: sân/chỗ **được mở lại ngay**, không chờ hết 15 phút; mã giảm giá được **trả lại lượt**; **không tính** vào giới hạn huỷ (như hết hạn). Chỉ người đặt mới huỷ được, và **chỉ khi chưa nhận đồng nào** (đã nhận một phần → chủ sân xử lý). Tiền chuyển đến sau khi huỷ → "Cần xử lý" (TT-04). | `app/models/payment.rb` (`cancel_by!`), `app/controllers/payments_controller.rb`, `app/controllers/api/v1/payments_controller.rb`, `test/integration/payments_test.rb`, `test/integration/api/v1_test.rb` |
 
 ## 14. Ứng dụng di động (API cho app Flutter, Android)
 

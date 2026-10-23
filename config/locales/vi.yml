@@ -768,6 +768,15 @@ vi:
       closed_title: Mã thanh toán đã hết hạn
       closed_text: Không còn giữ sân cho mã này. Nếu bạn vừa chuyển khoản, sân được xác nhận tự động khi giờ đó vẫn còn trống; nếu không, sân sẽ liên hệ để hoàn tiền.
       book_again: Đặt sân khác
+      cancelled_title: Đã huỷ
+      cancelled_text: Bạn đã huỷ đơn này, giờ đã giữ được mở lại cho người khác.
+      cancel_bookings: Huỷ đặt sân
+      cancel_tickets: Huỷ giữ chỗ
+      cancel_hint: Không đặt nữa? Huỷ để trả lại chỗ ngay, khỏi chờ hết giờ.
+      cancel_confirm: Huỷ đơn này và trả lại chỗ đã giữ? Nếu bạn đã chuyển khoản, đừng huỷ – chờ vài phút để hệ thống xác nhận.
+    cancel:
+      success: Đã huỷ, chỗ đã giữ được mở lại.
+      not_allowed: Không thể huỷ đơn này nữa (đã nhận tiền, đã hết hạn hoặc đã huỷ).
 
   packages:
     index:
@@ -1098,6 +1107,7 @@ vi:
           plain: Huỷ lượt đặt
           venue_fault: Huỷ do sự cố của sân
           payment_replaced: Huỷ, thay bằng lần thanh toán mới
+          payment_cancelled: Khách huỷ trước khi chuyển khoản, giờ đó được mở lại
           series_skip: Báo nghỉ buổi này
           venue_closed: Huỷ vì sân nghỉ
           series_ended: Huỷ vì lịch cố định kết thúc

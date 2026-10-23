@@ -789,6 +789,15 @@ en:
       closed_title: This payment code has expired
       closed_text: This code no longer holds the court. If you just transferred, the booking is confirmed automatically while the slot is still free; otherwise the venue will contact you for a refund.
       book_again: Book another court
+      cancelled_title: Cancelled
+      cancelled_text: You cancelled this order; what was held is open to others again.
+      cancel_bookings: Cancel booking
+      cancel_tickets: Cancel places
+      cancel_hint: Changed your mind? Cancel to release the slot now instead of waiting for the time to run out.
+      cancel_confirm: Cancel this order and release what is held? If you already transferred, do not cancel – wait a few minutes for the confirmation.
+    cancel:
+      success: Cancelled; what was held is open again.
+      not_allowed: This order can no longer be cancelled (money received, expired or already cancelled).
 
   packages:
     index:
@@ -1128,6 +1137,7 @@ en:
           plain: Cancelled
           venue_fault: Cancelled because of a venue problem
           payment_replaced: Cancelled, replaced by a new payment
+          payment_cancelled: Customer cancelled before transferring, slot released
           series_skip: Session skipped
           venue_closed: Cancelled, venue closed
           series_ended: Cancelled, regular booking ended

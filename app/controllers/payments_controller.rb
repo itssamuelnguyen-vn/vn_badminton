@@ -7,6 +7,17 @@ class PaymentsController < ApplicationController
     @bookings = @payment.bookings.includes(:court).order(:starts_at)
   end
 
+  # The customer gives up before transferring (Payment#cancel_by!): back to the schedule of that day to pick
+  # another time, or to the open play list.
+  def cancel
+    payment = Payment.find_by!(token: params[:token])
+    payment.cancel_by!(current_user)
+    day = payment.bookings.minimum(:starts_at)&.in_time_zone(Venue.main.zone)&.to_date
+    redirect_to (payment.for_tickets? ? play_sessions_path : root_path(date: day)), notice: t(".success")
+  rescue ArgumentError
+    redirect_to payment_path(payment), alert: t(".not_allowed")
+  end
+
   # The QR image as a file, for the "save the QR" button (Payments::QrImage). Only while the payment is open.
   def qr
     payment = Payment.find_by!(token: params[:token])

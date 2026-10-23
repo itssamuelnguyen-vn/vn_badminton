@@ -214,6 +214,59 @@ class PaymentsTest < ActionDispatch::IntegrationTest
     assert_nil users(:an).reload.booking_locked_until
   end
 
+  test "the customer gives up on the payment page: the court is free again at once, a transfer after that goes to review" do
+    voucher = venues(:phu_nhuan).vouchers.create!(code: "HUY", kind: "amount", value: 10_000, valid_from: "2026-10-01", valid_until: "2026-10-31")
+    sign_in users(:an)
+    post bookings_path, params: { booking: { slots: @slots, voucher_code: "HUY" } }
+    payment = Payment.last
+    booking = Booking.last
+    assert_equal 1, voucher.uses
+
+    get payment_path(payment)
+    assert_select "form[action='/payments/#{payment.token}/cancel'][data-turbo-confirm] button", text: "Huỷ đặt sân"
+
+    # Only the customer who booked can cancel it.
+    sign_in users(:chi)
+    get payment_path(payment)
+    assert_select "form[action='/payments/#{payment.token}/cancel']", count: 0
+    patch cancel_payment_path(payment)
+    assert_redirected_to payment_path(payment)
+    assert payment.reload.awaiting?
+
+    sign_in users(:an)
+    patch cancel_payment_path(payment)
+    assert_redirected_to root_path(date: "2026-10-19")
+    assert payment.reload.cancelled?
+    assert_equal [ "cancelled", Booking::PAYMENT_CANCELLED, nil ], booking.reload.values_at(:status, :cancellation_reason, :cancelled_by_id)
+    assert_equal 0, voucher.uses, "the voucher use is given back"
+    assert_nil users(:an).reload.booking_locked_until
+
+    get payment_path(payment)
+    assert_select "h1", text: "Đã huỷ"
+
+    # The court can be booked again straight away.
+    sign_in users(:chi)
+    post bookings_path, params: { booking: { slots: @slots } }
+    assert_redirected_to payment_path(Payment.last)
+
+    transfer(payment)
+    assert_equal "cancelled", BankTransaction.last.review_reason
+  end
+
+  test "a payment cannot be cancelled once money has arrived" do
+    sign_in users(:an)
+    post bookings_path, params: { booking: { slots: @slots } }
+    payment = Payment.last
+    transfer(payment, amount: 100_000)
+
+    get payment_path(payment)
+    assert_select "form[action='/payments/#{payment.token}/cancel']", count: 0
+    patch cancel_payment_path(payment)
+    assert_redirected_to payment_path(payment)
+    assert_equal "Không thể huỷ đơn này nữa (đã nhận tiền, đã hết hạn hoặc đã huỷ).", flash[:alert]
+    assert Booking.last.pending?
+  end
+
   test "online booking is closed until the venue has a receiving account" do
     venues(:phu_nhuan).update!(bank_code: nil, bank_account_number: nil)
     sign_in users(:an)

@@ -125,6 +125,8 @@ Rails.application.routes.draw do
     get "privacy", to: "pages#privacy"
     resources :payments, only: :show, param: :token do
       get :qr, on: :member
+      # The customer gives up before transferring: what is held is released at once.
+      patch :cancel, on: :member
     end
 
     # The home page is the booking schedule; ?date=YYYY-MM-DD picks the day.
@@ -164,7 +166,9 @@ Rails.application.routes.draw do
           post :review
         end
       end
-      resources :payments, only: :show, param: :token
+      resources :payments, only: :show, param: :token do
+        patch :cancel, on: :member
+      end
       resource :quote, only: :create
       resources :packages, only: :index do
         post :buy, on: :member

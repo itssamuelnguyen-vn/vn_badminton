@@ -41,6 +41,14 @@ class Api::CommunityTest < ActionDispatch::IntegrationTest
     travel Payment::WINDOW + Payment::GRACE + 1.minute
     assert_equal 1, session.seats_left
 
+    # Places waiting for a transfer are given back at once when the customer cancels.
+    post tickets_api_v1_play_session_path(session), params: { quantity: 1 }, headers: auth(chi), as: :json
+    assert_equal 0, session.seats_left
+    patch cancel_api_v1_payment_path(response.parsed_body["token"]), headers: auth(chi)
+    assert_response :success
+    assert_equal 1, session.seats_left
+    assert PlaySessionTicket.last.cancelled?
+
     # A court of a session cannot be booked meanwhile, nor can a session take a booked court.
     post api_v1_hold_path, params: { slots: [ { court_id: courts(:court_one).id, starts_at: at("19:00").iso8601, ends_at: at("20:00").iso8601 } ] },
                            headers: auth(chi), as: :json

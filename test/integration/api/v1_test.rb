@@ -78,6 +78,25 @@ class Api::V1Test < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
+  test "the app cancels a payment before transferring" do
+    token = sign_in_api(users(:an))
+    post api_v1_bookings_path, params: { slots: @slots }, headers: auth(token), as: :json
+    payment = response.parsed_body
+    assert payment["can_cancel"]
+
+    patch cancel_api_v1_payment_path(payment["token"]), headers: auth(sign_in_api(users(:chi)))
+    assert_response :not_found
+
+    patch cancel_api_v1_payment_path(payment["token"]), headers: auth(token)
+    assert_response :success
+    assert_equal [ "cancelled", false ], response.parsed_body.values_at("status", "can_cancel")
+    assert Booking.last.cancelled?
+
+    patch cancel_api_v1_payment_path(payment["token"]), headers: auth(token)
+    assert_response :unprocessable_content
+    assert_equal "not_allowed", response.parsed_body["error"]
+  end
+
   test "signs up from the app; the account page, export and deletion work as on the web" do
     post api_v1_registration_path, params: { full_name: "Trần Bình", phone: "0912 345 678", email: "binh@example.com",
                                              password: "password123", privacy_consent: true }, as: :json

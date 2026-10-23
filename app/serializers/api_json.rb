@@ -139,7 +139,7 @@ module ApiJson
   def payment(payment, venue, now: Time.current)
     received = payment.received_vnd
     {
-      token: payment.token, code: payment.code, status: payment.status, open: payment.open?(now),
+      token: payment.token, code: payment.code, status: payment.status, open: payment.open?(now), can_cancel: payment.cancellable_by?(payment.user, now),
       amount_vnd: payment.amount_vnd, discount_vnd: payment.discount_vnd, offer: payment.offer, purpose: payment.purpose,
       received_vnd: received, remaining_vnd: [ payment.amount_vnd - received, 0 ].max,
       expires_at: payment.expires_at&.iso8601, paid_at: payment.paid_at&.iso8601,
