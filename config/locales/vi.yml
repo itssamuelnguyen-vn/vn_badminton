@@ -676,6 +676,7 @@ vi:
         min_amount: Đơn chưa đủ giá trị tối thiểu để dùng mã này.
         wrong_day: Mã này không dùng cho ngày bạn chọn.
         wrong_time: Mã này không dùng cho khung giờ bạn chọn.
+        no_discount: Mã này không giảm được cho đơn này (số tiền giảm dưới 1.000đ).
         tier_better: Ưu đãi hạng thành viên của bạn có lợi hơn mã này nên được giữ.
 
   loyalty:

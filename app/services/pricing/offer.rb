@@ -22,7 +22,8 @@ module Pricing
         # A valid code that saves less than the tier: not used, and said so.
         new(kind: "tier", discount_vnd: tier_off, voucher: nil, tier: tier, voucher_problem: problem || (:tier_better if voucher))
       else
-        new(kind: nil, discount_vnd: 0, voucher: nil, tier: tier, voucher_problem: problem)
+        # A valid code whose discount rounds down to 0 (under 1 000đ): said so, like a code that cannot be used.
+        new(kind: nil, discount_vnd: 0, voucher: nil, tier: tier, voucher_problem: problem || (:no_discount if voucher))
       end
     end
 

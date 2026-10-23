@@ -690,6 +690,7 @@ en:
         min_amount: The order is below this voucher's minimum.
         wrong_day: This voucher is not valid on the day you picked.
         wrong_time: This voucher is not valid at the time you picked.
+        no_discount: This code takes nothing off this order (the discount would be under 1,000đ).
         tier_better: Your member discount saves more than this code, so it is kept.
 
   loyalty:
