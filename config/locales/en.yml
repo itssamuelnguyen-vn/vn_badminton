@@ -437,6 +437,8 @@ en:
         new_password: New password
         submit: Change password
     shared:
+      google:
+        or: or
       auth_shell:
         headline: Getting on court is easier with a VN Badminton account
         benefits:
@@ -831,6 +833,13 @@ en:
     destroy:
       success: You are no longer waiting for this time.
   users:
+    google:
+      new:
+        title: Finish signing up
+        subtitle: "You are signing in with Google as %{email}. Add your phone number so the venue can reach you."
+        submit: Create account
+      register:
+        success: Your account is ready. Welcome!
     registrations:
       destroy:
         not_allowed: This account cannot be deleted.

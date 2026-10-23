@@ -13,17 +13,13 @@ module Api
       end
 
       # The end of a Google sign-in for someone new (SessionsController#google): { signup_token, full_name, phone,
-      # privacy_consent, locale }. The email is Google's, already verified (no verification email); the password
-      # is random: "Forgot password" on the web sets one, Google is enough in the app.
+      # privacy_consent, locale } (Accounts::GoogleIdentity.build_user).
       def google
         identity = Accounts::GoogleIdentity.from_signup_token(params[:signup_token])
         return render_error(:signup_expired, [ t("api.google.signup_expired") ], status: :unprocessable_content) unless identity
 
-        user = User.new(full_name: params[:full_name].presence || identity.name, phone: params[:phone], email: identity.email,
-                        google_uid: identity.uid, password: SecureRandom.base58(32), locale: params[:locale],
-                        privacy_consent: privacy_consent)
-        user.skip_confirmation!
-        save_and_sign_in(user)
+        save_and_sign_in(Accounts::GoogleIdentity.build_user(identity, full_name: params[:full_name], phone: params[:phone],
+                                                                       locale: params[:locale], privacy_consent: privacy_consent))
       rescue ActiveRecord::RecordNotUnique
         # The same Google account signed up at the same moment.
         render_error :invalid, [ t("api.google.already_registered") ], status: :unprocessable_content

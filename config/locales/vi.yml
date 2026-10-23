@@ -433,6 +433,8 @@ vi:
         new_password: Mật khẩu mới
         submit: Đổi mật khẩu
     shared:
+      google:
+        or: hoặc
       auth_shell:
         headline: Ra sân dễ dàng hơn với tài khoản VN Badminton
         benefits:
@@ -809,6 +811,13 @@ vi:
     destroy:
       success: Đã bỏ chờ khung giờ này.
   users:
+    google:
+      new:
+        title: Hoàn tất đăng ký
+        subtitle: "Bạn đăng nhập bằng Google với %{email}. Thêm số điện thoại để sân liên hệ khi cần."
+        submit: Tạo tài khoản
+      register:
+        success: Đã tạo tài khoản. Chào mừng bạn!
     registrations:
       destroy:
         not_allowed: Không thể xoá tài khoản này.

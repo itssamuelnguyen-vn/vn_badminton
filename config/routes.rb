@@ -4,6 +4,10 @@ Rails.application.routes.draw do
     # The custom controllers only add rate limits; the views stay in app/views/devise.
     devise_for :users, controllers: { sessions: "users/sessions", registrations: "users/registrations",
                                       passwords: "users/passwords", confirmations: "users/confirmations" }
+    # "Sign in with Google": Google's button posts its ID token; someone new then gives a phone number (AP-05).
+    resource :google_sign_in, only: %i[new create], path: "users/google", controller: "users/google" do
+      post :register
+    end
 
     # "Tải dữ liệu của tôi" on the account page.
     resource :account_data, only: :create, path: "account/data", controller: "accounts/data_exports"

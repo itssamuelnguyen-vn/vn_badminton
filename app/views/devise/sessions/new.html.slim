@@ -4,6 +4,8 @@
     h1 class="text-2xl font-bold sm:text-3xl" = t("devise.sessions.new.title")
     p class="mt-1 mb-8 text-sm text-slate-500" = t("devise.sessions.new.subtitle")
 
+    = render "devise/shared/google"
+
     = form_with model: resource, scope: resource_name, url: session_path(resource_name), class: "space-y-5" do |f|
       div
         = f.label :login, t("devise.sessions.new.login"), class: "form-label"

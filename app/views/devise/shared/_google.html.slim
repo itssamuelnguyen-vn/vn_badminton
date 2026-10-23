@@ -1,0 +1,9 @@
+/ "Continue with Google" (AP-05), drawn by Google's script (google_sign_in Stimulus controller); hidden until it loads.
+= form_with url: google_sign_in_path, html: { hidden: true }, data: { turbo: false, controller: "google-sign-in",
+    google_sign_in_client_id_value: Accounts::GoogleIdentity.client_ids.first, google_sign_in_locale_value: I18n.locale } do
+  = hidden_field_tag :credential, nil, id: nil, data: { google_sign_in_target: "credential" }
+  div class="flex justify-center" data-google-sign-in-target="button"
+  div class="my-6 flex items-center gap-3 text-xs text-slate-400" aria-hidden="true"
+    span class="h-px flex-1 bg-slate-200"
+    = t("devise.shared.google.or")
+    span class="h-px flex-1 bg-slate-200"
