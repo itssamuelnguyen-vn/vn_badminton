@@ -901,6 +901,24 @@ vi:
         knockout: Thua là bị loại. Hạt giống được xếp xa nhau và miễn đấu vòng đầu khi thiếu người.
         groups_knockout: Chia bảng đấu vòng tròn, người đứng đầu mỗi bảng vào vòng loại trực tiếp.
         round_robin: "Ai cũng gặp ai, xếp hạng theo số trận thắng. Tối đa %{count} người/cặp."
+      format_help:
+        label: "Cách thi đấu: %{name}"
+        knockout:
+          - Thua một trận là bị loại; người thắng vào vòng sau cho tới trận chung kết. Không có trận tranh hạng ba.
+          - Sơ đồ có 2, 4, 8, 16, 32 hoặc 64 vị trí. Thiếu người thì các hạt giống cao nhất được miễn đấu (bye) vòng đầu và vào thẳng vòng sau, như cách BWF xếp sơ đồ.
+          - Hạt giống 1 và 2 nằm ở hai nửa sơ đồ nên chỉ có thể gặp nhau ở chung kết; hạt giống 3 và 4 nằm ở hai phần tư còn lại. Những người không phải hạt giống được bốc thăm ngẫu nhiên.
+          - Hợp với giải đông người, ít thời gian (n người/cặp chỉ cần n − 1 trận).
+        groups_knockout:
+          - "Vòng bảng: chia bảng 3–6 người/cặp, hạt giống được rải đều theo kiểu rắn bò (1→A, 2→B, …, rồi quay lại từ bảng cuối). Trong bảng ai cũng gặp ai một lần."
+          - "Xếp hạng trong bảng theo thể lệ vòng tròn của BWF: số trận thắng; hai người bằng trận thắng → ai thắng trận đối đầu xếp trên; ba người trở lên bằng nhau → hiệu số ván, rồi hiệu số điểm (tính trên mọi trận trong bảng), bước nào chỉ còn hai người bằng nhau thì xét trận đối đầu; vẫn bằng → theo hạt giống."
+          - "Vòng trong: 1 hoặc 2 người đứng đầu mỗi bảng vào vòng loại trực tiếp, tự tạo khi vòng bảng đấu xong. Người cùng bảng không gặp lại nhau ngay vòng đầu (khi xếp được)."
+          - Thắng do đối thủ bỏ cuộc tính một trận thắng, không cộng ván hay điểm.
+        round_robin:
+          - Mọi người/cặp gặp nhau đúng một lần; số lẻ thì mỗi lượt có một người nghỉ. Không có vòng loại trực tiếp, nhà vô địch là người đứng đầu bảng.
+          - "Xếp hạng theo thể lệ vòng tròn của BWF: số trận thắng; hai người bằng trận thắng → ai thắng trận đối đầu xếp trên; ba người trở lên bằng nhau → hiệu số ván, rồi hiệu số điểm, bước nào chỉ còn hai người bằng nhau thì xét trận đối đầu; vẫn bằng → theo hạt giống."
+          - "Tối đa %{count} người/cặp (%{matches} trận), vì n người cần n × (n − 1) / 2 trận. Ai cũng được đánh nhiều trận."
+          - Thắng do đối thủ bỏ cuộc tính một trận thắng, không cộng ván hay điểm.
+        scoring: "Mỗi trận theo luật BWF: thắng 2 trong 3 ván; ván 21 điểm, mỗi pha cầu đều tính điểm; 20–20 thì phải hơn 2 điểm, 29–29 thì ai được điểm thứ 30 thắng ván. Nhóm có thể tự thoả thuận chơi ngắn hơn (1 ván, ván 11 hoặc 15 điểm): ở đây nhập 1–3 ván, bên thắng nhiều ván hơn thắng trận."
       groups_hint: Chỉ dùng cho thể thức vòng bảng + loại trực tiếp.
       back: Quay lại
       save: Lưu

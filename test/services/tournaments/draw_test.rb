@@ -52,6 +52,38 @@ class Tournaments::DrawTest < ActiveSupport::TestCase
     assert_equal entries[0], tournament.champion
   end
 
+  test "ties are broken as in BWF round robins: two tied by their own match, three tied by games then points" do
+    tournament = make_tournament(play_format: "round_robin")
+    a, b, c, d = enter(tournament, 4)
+    Tournaments::Draw.call(tournament)
+    result = ->(winner, loser, scores) { tournament.matches.find { |m| [ m.entry_a, m.entry_b ].to_set == [ winner, loser ].to_set }.then { |m| m.record(scores: m.entry_a == winner ? scores : scores.map(&:reverse)) } }
+
+    # a, b, c beat each other in a circle and all beat d: three tied on 2 wins.
+    result.(a, b, [ [ 21, 19 ], [ 21, 19 ] ])
+    result.(b, c, [ [ 21, 10 ], [ 21, 10 ] ])
+    result.(c, a, [ [ 21, 19 ], [ 19, 21 ], [ 21, 19 ] ])
+    [ a, b, c ].each { |player| result.(player, d, [ [ 21, 5 ], [ 21, 5 ] ]) }
+    rows = Tournaments::Standings.new(tournament).groups.fetch(1)
+    games = rows.to_h { |row| [ row.entry, row.game_difference ] }
+    assert_equal({ a => 3, b => 2, c => 1, d => -6 }, games.slice(a, b, c, d))
+    assert_equal [ a, b, c, d ], rows.map(&:entry), "by game difference"
+
+    # Two left tied after games: the match between them decides, not the points.
+    tournament = make_tournament(play_format: "round_robin", title: "Giải hai")
+    a, b, c, d = enter(tournament, 4, from: 4)
+    Tournaments::Draw.call(tournament)
+    result.(a, b, [ [ 21, 19 ], [ 19, 21 ], [ 21, 19 ] ])
+    result.(b, c, [ [ 21, 19 ], [ 19, 21 ], [ 21, 19 ] ])
+    result.(c, a, [ [ 21, 19 ], [ 21, 19 ] ])
+    result.(a, d, [ [ 21, 19 ], [ 21, 19 ] ])
+    result.(b, d, [ [ 21, 19 ], [ 21, 19 ] ])
+    result.(c, d, [ [ 21, 0 ], [ 0, 21 ], [ 21, 0 ] ])
+    rows = Tournaments::Standings.new(tournament).groups.fetch(1)
+    table = rows.to_h { |row| [ row.entry, [ row.won, row.game_difference, row.point_difference ] ] }
+    assert_equal({ b => [ 2, 2, 4 ], c => [ 2, 2, 23 ], a => [ 2, 1, 2 ] }, table.slice(b, c, a))
+    assert_equal [ b, c, a, d ], rows.map(&:entry), "a drops on games; b beat c, so b is above despite fewer points"
+  end
+
   test "groups then knockout: seeds spread snake-wise, the best of each group go on without meeting a group-mate first" do
     tournament = make_tournament(play_format: "groups_knockout", group_size: 4, advance_per_group: 2)
     entries = enter(tournament, 8)

@@ -923,6 +923,24 @@ en:
         knockout: Lose and you are out. Seeds are placed apart and get the byes.
         groups_knockout: Round robin groups, the top of each group go on to a knockout.
         round_robin: "Everyone meets everyone, ranked by matches won. At most %{count} players or pairs."
+      format_help:
+        label: "How it works: %{name}"
+        knockout:
+          - Lose one match and you are out; winners move on until the final. There is no third-place match.
+          - The draw has 2, 4, 8, 16, 32 or 64 places. When some are empty, the top seeds get byes and go straight to the next round, as in BWF draws.
+          - Seeds 1 and 2 are in opposite halves, so they can only meet in the final; seeds 3 and 4 are in the other two quarters. Unseeded players are drawn at random.
+          - Good for many players and little time (n players or pairs need only n − 1 matches).
+        groups_knockout:
+          - "Groups: groups of 3–6 players or pairs, seeds spread snake-wise (1→A, 2→B, …, then back from the last group). Everyone in a group meets everyone once."
+          - "Group ranking follows the BWF round robin rules: matches won; two tied → the winner of their match ranks higher; three or more tied → game difference, then point difference (over all group matches), going back to the match between them whenever only two are left tied; still tied → by seed."
+          - "Knockout: the top 1 or 2 of each group go on to a knockout, made by itself once the groups are over. Group-mates do not meet again in its first round (when possible)."
+          - A walkover counts as a match won, with no games or points.
+        round_robin:
+          - Everyone meets everyone exactly once; with an odd number, one rests each round. No knockout, the top of the table is the champion.
+          - "Ranking follows the BWF round robin rules: matches won; two tied → the winner of their match ranks higher; three or more tied → game difference, then point difference, going back to the match between them whenever only two are left tied; still tied → by seed."
+          - "At most %{count} players or pairs (%{matches} matches), as n players need n × (n − 1) / 2 matches. Everyone plays a lot."
+          - A walkover counts as a match won, with no games or points.
+        scoring: "Each match follows the BWF Laws: best of 3 games; 21 points a game, every rally scores; at 20-all a 2-point lead is needed, at 29-all the 30th point wins. Groups may agree on shorter play (1 game, games to 11 or 15): enter 1–3 games here, whoever wins more games wins the match."
       groups_hint: Only for groups + knockout.
       back: Back
       save: Save

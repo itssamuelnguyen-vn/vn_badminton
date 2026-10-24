@@ -10,6 +10,10 @@ class TournamentsTest < ActionDispatch::IntegrationTest
     sign_in users(:an)
     get tournaments_path
     assert_select "p", text: /Bạn chưa có giải nào/
+    # Each format explains itself (BWF rules) in a tooltip.
+    get new_tournament_path
+    assert_select "[role=tooltip]#format_help_round_robin li", text: /Tối đa 10 người\/cặp \(45 trận\)/
+    assert_select "#format_help_knockout p", text: /thắng 2 trong 3 ván/
 
     post tournaments_path, params: { tournament: { title: "Giải công ty", discipline: "singles", play_format: "knockout" } }
     tournament = Tournament.last
