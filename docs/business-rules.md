@@ -4,6 +4,8 @@ Tài liệu này ghi lại **mọi quy tắc nghiệp vụ** của web đặt s�
 Mỗi quy tắc có **mã số** để tham chiếu và **nguồn**: file code thực thi nó và file test kiểm tra nó.
 Test là bản mô tả chính xác nhất: nếu tài liệu và test khác nhau, **test đúng** và tài liệu cần sửa.
 
+Quy trình từng bước (ai làm gì, theo thứ tự nào) nằm ở [`business-processes.md`](business-processes.md).
+
 **Cách giữ tài liệu luôn đúng:** PR nào thay đổi một quy tắc thì sửa luôn mục tương ứng ở đây trong cùng PR
 (xem `CLAUDE.md`). Các con số có thể chỉnh trong **Quản lý → Cài đặt** được đánh dấu ⚙️ và ghi giá trị mặc định.
 
