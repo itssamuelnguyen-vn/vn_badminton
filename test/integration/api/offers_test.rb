@@ -176,12 +176,13 @@ class Api::OffersTest < ActionDispatch::IntegrationTest
 
   private
 
-  # Sessions the customer played and paid, two hours each, ending `ago` before now.
+  # Sessions the customer played and paid, two hours each, ending `ago` before now: confirmed and paid is enough,
+  # nobody records check-ins.
   def played(user, hours:, ago: 1.day)
     (hours / 2).times do |i|
       starts_at = (Time.current - ago - (i + 1).days).change(hour: 8)
       Booking.create!(court: courts(:court_two), user: user, source: :walk_in, starts_at: starts_at, ends_at: starts_at + 2.hours,
-                      status: :checked_in, checked_in_at: starts_at, payment_status: :paid, paid_at: starts_at)
+                      payment_status: :paid, paid_at: starts_at)
     end
   end
 

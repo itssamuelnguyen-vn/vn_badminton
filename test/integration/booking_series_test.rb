@@ -78,7 +78,7 @@ class BookingSeriesTest < ActionDispatch::IntegrationTest
       .create!(user: users(:chi), starts_at: skipped.starts_at, ends_at: skipped.starts_at + 1.hour)
     other = Court.find(resold_no_show.court_id).bookings.create!(source: :phone, customer_name: "Khách lẻ", customer_phone: "0912000111",
                                                                  starts_at: resold_no_show.starts_at, ends_at: resold_no_show.ends_at)
-    other.mark_no_show!
+    other.update!(status: :no_show) # recorded before no-shows were dropped: not played
 
     travel_to at("2026-10-28 00:00")
     Series::Refunds.settle_due

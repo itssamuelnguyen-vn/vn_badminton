@@ -12,13 +12,10 @@ class BookingHistoryTest < ActionDispatch::IntegrationTest
 
     patch mark_paid_admin_booking_path(booking)
     patch undo_payment_admin_booking_path(booking)
-    patch check_in_admin_booking_path(booking)
-    patch undo_check_in_admin_booking_path(booking)
-    patch no_show_admin_booking_path(booking)
     patch reschedule_admin_booking_path(Booking.create!(court: courts(:court_two), user: users(:chi), starts_at: at("08:00"), ends_at: at("09:00"))),
           params: { booking: { court_id: courts(:court_one).id, date: "2026-10-20", start_minute: 600, end_minute: 660 } }
 
-    assert_equal %w[created paid payment_undone checked_in check_in_undone no_show], booking.events.pluck(:action)
+    assert_equal %w[created paid payment_undone], booking.events.pluck(:action)
     assert_nil booking.events.first.actor, "made in the test, outside a request"
     assert_equal [ users(:staffer) ], booking.events.where.not(action: "created").map(&:actor).uniq
 
@@ -26,7 +23,6 @@ class BookingHistoryTest < ActionDispatch::IntegrationTest
     assert_select "h2", text: "Lịch sử"
     assert_select "li", text: /Đã thu 120.000đ tiền mặt.*Phạm Nhân Viên \(nhân viên\)/m
     assert_select "li", text: /Huỷ “đã thu” 120.000đ/
-    assert_select "li", text: /Đánh dấu không đến/
 
     moved = Booking.find_by!(user: users(:chi))
     assert_equal "rescheduled", moved.events.last.action

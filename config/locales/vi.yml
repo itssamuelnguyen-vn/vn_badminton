@@ -579,7 +579,6 @@ vi:
       note: Giá tính theo từng khung 30 phút. Thanh toán tại sân.
 
   bookings:
-    unrecorded: Đã qua giờ – chưa ghi nhận
     statuses:
       pending: Chờ xác nhận
       confirmed: Đã xác nhận
@@ -1287,9 +1286,6 @@ vi:
     bookings:
       not_allowed: Không thể thực hiện thao tác này với lượt đặt hiện tại.
       actions:
-        check_in: Nhận sân
-        no_show: Không đến
-        no_show_confirm: Đánh dấu khách không đến?
         mark_paid: "Đã thu %{amount}"
         mark_paid_confirm: "Xác nhận đã thu %{amount}?"
         cancel:
@@ -1298,10 +1294,6 @@ vi:
         cancel_confirm:
           reservation: Huỷ lượt đặt này? Khách sẽ không được thông báo tự động.
           block: Gỡ khoá sân này?
-        undo_check_in: Huỷ nhận sân
-        undo_check_in_confirm: Đưa lượt đặt về trạng thái chưa nhận sân?
-        undo_no_show: Huỷ "không đến"
-        undo_no_show_confirm: Đưa lượt đặt về trạng thái đã xác nhận?
         undo_payment: Huỷ "đã thu"
         undo_payment_confirm: "Đánh dấu chưa thu %{amount}?"
         cancel_venue_fault: Huỷ do sự cố của sân
@@ -1385,16 +1377,8 @@ vi:
           block: "Đã khoá %{court}."
         payments_unavailable: Cần nhập tài khoản ngân hàng nhận tiền trong Cài đặt trước khi đặt hộ qua điện thoại (khách chuyển khoản 100%).
         awaiting_payment: "Đã giữ %{court} 15 phút. Gửi link thanh toán bên dưới cho khách; sân được xác nhận khi nhận được tiền."
-      check_in:
-        success: Đã nhận sân.
-      no_show:
-        success: Đã đánh dấu khách không đến.
       mark_paid:
         success: Đã ghi nhận thanh toán.
-      undo_check_in:
-        success: Đã huỷ nhận sân.
-      undo_no_show:
-        success: Đã đưa lượt đặt về đã xác nhận.
       undo_payment:
         success: Đã đánh dấu chưa thu tiền.
       cancel:
@@ -1517,8 +1501,6 @@ vi:
         no_name: "(chưa có tên)"
         bookings:
           other: "%{count} lượt đặt"
-        no_shows:
-          other: "%{count} lần không đến"
         last: "Gần nhất: %{date}"
         limited:
           other: "Chỉ hiện %{count} khách gần nhất. Dùng ô tìm kiếm để tìm khách khác."
@@ -1533,7 +1515,6 @@ vi:
         stats:
           bookings: Lượt đặt
           upcoming: Sắp tới
-          no_shows: Không đến
           self_cancellations: Tự huỷ
           revenue: Doanh thu
         note: Ghi chú
@@ -1565,7 +1546,6 @@ vi:
         by_day: Theo ngày
         day: Ngày
         hours: Giờ sân
-        no_shows: Không đến
         cancelled: Đã huỷ
         total: Tổng
         vs_month: "so với %{month}"
@@ -1761,13 +1741,6 @@ vi:
         lapsed_hint: "Đã chơi ít nhất %{visits} lần nhưng %{days} ngày nay không đặt sân (tính đến hôm nay). Gọi hỏi thăm hoặc gửi mã giảm giá."
         no_lapsed: Không có khách nào.
         last_visit: "Lần cuối %{date} · %{visits}"
-        no_shows: Tỷ lệ không đến
-        no_shows_hint: Lượt đã qua giờ trong khoảng thời gian (không tính lượt đã huỷ). Bấm tên khách để ghi chú hoặc đưa vào danh sách đen.
-        no_no_shows: Không có khách nào bỏ lượt.
-        customer: Khách
-        bookings: Lượt
-        no_show_count: Không đến
-        rate: Tỷ lệ
     bank_transactions:
       index:
         title: Giao dịch

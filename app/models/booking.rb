@@ -11,6 +11,10 @@ class Booking < ApplicationRecord
   COURT_LOCK_NAMESPACE = 1_001
 
   enum :kind, { reservation: "reservation", block: "block" }, prefix: true, default: :reservation, validate: true
+  # Staff no longer record check-ins and no-shows (a booking is paid before it is played): "checked_in" and
+  # "no_show" remain on older bookings only. A confirmed, paid booking that has ended counts as played (.played).
+  PLAYED_STATUSES = %w[confirmed checked_in completed].freeze
+
   enum :status, {
     pending: "pending", confirmed: "confirmed", checked_in: "checked_in",
     completed: "completed", cancelled: "cancelled", no_show: "no_show"
@@ -47,6 +51,10 @@ class Booking < ApplicationRecord
   # Expired holds no longer count, even before they are deleted (see release_expired_holds!).
   scope :holding_slot, ->(now = Time.current) {
     where(status: ACTIVE_STATUSES).where("bookings.status <> 'pending' OR bookings.expires_at > ?", now)
+  }
+  # Played: a paid reservation, not cancelled, that has ended (tiers, reviews).
+  scope :played, ->(now = Time.current) {
+    kind_reservation.where(status: PLAYED_STATUSES, payment_status: :paid).where(ends_at: ..now)
   }
   scope :expired_holds, ->(now = Time.current) { pending.where(expires_at: ..now) }
   scope :overlapping, ->(from, to) { where("starts_at < ? AND ends_at > ?", to, from) }
@@ -227,7 +235,7 @@ class Booking < ApplicationRecord
       now <= starts_at - court.venue.cancellation_cutoff_hours.hours
   end
 
-  # Over: played or missed, which check-in and no-show record. It can no longer be cancelled or moved.
+  # Over: it can no longer be cancelled or moved.
   def ended?(now = Time.current)
     ends_at <= now
   end
@@ -235,11 +243,6 @@ class Booking < ApplicationRecord
   # Its customer can still rate it (Review): played, over, not too long ago, and not rated yet.
   def reviewable?(now = Time.current)
     persisted? && user.present? && review.nil? && Review.allowed?(self, user, now)
-  end
-
-  # Over without check-in or no-show: the owner and staff are reminded to record which.
-  def unrecorded?(now = Time.current)
-    kind_reservation? && confirmed? && ended?(now)
   end
 
   # A venue fault (power cut, broken court...) is known the same day, possibly after the session.
@@ -297,37 +300,13 @@ class Booking < ApplicationRecord
     end
   end
 
-  def check_in!(now: Time.current)
-    raise ArgumentError, "Only confirmed bookings can be checked in" unless confirmed?
-
-    update!(status: :checked_in, checked_in_at: now)
-  end
-
   def mark_paid!(now: Time.current)
     raise ArgumentError, "Booking is already paid" unless payment_unpaid?
 
     update!(payment_status: :paid, paid_at: now)
   end
 
-  def mark_no_show!
-    raise ArgumentError, "Only confirmed bookings can be marked as no-show" unless confirmed?
-
-    update!(status: :no_show)
-  end
-
-  # Undo for the owner's and staff's actions pressed by mistake: back to the state before them.
-  def undo_check_in!
-    raise ArgumentError, "Only checked-in bookings can be undone" unless checked_in?
-
-    update!(status: :confirmed, checked_in_at: nil)
-  end
-
-  def undo_no_show!
-    raise ArgumentError, "Only no-show bookings can be undone" unless no_show?
-
-    update!(status: :confirmed)
-  end
-
+  # Undo for "Đã thu" pressed by mistake.
   def undo_payment!
     raise ArgumentError, "Only paid bookings can be undone" unless payment_paid?
 

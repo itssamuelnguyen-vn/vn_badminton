@@ -14,8 +14,8 @@ class StaffTest < ActionDispatch::IntegrationTest
     assert_select "nav[aria-label='Quản lý'] a", text: "Vận hành", count: 0 # one group, so no group row
     assert_select "dt", text: "Doanh thu dự kiến", count: 0
 
-    patch check_in_admin_booking_path(booking)
-    assert booking.reload.checked_in?
+    patch mark_paid_admin_booking_path(booking)
+    assert booking.reload.payment_paid?
 
     [ admin_price_rules_path, edit_admin_settings_path, admin_staff_members_path ].each do |path|
       get path

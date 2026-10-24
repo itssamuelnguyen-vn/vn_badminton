@@ -80,12 +80,8 @@ Rails.application.routes.draw do
       root "boards#show"
       resources :bookings, only: %i[show new create], param: :code do
         member do
-          patch :check_in
-          patch :no_show
           patch :mark_paid
           patch :cancel
-          patch :undo_check_in
-          patch :undo_no_show
           patch :undo_payment
           get :edit_schedule
           patch :reschedule

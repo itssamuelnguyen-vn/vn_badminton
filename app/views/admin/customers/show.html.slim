@@ -35,7 +35,7 @@ div class="mx-auto max-w-3xl space-y-6"
 
   dl class="grid grid-cols-2 gap-3 sm:grid-cols-4"
     - stats = [ [ t(".stats.bookings"), customer.bookings_count ], [ t(".stats.upcoming"), customer.upcoming_count ],
-                [ t(".stats.no_shows"), customer.no_shows ], [ t(".stats.self_cancellations"), customer.self_cancellations ] ]
+                [ t(".stats.self_cancellations"), customer.self_cancellations ] ]
     - stats << [ t(".stats.revenue"), format_vnd(customer.revenue_vnd) ] if current_user.owner?
     - stats.each do |label, value|
       div class="rounded-xl bg-white px-4 py-3 ring-1 ring-slate-200"

@@ -13,9 +13,9 @@ class Review < ApplicationRecord
   validates :booking_id, uniqueness: true
   validate :booking_reviewable, on: :create
 
-  # Played (checked in), over, the customer's own, and not too long ago.
+  # The customer's own, not cancelled (nor marked missed on older bookings), over, and not too long ago.
   def self.allowed?(booking, user, now = Time.current)
-    booking.kind_reservation? && booking.user_id == user.id && booking.status.in?(%w[checked_in completed]) &&
+    booking.kind_reservation? && booking.user_id == user.id && booking.status.in?(Booking::PLAYED_STATUSES) &&
       booking.ended?(now) && booking.ends_at > now - WINDOW
   end
 

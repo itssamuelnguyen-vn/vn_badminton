@@ -587,7 +587,6 @@ en:
       note: Prices are charged per 30-minute slot. Pay at the venue.
 
   bookings:
-    unrecorded: Over – not recorded
     statuses:
       pending: Pending
       confirmed: Confirmed
@@ -1317,9 +1316,6 @@ en:
     bookings:
       not_allowed: This action is not possible for this booking.
       actions:
-        check_in: Check in
-        no_show: No-show
-        no_show_confirm: Mark the customer as a no-show?
         mark_paid: "Collected %{amount}"
         mark_paid_confirm: "Confirm you collected %{amount}?"
         cancel:
@@ -1328,10 +1324,6 @@ en:
         cancel_confirm:
           reservation: Cancel this booking? The customer is not notified automatically.
           block: Remove this block?
-        undo_check_in: Undo check-in
-        undo_check_in_confirm: Put the booking back to not checked in?
-        undo_no_show: Undo no-show
-        undo_no_show_confirm: Put the booking back to confirmed?
         undo_payment: Undo payment
         undo_payment_confirm: "Mark %{amount} as not collected?"
         cancel_venue_fault: Cancel (venue problem)
@@ -1415,16 +1407,8 @@ en:
           block: "%{court} blocked."
         payments_unavailable: Enter the bank account that receives transfers in Settings before booking for phone customers (they pay in full by transfer).
         awaiting_payment: "%{court} held for 15 minutes. Send the payment link below to the customer; the court is confirmed when the money arrives."
-      check_in:
-        success: Checked in.
-      no_show:
-        success: Marked as a no-show.
       mark_paid:
         success: Payment recorded.
-      undo_check_in:
-        success: Check-in undone.
-      undo_no_show:
-        success: Back to confirmed.
       undo_payment:
         success: Payment undone.
       cancel:
@@ -1549,9 +1533,6 @@ en:
         bookings:
           one: "%{count} booking"
           other: "%{count} bookings"
-        no_shows:
-          one: "%{count} no-show"
-          other: "%{count} no-shows"
         last: "Last: %{date}"
         limited:
           one: "Showing the %{count} most recent customer. Use the search to find others."
@@ -1567,7 +1548,6 @@ en:
         stats:
           bookings: Bookings
           upcoming: Upcoming
-          no_shows: No-shows
           self_cancellations: Self-cancelled
           revenue: Revenue
         note: Note
@@ -1599,7 +1579,6 @@ en:
         by_day: By day
         day: Day
         hours: Court time
-        no_shows: No-shows
         cancelled: Cancelled
         total: Total
         vs_month: "vs %{month}"
@@ -1804,13 +1783,6 @@ en:
         lapsed_hint: "Played at least %{visits} times but no booking for %{days} days (as of today). Call them or send a voucher."
         no_lapsed: No customers.
         last_visit: "Last visit %{date} · %{visits}"
-        no_shows: No-show rate
-        no_shows_hint: Bookings already over in the period (cancelled ones excluded). Click a name to add a note or blacklist the customer.
-        no_no_shows: No customer missed a booking.
-        customer: Customer
-        bookings: Bookings
-        no_show_count: No-shows
-        rate: Rate
     bank_transactions:
       index:
         title: Transactions

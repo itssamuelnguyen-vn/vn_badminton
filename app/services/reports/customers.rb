@@ -6,12 +6,10 @@ module Reports
   #   report.top_by_hours    # => [Row, ...] most court time played in the period first
   #   report.top_by_amount   # => [Row, ...] most money first
   #   report.lapsed          # => [Lapsed, ...] regulars who stopped booking (as of now, not of the period)
-  #   report.no_shows        # => [Row, ...] customers who missed bookings in the period, highest rate first
   #
-  # Played: confirmed (an ended one was not recorded, so it counts as played), checked in or completed.
+  # Played: not cancelled (Booking::PLAYED_STATUSES; no-shows are no longer recorded, older ones are left out).
   # Amount: what the customer pays (court less discount, plus products) for the bookings not cancelled,
-  # no-shows included, as the monthly report's expected revenue (Reports::Month).
-  # No-show rate: no-shows / bookings that have ended and were not cancelled.
+  # older no-shows included, as the monthly report's expected revenue (Reports::Month).
   class Customers
     PERIODS = [ 1, 3, 6, 12 ].freeze
     TOP = 10
@@ -19,11 +17,10 @@ module Reports
     # A regular gone quiet: played at least LAPSED_MIN_VISITS times, nothing booked for LAPSED_AFTER.
     LAPSED_MIN_VISITS = 3
     LAPSED_AFTER = 30.days
-    PLAYED_SQL = "status IN ('confirmed', 'checked_in', 'completed')"
+    PLAYED_SQL = "status IN (#{Booking::PLAYED_STATUSES.map { |status| "'#{status}'" }.join(", ")})"
     COUNTED_SQL = "status IN ('confirmed', 'checked_in', 'completed', 'no_show')"
 
-    Row = Data.define(:phone, :name, :played, :minutes, :amount_vnd, :ended, :no_show_count, :profile) do
-      def no_show_rate = ended.zero? ? 0 : no_show_count.fdiv(ended)
+    Row = Data.define(:phone, :name, :played, :minutes, :amount_vnd, :profile) do
       def blocked? = profile&.blocked? || false
       # URLs use the local form: /admin/customers/0901234567
       def to_param = PhoneNumber.local_digits(phone)
@@ -55,9 +52,6 @@ module Reports
       rows.select { |row| row.amount_vnd.positive? }.sort_by { |row| [ -row.amount_vnd, -row.minutes ] }.first(TOP)
     end
 
-    def no_shows
-      rows.select { |row| row.no_show_count.positive? }.sort_by { |row| [ -row.no_show_rate, -row.no_show_count ] }.first(LIMIT)
-    end
 
     # Most recently seen first: the easiest to win back.
     def lapsed
@@ -101,14 +95,11 @@ module Reports
           (array_agg(customer_name ORDER BY starts_at DESC))[1],
           count(*) FILTER (WHERE #{PLAYED_SQL}),
           coalesce(sum(extract(epoch FROM ends_at - starts_at)::integer / 60) FILTER (WHERE #{PLAYED_SQL}), 0),
-          coalesce(sum(total_amount_vnd - discount_vnd + items_amount_vnd) FILTER (WHERE #{COUNTED_SQL}), 0),
-          count(*) FILTER (WHERE #{COUNTED_SQL} AND ends_at <= #{Booking.connection.quote(now)}),
-          count(*) FILTER (WHERE status = 'no_show')
+          coalesce(sum(total_amount_vnd - discount_vnd + items_amount_vnd) FILTER (WHERE #{COUNTED_SQL}), 0)
         SQL
         profiles = profiles(list.map(&:first))
-        list.map do |phone, name, played_count, minutes, amount, ended, no_show_count|
-          Row.new(phone: phone, name: name, played: played_count, minutes: minutes.to_i, amount_vnd: amount.to_i,
-                  ended: ended, no_show_count: no_show_count, profile: profiles[phone])
+        list.map do |phone, name, played_count, minutes, amount|
+          Row.new(phone: phone, name: name, played: played_count, minutes: minutes.to_i, amount_vnd: amount.to_i, profile: profiles[phone])
         end
       end
     end

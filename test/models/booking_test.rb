@@ -66,27 +66,6 @@ class BookingTest < ActiveSupport::TestCase
     assert booking.errors.added?(:starts_at, :not_in_future)
   end
 
-  test "check_in! works after the booking has started" do
-    booking = reserve!
-
-    travel_to at("18:05") do
-      booking.check_in!
-    end
-
-    assert booking.reload.checked_in?
-    assert_not_nil booking.checked_in_at
-  end
-
-  test "mark_no_show! works after the booking has started" do
-    booking = reserve!
-
-    travel_to at("18:20") do
-      booking.mark_no_show!
-    end
-
-    assert booking.reload.no_show?
-  end
-
   test "a customer cannot cancel after the cutoff, a manager can" do
     booking = reserve!
 

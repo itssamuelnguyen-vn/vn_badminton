@@ -1,10 +1,7 @@
-/ The next steps for a booking: check-in, no-show, payment, cancellation. compact: smaller buttons for the day list.
+/ The next steps for a booking: cash payment, cancellation. compact: smaller buttons for the day list.
+/ No check-in or no-show: a booking is paid before it is played (VH-04).
 - size = local_assigns[:compact] ? "px-2.5 py-1 text-xs" : ""
 
-- if booking.kind_reservation? && booking.confirmed?
-  = button_to t("admin.bookings.actions.check_in"), check_in_admin_booking_path(booking), method: :patch, class: "btn-primary #{size}"
-  = button_to t("admin.bookings.actions.no_show"), no_show_admin_booking_path(booking), method: :patch, class: "btn-secondary #{size}",
-      form: { data: { turbo_confirm: t("admin.bookings.actions.no_show_confirm") } }
 - if booking.kind_reservation? && booking.payment_unpaid? && !booking.cancelled? && !booking.no_show?
   = button_to t("admin.bookings.actions.mark_paid", amount: format_vnd(booking.charged_vnd)), mark_paid_admin_booking_path(booking), method: :patch,
       class: "btn-secondary #{size}", form: { data: { turbo_confirm: t("admin.bookings.actions.mark_paid_confirm", amount: format_vnd(booking.charged_vnd)) } }
@@ -19,12 +16,6 @@
 
 / Undo, for actions pressed by mistake.
 - undo_class = "btn #{size} bg-white text-slate-600 ring-1 ring-slate-300 hover:bg-slate-50"
-- if booking.checked_in?
-  = button_to t("admin.bookings.actions.undo_check_in"), undo_check_in_admin_booking_path(booking), method: :patch, class: undo_class,
-      form: { data: { turbo_confirm: t("admin.bookings.actions.undo_check_in_confirm") } }
-- if booking.no_show?
-  = button_to t("admin.bookings.actions.undo_no_show"), undo_no_show_admin_booking_path(booking), method: :patch, class: undo_class,
-      form: { data: { turbo_confirm: t("admin.bookings.actions.undo_no_show_confirm") } }
 - if booking.kind_reservation? && booking.payment_paid?
   = button_to t("admin.bookings.actions.undo_payment"), undo_payment_admin_booking_path(booking), method: :patch, class: undo_class,
       form: { data: { turbo_confirm: t("admin.bookings.actions.undo_payment_confirm", amount: format_vnd(booking.charged_vnd)) } }

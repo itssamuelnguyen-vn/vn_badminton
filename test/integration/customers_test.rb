@@ -9,11 +9,11 @@ class CustomersTest < ActionDispatch::IntegrationTest
   test "lists customers with an account and customers booked by phone, searchable" do
     book(users(:an), "18:00")
     courts(:court_two).bookings.create!(source: :phone, customer_name: "Anh Bình", customer_phone: "0912 000 111",
-                                        starts_at: at("18:00"), ends_at: at("19:00")).update!(status: :no_show)
+                                        starts_at: at("18:00"), ends_at: at("19:00"))
 
     get admin_customers_path
     assert_select "a[href='/admin/customers/0901234567']", text: /Nguyễn An/
-    assert_select "a[href='/admin/customers/0912000111']", text: /Anh Bình.*1 lần không đến/m
+    assert_select "a[href='/admin/customers/0912000111']", text: /Anh Bình.*1 lượt đặt/m
     assert_select "a[href='/admin/customers/0933000111']", text: /Lê Chi/ # an account without bookings
 
     get admin_customers_path(q: "0912 000")
