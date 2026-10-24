@@ -1,0 +1,8 @@
+/ Where the tournament is: setting up, playing, finished (with the champion).
+- if tournament.setup?
+  span class="rounded-full bg-sky-50 px-2.5 py-0.5 text-sky-700 ring-1 ring-sky-200" = t("tournaments.status.setup")
+- elsif tournament.in_progress?
+  span class="rounded-full bg-orange-50 px-2.5 py-0.5 text-orange-700 ring-1 ring-orange-200" = t("tournaments.status.in_progress")
+- else
+  span class="rounded-full bg-amber-50 px-2.5 py-0.5 text-amber-800 ring-1 ring-amber-200"
+    = (champion = tournament.champion) ? t("tournaments.status.champion", name: champion.display_name) : t("tournaments.status.finished")

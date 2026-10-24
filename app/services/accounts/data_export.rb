@@ -27,6 +27,7 @@ module Accounts
         packages: packages,
         vouchers_used: vouchers_used,
         play_session_tickets: play_session_tickets,
+        tournaments: tournaments,
         groups: groups
       }
     end
@@ -112,6 +113,17 @@ module Accounts
       @user.play_session_tickets.includes(:play_session).order(:created_at).map do |ticket|
         { session: ticket.play_session.title, starts_at: ticket.play_session.starts_at.iso8601, quantity: ticket.quantity,
           amount_vnd: ticket.amount_vnd, status: ticket.status, refund_vnd: ticket.refund_vnd }
+      end
+    end
+
+    # The ones they created, with the names they typed and the results.
+    def tournaments
+      @user.tournaments.includes(:entries, matches: %i[entry_a entry_b winner]).order(:created_at).map do |tournament|
+        { title: tournament.title, description: tournament.description, event: tournament.discipline, format: tournament.play_format,
+          played_on: tournament.played_on&.iso8601, status: tournament.status, players: tournament.entries.map(&:display_name),
+          matches: tournament.matches.select(&:winner).map do |match|
+            { a: match.entry_a&.display_name, b: match.entry_b&.display_name, winner: match.winner.display_name, scores: match.scores, walkover: match.walkover }
+          end }
       end
     end
 

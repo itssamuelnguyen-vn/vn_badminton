@@ -11,6 +11,9 @@ vi:
     models:
       play_session: Buổi giao lưu
       play_session_ticket: Chỗ giao lưu
+      tournament: Giải đấu
+      tournament_entry: Người chơi
+      tournament_match: Trận đấu
       group: Nhóm
       group_share: Lượt đặt chia sẻ
       voucher: Mã giảm giá
@@ -45,6 +48,20 @@ vi:
         level: Trình độ
       play_session_ticket:
         quantity: Số người
+      tournament:
+        title: Tên giải
+        description: Mô tả, giải thưởng, luật
+        play_format: Thể thức
+        discipline: Nội dung
+        played_on: Ngày thi đấu
+        group_size: Số người/cặp mỗi bảng
+        advance_per_group: Số vào vòng trong mỗi bảng
+      tournament_entry:
+        name: Tên
+        partner_name: Tên đồng đội
+        seed: Hạt giống
+      tournament_match:
+        scores: Tỉ số
       group:
         name: Tên nhóm
       group_share:
@@ -203,6 +220,14 @@ vi:
           not_bookable: Buổi này không còn nhận đăng ký.
           blacklisted: Tài khoản của bạn hiện không thể đặt online. Vui lòng liên hệ sân.
           full: "Buổi này chỉ còn %{left} chỗ."
+        tournament:
+          too_many: "Mỗi người có tối đa %{count} giải chưa kết thúc. Hãy xoá bớt giải cũ."
+          too_many_organizers: "Mỗi giải có tối đa %{count} người nhập tỉ số."
+          too_many_for_round_robin: "vòng tròn chỉ nhận tối đa %{count} người/cặp"
+        tournament_match:
+          not_editable: Trận này không sửa kết quả được nữa.
+          invalid_winner: Người thắng không hợp lệ.
+          invalid: "không hợp lệ: nhập từ 1 ván, mỗi ván phải có bên thắng, và số ván thắng của hai bên phải khác nhau"
         group:
           too_many: "Mỗi người tham gia tối đa %{count} nhóm."
           full: "Nhóm đã đủ %{count} người."
@@ -325,6 +350,7 @@ vi:
         my_bookings: Lượt đặt của tôi
         my_bookings_short: Lượt đặt
         play_sessions: Giao lưu
+        tournaments: Giải đấu
         sign_in: Đăng nhập
         sign_up: Đăng ký
         sign_out: Đăng xuất
@@ -825,6 +851,188 @@ vi:
         scheduled: "Tài khoản đã được khoá và sẽ bị xoá sau khi lượt chơi cuối kết thúc (khoảng %{time}). Chúng tôi đã gửi email cho bạn."
         deleted: Tài khoản của bạn đã được xoá. Chúng tôi đã gửi email xác nhận.
 
+  tournaments:
+    not_allowed: Chỉ người tổ chức giải mới làm được việc này.
+    events:
+      singles: Đơn
+      doubles: Đôi
+      mixed_doubles: Đôi nam nữ
+    formats:
+      knockout: Loại trực tiếp
+      groups_knockout: Vòng bảng + loại trực tiếp
+      round_robin: Vòng tròn
+    walkover: Thắng do đối thủ bỏ cuộc
+    bye: Miễn đấu
+    on_court: "Đang đấu ở %{court}"
+    status:
+      setup: Đang chuẩn bị
+      in_progress: Đang thi đấu
+      finished: Đã kết thúc
+      champion: "Vô địch: %{name}"
+    rounds:
+      final: Chung kết
+      semi_final: Bán kết
+      quarter_final: Tứ kết
+      last_16: Vòng 1/8
+      round: "Vòng %{number}"
+    standings:
+      table: Bảng xếp hạng
+      group: "Bảng %{name}"
+      player: Người chơi
+      played: Tr
+      played_long: Số trận đã đấu
+      won: T
+      won_long: Số trận thắng
+      games: Ván
+      games_long: Ván thắng – ván thua
+      points: HS
+      points_long: Hiệu số điểm
+    errors:
+      not_setup: Giải đã bốc thăm, không đổi danh sách người chơi được nữa.
+      empty_list: Hãy nhập ít nhất một tên.
+      too_many_entries: "Giải này tối đa %{count} người/cặp."
+      line: "Dòng %{number}: %{errors}"
+    form:
+      title_placeholder: "Ví dụ: Giải cầu lông công ty tháng 11"
+      description_placeholder: Giải thưởng, luật thi đấu, số ván…
+      discipline_locked: Đã có người chơi nên không đổi nội dung được.
+      played_on_hint: Không bắt buộc. Khi bạn gắn lượt đặt sân vào giải, ngày lấy theo lượt đặt.
+      format_hints:
+        knockout: Thua là bị loại. Hạt giống được xếp xa nhau và miễn đấu vòng đầu khi thiếu người.
+        groups_knockout: Chia bảng đấu vòng tròn, người đứng đầu mỗi bảng vào vòng loại trực tiếp.
+        round_robin: "Ai cũng gặp ai, xếp hạng theo số trận thắng. Tối đa %{count} người/cặp."
+      format_help:
+        label: "Cách thi đấu: %{name}"
+        knockout:
+          - Thua một trận là bị loại; người thắng vào vòng sau cho tới trận chung kết. Không có trận tranh hạng ba.
+          - Sơ đồ có 2, 4, 8, 16, 32 hoặc 64 vị trí. Thiếu người thì các hạt giống cao nhất được miễn đấu (bye) vòng đầu và vào thẳng vòng sau, như cách BWF xếp sơ đồ.
+          - Hạt giống 1 và 2 nằm ở hai nửa sơ đồ nên chỉ có thể gặp nhau ở chung kết; hạt giống 3 và 4 nằm ở hai phần tư còn lại. Những người không phải hạt giống được bốc thăm ngẫu nhiên.
+          - Hợp với giải đông người, ít thời gian (n người/cặp chỉ cần n − 1 trận).
+        groups_knockout:
+          - "Vòng bảng: chia bảng 3–6 người/cặp, hạt giống được rải đều theo kiểu rắn bò (1→A, 2→B, …, rồi quay lại từ bảng cuối). Trong bảng ai cũng gặp ai một lần."
+          - "Xếp hạng trong bảng theo thể lệ vòng tròn của BWF: số trận thắng; hai người bằng trận thắng → ai thắng trận đối đầu xếp trên; ba người trở lên bằng nhau → hiệu số ván, rồi hiệu số điểm (tính trên mọi trận trong bảng), bước nào chỉ còn hai người bằng nhau thì xét trận đối đầu; vẫn bằng → theo hạt giống."
+          - "Vòng trong: 1 hoặc 2 người đứng đầu mỗi bảng vào vòng loại trực tiếp, tự tạo khi vòng bảng đấu xong. Người cùng bảng không gặp lại nhau ngay vòng đầu (khi xếp được)."
+          - Thắng do đối thủ bỏ cuộc tính một trận thắng, không cộng ván hay điểm.
+        round_robin:
+          - Mọi người/cặp gặp nhau đúng một lần; số lẻ thì mỗi lượt có một người nghỉ. Không có vòng loại trực tiếp, nhà vô địch là người đứng đầu bảng.
+          - "Xếp hạng theo thể lệ vòng tròn của BWF: số trận thắng; hai người bằng trận thắng → ai thắng trận đối đầu xếp trên; ba người trở lên bằng nhau → hiệu số ván, rồi hiệu số điểm, bước nào chỉ còn hai người bằng nhau thì xét trận đối đầu; vẫn bằng → theo hạt giống."
+          - "Tối đa %{count} người/cặp (%{matches} trận), vì n người cần n × (n − 1) / 2 trận. Ai cũng được đánh nhiều trận."
+          - Thắng do đối thủ bỏ cuộc tính một trận thắng, không cộng ván hay điểm.
+        scoring: "Mỗi trận theo luật BWF: thắng 2 trong 3 ván; ván 21 điểm, mỗi pha cầu đều tính điểm; 20–20 thì phải hơn 2 điểm, 29–29 thì ai được điểm thứ 30 thắng ván. Nhóm có thể tự thoả thuận chơi ngắn hơn (1 ván, ván 11 hoặc 15 điểm): ở đây nhập 1–3 ván, bên thắng nhiều ván hơn thắng trận."
+      groups_hint: Chỉ dùng cho thể thức vòng bảng + loại trực tiếp.
+      back: Quay lại
+      save: Lưu
+      create: Tạo giải
+    index:
+      title: Giải đấu của tôi
+      intro: Tự tổ chức giải cho nhóm của bạn. Đặt sân như bình thường, tạo giải, nhập tên người chơi, bốc thăm, rồi nhập tỉ số ngay trên điện thoại. Gửi link để mọi người theo dõi sơ đồ và kết quả.
+      new: Tạo giải mới
+      none: Bạn chưa có giải nào. Tạo một giải rồi gửi link cho cả nhóm nhé.
+      organizer_of: "Bạn giúp %{name} nhập tỉ số"
+    new:
+      title: Tạo giải đấu
+      explanation: Giải đấu là công cụ cho nhóm của bạn, sân không tham gia tổ chức. Sau khi tạo, bạn nhập tên người chơi (không cần tài khoản), bốc thăm và nhập tỉ số.
+    edit:
+      title: Sửa giải đấu
+    create:
+      success: Đã tạo giải. Giờ hãy nhập tên người chơi.
+    update:
+      success: Đã lưu.
+    destroy:
+      success: Đã xoá giải.
+    draw:
+      success: Đã bốc thăm. Chúc các bạn thi đấu vui vẻ!
+      not_setup: Giải này đã bốc thăm rồi.
+      too_few: Cần ít nhất 2 người/cặp để bốc thăm.
+      too_few_for_groups: Chưa đủ người để chia bảng (cần ít nhất 2 người vào vòng trong). Hãy giảm số người mỗi bảng hoặc chọn vòng tròn.
+    undo_draw:
+      success: Đã huỷ kết quả bốc thăm. Bạn có thể sửa danh sách rồi bốc thăm lại.
+      not_allowed: Đã có trận đấu xong, không bốc thăm lại được.
+    link_bookings:
+      success: Đã cập nhật sân của giải.
+    join:
+      success: Bạn đã có quyền nhập tỉ số cho giải này.
+      wrong_link: Link này không còn dùng được. Hãy xin người tổ chức link mới.
+    reset_organizer_link:
+      success: Đã tạo link mới. Link cũ không dùng được nữa.
+    remove_organizer:
+      success: Đã bỏ quyền nhập tỉ số.
+    show:
+      back: "← Giải đấu của tôi"
+      organized_by: "Tổ chức bởi %{name}"
+      share: Gửi link giải
+      copied: Đã sao chép link
+      edit: Sửa
+      delete: Xoá giải
+      delete_confirm: Xoá giải này cùng toàn bộ người chơi và kết quả? Không khôi phục được.
+      champion: Vô địch
+      groups: Vòng bảng
+      bracket: Sơ đồ loại trực tiếp
+      results: Nhập kết quả
+      results_hint: Chọn sân cho trận sắp đấu (nếu giải có gắn lượt đặt sân), rồi nhập tỉ số từng ván. Người thắng tự vào trận sau.
+      undo_draw: Bốc thăm lại
+      undo_draw_confirm: Huỷ kết quả bốc thăm hiện tại? Lịch thi đấu sẽ được xoá, danh sách người chơi giữ nguyên.
+    players:
+      title: "Người chơi (%{count})"
+      hint: Thêm tên rồi bốc thăm. Đặt hạt giống (1, 2, …) cho người mạnh nhất để họ không gặp nhau sớm; không bắt buộc.
+      seed: Hạt giống
+      save: Lưu
+      remove: Xoá
+      remove_label: "Xoá %{name}"
+      seeded: "Hạt giống %{number}"
+      none: Chưa có người chơi nào.
+      add_label: Thêm người chơi
+      placeholder_singles: "Hùng\nLan\nMinh"
+      placeholder_doubles: "Hùng / Lan\nMinh / Thảo"
+      add_hint_singles: Mỗi dòng một người. Người chơi không cần tài khoản.
+      add_hint_doubles: "Mỗi dòng một cặp, hai tên cách nhau bởi dấu / (ví dụ: Hùng / Lan). Người chơi không cần tài khoản."
+      add: Thêm vào danh sách
+      draw: Bốc thăm
+      draw_confirm: Bốc thăm ngay? Sau đó không thêm hay bớt người chơi được (trừ khi bốc thăm lại trước trận đầu tiên).
+      draw_hint: Hạt giống được xếp trước, những người còn lại được xếp ngẫu nhiên.
+    match:
+      versus: gặp
+      court: Sân
+      no_court: Chưa chọn sân
+      set_court: Chọn sân
+      enter_result: Nhập kết quả
+      correct: Sửa kết quả
+      game: "Ván %{number}"
+      save_result: Lưu kết quả
+      or_walkover: hoặc xử thắng
+      walkover_for: "%{name} thắng"
+      walkover_confirm: "Xử %{name} thắng do đối thủ bỏ cuộc?"
+    courts:
+      title: Sân thi đấu
+      pick: Chọn các lượt đặt sân của bạn dùng cho giải. Mọi người sẽ thấy giờ và sân, và bạn chọn được sân cho từng trận.
+      save: Lưu sân
+      none_html: "Bạn chưa có lượt đặt sân nào sắp tới. %{link}, rồi quay lại gắn vào giải (không bắt buộc)."
+      book: Đặt sân
+    organizers:
+      title: Người nhập tỉ số
+      hint: Gửi link này cho bạn bè có tài khoản để họ cùng nhập tỉ số (ví dụ mỗi người một sân). Chỉ bạn sửa được danh sách người chơi và bốc thăm.
+      send_link: Gửi link nhập tỉ số
+      reset_link: Tạo link mới
+      reset_confirm: Link cũ sẽ không dùng được nữa (người đã nhận quyền vẫn giữ quyền). Tạo link mới?
+      remove: Bỏ quyền
+      remove_confirm: "Bỏ quyền nhập tỉ số của %{name}?"
+      none: Chưa có ai. Chỉ bạn nhập được tỉ số.
+    organize:
+      invite: "%{name} mời bạn cùng nhập tỉ số cho giải này."
+      accept: Nhận quyền nhập tỉ số
+      already: Bạn đã có quyền nhập tỉ số cho giải này.
+      open: Mở trang giải
+      wrong_link: Link này không còn dùng được. Hãy xin người tổ chức link mới.
+  tournament_entries:
+    create:
+      success: "Đã thêm %{count} người chơi."
+    destroy:
+      success: Đã xoá khỏi danh sách.
+  tournament_matches:
+    call:
+      not_ready: Trận này chưa đấu được (còn chờ người thắng trận trước).
+    update:
+      success: Đã lưu kết quả.
   play_session_tickets:
     destroy:
       success: Đã huỷ chỗ giao lưu.

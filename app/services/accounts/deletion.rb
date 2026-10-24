@@ -84,6 +84,9 @@ module Accounts
         BookingSeries.where(user: user).update_all(user_id: nil, updated_at: now)
         user.series_requests.delete_all
         user.groups.to_a.each { |group| group.remove(user) }
+        # Their tournaments hold other players' names: they go (GD-01).
+        user.tournaments.each(&:destroy!)
+        user.tournament_organizers.delete_all
         user.reviews.update_all(comment: nil, updated_at: now) # the ratings stay, without the customer's words
         if user.phone && (profile = CustomerProfile.find_by(phone: user.phone)) && !profile.blocked?
           profile.destroy!

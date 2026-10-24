@@ -85,6 +85,53 @@ module ApiJson
       payment_token: (ticket.payment&.token if ticket.pending? && ticket.payment&.open?(now)) }
   end
 
+  # A tournament in the customer's list (GD-01): what they run, and whether they created it.
+  def tournament(tournament, viewer: nil)
+    { token: tournament.share_token, title: tournament.title, description: tournament.description, event: tournament.event_name,
+      discipline: tournament.discipline, play_format: tournament.play_format, group_size: tournament.group_size,
+      advance_per_group: tournament.advance_per_group, played_on: tournament.played_on&.iso8601, date: tournament.play_date&.iso8601,
+      status: tournament.status, created_by: tournament.created_by.full_name, creator: tournament.creator?(viewer),
+      # Paths on the website (the app adds its server address) to send to friends.
+      share_path: Rails.application.routes.url_helpers.tournament_path(token: tournament.share_token) }
+  end
+
+  # The tournament's page in the app: players, courts, group tables, every match, and what the viewer may do
+  # (the creator sets it up and sees the organizer link; organizers call matches and enter results).
+  def tournament_details(tournament, viewer: nil, now: Time.current)
+    creator = tournament.creator?(viewer)
+    organizer = tournament.organizer?(viewer)
+    side = ->(entry) { entry && { id: entry.id, name: entry.display_name } }
+    standings = tournament.knockout? ? {} : Tournaments::Standings.new(tournament).groups
+    matches = tournament.matches.ordered.includes(:court, :entry_a, :entry_b)
+    bookings = tournament.bookings.where.not(status: :cancelled).includes(:court).order(:starts_at)
+    tournament(tournament, viewer: viewer).merge(
+      organizer: organizer, champion: tournament.champion&.display_name, redrawable: creator && tournament.redrawable?,
+      entries: tournament.entries.map { |entry| { id: entry.id, name: entry.name, partner_name: entry.partner_name, seed: entry.seed } },
+      bookings: bookings.map { |booking| { id: booking.id, court: booking.court.display_name, starts_at: booking.starts_at.iso8601, ends_at: booking.ends_at.iso8601 } },
+      courts: organizer ? tournament.courts.map { |court| { id: court.id, name: court.display_name } } : [],
+      linkable_bookings: creator ? tournament.linkable_bookings(viewer, now).map { |booking| tournament_booking(booking, tournament) } : [],
+      organizer_path: (Rails.application.routes.url_helpers.organize_tournament_path(token: tournament.share_token, organizer_token: tournament.organizer_token) if creator),
+      organizers: creator ? tournament.organizers.includes(:user).order(:created_at).map { |organizer| { user_id: organizer.user_id, name: organizer.user.full_name } } : [],
+      groups: standings.map do |number, rows|
+        { number: number, rows: rows.map do |row|
+          { entry: side.(row.entry), played: row.played, won: row.won, lost: row.lost, games_for: row.games_for,
+            games_against: row.games_against, point_difference: row.point_difference }
+        end }
+      end,
+      matches: matches.map do |match|
+        { id: match.id, stage: match.stage, group: match.group_number, round: match.round, round_name: match.round_name, position: match.position,
+          a: side.(match.entry_a), b: side.(match.entry_b), winner_id: match.winner_id, scores: match.scores, walkover: match.walkover,
+          bye: match.bye?, court: match.court&.display_name, court_id: match.court_id, called_at: match.called_at&.iso8601,
+          editable: organizer && match.editable?, ready: match.ready? }
+      end
+    )
+  end
+
+  def tournament_booking(booking, tournament)
+    { id: booking.id, court: booking.court.display_name, starts_at: booking.starts_at.iso8601, ends_at: booking.ends_at.iso8601,
+      linked: booking.tournament_id == tournament.id }
+  end
+
   # Upcoming shared bookings only; members are shown by name.
   def group(group, viewer, now: Time.current)
     { id: group.id, name: group.name, invite_code: group.invite_code, owner: group.owner_id == viewer.id,

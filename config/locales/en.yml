@@ -11,6 +11,9 @@ en:
     models:
       play_session: Open play session
       play_session_ticket: Open play place
+      tournament: Tournament
+      tournament_entry: Player
+      tournament_match: Match
       group: Group
       group_share: Shared booking
       voucher: Voucher
@@ -45,6 +48,20 @@ en:
         level: Level
       play_session_ticket:
         quantity: Players
+      tournament:
+        title: Name
+        description: Description, prizes, rules
+        play_format: Format
+        discipline: Event
+        played_on: Date
+        group_size: Players or pairs per group
+        advance_per_group: Going on from each group
+      tournament_entry:
+        name: Name
+        partner_name: Partner's name
+        seed: Seed
+      tournament_match:
+        scores: Scores
       group:
         name: Group name
       group_share:
@@ -203,6 +220,14 @@ en:
           not_bookable: This session no longer takes players.
           blacklisted: Your account cannot book online at the moment. Please contact the venue.
           full: "Only %{left} places left in this session."
+        tournament:
+          too_many: "You can have at most %{count} tournaments not finished yet. Delete some old ones."
+          too_many_organizers: "A tournament has at most %{count} score keepers."
+          too_many_for_round_robin: "a round robin takes at most %{count} players or pairs"
+        tournament_match:
+          not_editable: This match's result can no longer be changed.
+          invalid_winner: The winner is not valid.
+          invalid: "are not valid: enter at least one game, each with a winner, and the two sides must not have won as many games"
         group:
           too_many: "You can be in at most %{count} groups."
           full: "The group already has %{count} members."
@@ -328,6 +353,7 @@ en:
         my_bookings: My bookings
         my_bookings_short: Bookings
         play_sessions: Open play
+        tournaments: Tournaments
         sign_in: Sign in
         sign_up: Sign up
         sign_out: Sign out
@@ -847,6 +873,188 @@ en:
         scheduled: "Your account is locked and will be deleted after your last booking ends (around %{time}). We have sent you an email."
         deleted: Your account has been deleted. We have sent you a confirmation email.
 
+  tournaments:
+    not_allowed: Only the tournament's organizers can do this.
+    events:
+      singles: Singles
+      doubles: Doubles
+      mixed_doubles: Mixed doubles
+    formats:
+      knockout: Knockout
+      groups_knockout: Groups + knockout
+      round_robin: Round robin
+    walkover: Won by walkover
+    bye: Bye
+    on_court: "Playing on %{court}"
+    status:
+      setup: Getting ready
+      in_progress: In progress
+      finished: Finished
+      champion: "Champion: %{name}"
+    rounds:
+      final: Final
+      semi_final: Semi-final
+      quarter_final: Quarter-final
+      last_16: Round of 16
+      round: "Round %{number}"
+    standings:
+      table: Standings
+      group: "Group %{name}"
+      player: Player
+      played: P
+      played_long: Matches played
+      won: W
+      won_long: Matches won
+      games: Games
+      games_long: Games won – games lost
+      points: +/-
+      points_long: Point difference
+    errors:
+      not_setup: The draw is made, the players can no longer change.
+      empty_list: Type at least one name.
+      too_many_entries: "This tournament takes at most %{count} players or pairs."
+      line: "Line %{number}: %{errors}"
+    form:
+      title_placeholder: "E.g. Office badminton cup, November"
+      description_placeholder: Prizes, rules, number of games…
+      discipline_locked: Players are already typed, so the event cannot change.
+      played_on_hint: Optional. Once you link court bookings to the tournament, the date comes from them.
+      format_hints:
+        knockout: Lose and you are out. Seeds are placed apart and get the byes.
+        groups_knockout: Round robin groups, the top of each group go on to a knockout.
+        round_robin: "Everyone meets everyone, ranked by matches won. At most %{count} players or pairs."
+      format_help:
+        label: "How it works: %{name}"
+        knockout:
+          - Lose one match and you are out; winners move on until the final. There is no third-place match.
+          - The draw has 2, 4, 8, 16, 32 or 64 places. When some are empty, the top seeds get byes and go straight to the next round, as in BWF draws.
+          - Seeds 1 and 2 are in opposite halves, so they can only meet in the final; seeds 3 and 4 are in the other two quarters. Unseeded players are drawn at random.
+          - Good for many players and little time (n players or pairs need only n − 1 matches).
+        groups_knockout:
+          - "Groups: groups of 3–6 players or pairs, seeds spread snake-wise (1→A, 2→B, …, then back from the last group). Everyone in a group meets everyone once."
+          - "Group ranking follows the BWF round robin rules: matches won; two tied → the winner of their match ranks higher; three or more tied → game difference, then point difference (over all group matches), going back to the match between them whenever only two are left tied; still tied → by seed."
+          - "Knockout: the top 1 or 2 of each group go on to a knockout, made by itself once the groups are over. Group-mates do not meet again in its first round (when possible)."
+          - A walkover counts as a match won, with no games or points.
+        round_robin:
+          - Everyone meets everyone exactly once; with an odd number, one rests each round. No knockout, the top of the table is the champion.
+          - "Ranking follows the BWF round robin rules: matches won; two tied → the winner of their match ranks higher; three or more tied → game difference, then point difference, going back to the match between them whenever only two are left tied; still tied → by seed."
+          - "At most %{count} players or pairs (%{matches} matches), as n players need n × (n − 1) / 2 matches. Everyone plays a lot."
+          - A walkover counts as a match won, with no games or points.
+        scoring: "Each match follows the BWF Laws: best of 3 games; 21 points a game, every rally scores; at 20-all a 2-point lead is needed, at 29-all the 30th point wins. Groups may agree on shorter play (1 game, games to 11 or 15): enter 1–3 games here, whoever wins more games wins the match."
+      groups_hint: Only for groups + knockout.
+      back: Back
+      save: Save
+      create: Create tournament
+    index:
+      title: My tournaments
+      intro: Run a tournament for your group. Book courts as usual, create a tournament, type the players' names, make the draw, then enter scores right on your phone. Send the link so everyone can follow the draw and results.
+      new: New tournament
+      none: You have no tournament yet. Create one and send the link to your group.
+      organizer_of: "You help %{name} enter scores"
+    new:
+      title: New tournament
+      explanation: Tournaments are a tool for your group; the venue does not run them. Once created, type the players' names (no account needed), make the draw and enter the scores.
+    edit:
+      title: Edit tournament
+    create:
+      success: Tournament created. Now type the players' names.
+    update:
+      success: Saved.
+    destroy:
+      success: Tournament deleted.
+    draw:
+      success: The draw is made. Have a good game!
+      not_setup: This tournament is already drawn.
+      too_few: The draw needs at least 2 players or pairs.
+      too_few_for_groups: Not enough players for groups (at least 2 must go on). Make the groups smaller or pick a round robin.
+    undo_draw:
+      success: The draw is undone. Change the players if needed and draw again.
+      not_allowed: A match is already played, the draw cannot be made again.
+    link_bookings:
+      success: The tournament's courts are updated.
+    join:
+      success: You can now enter scores for this tournament.
+      wrong_link: This link no longer works. Ask the organizer for a new one.
+    reset_organizer_link:
+      success: New link made. The old one no longer works.
+    remove_organizer:
+      success: They can no longer enter scores.
+    show:
+      back: "← My tournaments"
+      organized_by: "Organized by %{name}"
+      share: Send the link
+      copied: Link copied
+      edit: Edit
+      delete: Delete tournament
+      delete_confirm: Delete this tournament with all its players and results? This cannot be undone.
+      champion: Champion
+      groups: Groups
+      bracket: Knockout bracket
+      results: Enter results
+      results_hint: Pick the court of the next match (when bookings are linked), then enter each game's score. Winners move on by themselves.
+      undo_draw: Draw again
+      undo_draw_confirm: Undo the current draw? The matches are removed, the players stay.
+    players:
+      title: "Players (%{count})"
+      hint: Add the names, then make the draw. Seed the strongest (1, 2, …) so they do not meet early; optional.
+      seed: Seed
+      save: Save
+      remove: Remove
+      remove_label: "Remove %{name}"
+      seeded: "Seed %{number}"
+      none: No player yet.
+      add_label: Add players
+      placeholder_singles: "Hung\nLan\nMinh"
+      placeholder_doubles: "Hung / Lan\nMinh / Thao"
+      add_hint_singles: One player per line. Players need no account.
+      add_hint_doubles: "One pair per line, the two names split by / (e.g. Hung / Lan). Players need no account."
+      add: Add to the list
+      draw: Make the draw
+      draw_confirm: Make the draw now? Players can then no longer be added or removed (unless you draw again before the first match).
+      draw_hint: Seeds are placed first, the others at random.
+    match:
+      versus: vs
+      court: Court
+      no_court: No court
+      set_court: Set court
+      enter_result: Enter result
+      correct: Correct result
+      game: "Game %{number}"
+      save_result: Save result
+      or_walkover: or give a walkover
+      walkover_for: "%{name} wins"
+      walkover_confirm: "Give %{name} the win by walkover?"
+    courts:
+      title: Courts
+      pick: Pick your court bookings used for the tournament. Everyone sees the times and courts, and you can set each match's court.
+      save: Save courts
+      none_html: "You have no upcoming booking. %{link}, then come back to link it (optional)."
+      book: Book a court
+    organizers:
+      title: Score keepers
+      hint: Send this link to friends with an account so they can enter scores too (e.g. one per court). Only you can change the players and make the draw.
+      send_link: Send the score keeper link
+      reset_link: New link
+      reset_confirm: The old link will stop working (people who joined keep their access). Make a new link?
+      remove: Remove
+      remove_confirm: "Stop %{name} from entering scores?"
+      none: Nobody yet. Only you can enter scores.
+    organize:
+      invite: "%{name} invites you to enter scores for this tournament."
+      accept: Accept
+      already: You can already enter scores for this tournament.
+      open: Open the tournament
+      wrong_link: This link no longer works. Ask the organizer for a new one.
+  tournament_entries:
+    create:
+      success: "%{count} added."
+    destroy:
+      success: Removed from the list.
+  tournament_matches:
+    call:
+      not_ready: This match cannot be played yet (waiting for an earlier winner).
+    update:
+      success: Result saved.
   play_session_tickets:
     destroy:
       success: Your open play places were given up.

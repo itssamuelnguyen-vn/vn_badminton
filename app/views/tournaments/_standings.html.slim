@@ -1,0 +1,30 @@
+/ A group's table (Tournaments::Standings) and its matches. The best advance_per_group go on (groups_knockout).
+- advancing = tournament.groups_knockout? ? tournament.advance_per_group : 1
+div class="surface overflow-hidden"
+  h3 class="bg-slate-50 px-4 py-2 text-sm font-bold" = tournament.round_robin? ? t("tournaments.standings.table") : t("tournaments.standings.group", name: (64 + number).chr)
+  table class="w-full text-sm"
+    thead class="text-xs text-slate-500"
+      tr
+        th class="px-4 py-2 text-left font-medium" = t("tournaments.standings.player")
+        th class="px-2 py-2 text-right font-medium" title=t("tournaments.standings.played_long") = t("tournaments.standings.played")
+        th class="px-2 py-2 text-right font-medium" title=t("tournaments.standings.won_long") = t("tournaments.standings.won")
+        th class="px-2 py-2 text-right font-medium" title=t("tournaments.standings.games_long") = t("tournaments.standings.games")
+        th class="px-4 py-2 text-right font-medium" title=t("tournaments.standings.points_long") = t("tournaments.standings.points")
+    tbody class="divide-y divide-slate-100"
+      - rows.each_with_index do |row, index|
+        tr class=("bg-emerald-50/60" if index < advancing && row.played.positive?)
+          td class="px-4 py-2" = "#{index + 1}. #{row.entry.display_name}"
+          td class="px-2 py-2 text-right tabular-nums" = row.played
+          td class="px-2 py-2 text-right tabular-nums" = row.won
+          td class="px-2 py-2 text-right tabular-nums" = "#{row.games_for}-#{row.games_against}"
+          td class="px-4 py-2 text-right tabular-nums" = format("%+d", row.point_difference)
+  - if matches.any?
+    ul class="divide-y divide-slate-100 border-t border-slate-100 text-sm"
+      - matches.each do |match|
+        li class="flex items-center justify-between gap-3 px-4 py-2"
+          span class="min-w-0"
+            span class=("font-semibold" if match.winner_id && match.winner_id == match.entry_a_id) = match.entry_a.display_name
+            span class="text-slate-400" =< "–"
+            span class=("font-semibold" if match.winner_id && match.winner_id == match.entry_b_id) =< match.entry_b.display_name
+          span class="shrink-0 text-xs text-slate-500 tabular-nums"
+            = match.walkover ? t("tournaments.walkover") : (match.score_text || (match.court ? t("tournaments.on_court", court: match.court.display_name) : "—"))

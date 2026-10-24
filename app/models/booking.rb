@@ -32,6 +32,8 @@ class Booking < ApplicationRecord
   belongs_to :package_purchase, optional: true
   # A block keeping a court for an open play session.
   belongs_to :play_session, optional: true
+  # The customer plays their own tournament (Tournament) on it.
+  belongs_to :tournament, optional: true
 
   # Why a booking was cancelled, besides a plain cancellation (see also BookingSeries reasons).
   PAYMENT_EXPIRED = "payment_expired" # the transfer did not arrive in time

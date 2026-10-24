@@ -1,0 +1,26 @@
+/ Where it is played: the organizers' bookings linked to it (date, time, court). The creator ticks theirs; with
+/ none booked yet, a link to book.
+- bookings = @bookings
+- linkable = @creator ? @linkable : []
+- if bookings.any? || @creator
+  section id="courts" class="card space-y-3"
+    h2 class="section-title" = t(".title")
+    - if bookings.any?
+      ul class="flex flex-wrap gap-2 text-sm"
+        - bookings.each do |booking|
+          li class="rounded-xl bg-emerald-50 px-3 py-1.5 text-emerald-900 ring-1 ring-emerald-200"
+            = "#{booking.court.display_name} · #{l(booking.starts_at.to_date, format: :short)} #{time_range(booking.starts_at, booking.ends_at)}"
+    - if @creator
+      - if linkable.any?
+        = form_with url: bookings_tournament_path(tournament), method: :patch, class: "space-y-2" do |f|
+          p class="text-sm text-slate-600" = t(".pick")
+          div class="flex flex-wrap gap-2"
+            - linkable.each do |booking|
+              label class="flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 has-checked:bg-emerald-50 has-checked:ring-emerald-500"
+                = check_box_tag "booking_ids[]", booking.id, booking.tournament_id == tournament.id, id: "booking_#{booking.id}", class: "accent-emerald-600"
+                = "#{booking.court.display_name} · #{l(booking.starts_at.to_date, format: :short)} #{time_range(booking.starts_at, booking.ends_at)}"
+          = hidden_field_tag "booking_ids[]", ""
+          = f.submit t(".save"), class: "btn-secondary px-3 py-1.5 text-xs"
+      - else
+        p class="text-sm text-slate-600"
+          = t(".none_html", link: link_to(t(".book"), root_path, class: "link"))

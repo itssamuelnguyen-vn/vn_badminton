@@ -36,6 +36,9 @@ class User < ApplicationRecord
   has_many :reviews, dependent: :delete_all
   has_many :package_purchases, dependent: :restrict_with_error
   has_many :play_session_tickets, dependent: :restrict_with_error
+  # Their own tournaments (Tournament), and the ones they help organize.
+  has_many :tournaments, foreign_key: :created_by_id, inverse_of: :created_by, dependent: :restrict_with_error
+  has_many :tournament_organizers, dependent: :delete_all
   has_many :group_memberships, dependent: :delete_all
   has_many :groups, through: :group_memberships
 
