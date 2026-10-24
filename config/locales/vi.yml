@@ -514,6 +514,7 @@ vi:
     show:
       title: Đặt sân
       continue: Tiếp tục
+      clear: Bỏ chọn
       closed: Cơ sở nghỉ vào ngày này.
       too_short: "Vui lòng chọn tối thiểu %{minutes} phút"
       too_long: "Chỉ được đặt tối đa %{minutes} phút một lần"

@@ -85,6 +85,24 @@ class BookingTest < ApplicationSystemTestCase
     assert_no_text "Sân 1 · 18:00"
   end
 
+  test "Bỏ chọn clears every picked court at once" do
+    visit root_path(date: "2026-10-20")
+
+    check "Đặt nhiều sân cùng lúc"
+    slot("Sân 1", "18:00").click
+    slot("Sân 1", "19:00").click
+    slot("Sân 2", "19:00").click
+    assert_text "Sân 1 · 18:00 – 19:30"
+
+    click_on "Bỏ chọn"
+    assert_no_text "Sân 1 · 18:00"
+    assert_no_selector "a", text: "Tiếp tục"
+
+    slot("Sân 3", "18:00").click
+    assert_text "Sân 3 · 18:00 – 18:30"
+    assert_no_text "Sân 2 · 19:00"
+  end
+
   private
 
   # The transfer reported by SePay, then the page reloaded (live updates need Action Cable, not used in tests).

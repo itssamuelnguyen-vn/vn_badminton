@@ -520,6 +520,7 @@ en:
     show:
       title: Book a court
       continue: Continue
+      clear: Clear
       closed: The venue is closed on this day.
       too_short: "Please choose at least %{minutes} minutes"
       too_long: "You can book at most %{minutes} minutes at a time"
