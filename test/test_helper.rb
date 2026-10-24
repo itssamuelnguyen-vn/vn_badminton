@@ -66,6 +66,28 @@ module ApiTestHelpers
   def auth(token) = { "Authorization" => "Bearer #{token}" }
 end
 
+# Google's check of the ID token faked (Accounts::GoogleIdentity.verifier): "good:<sub>:<email>" is valid for the
+# web client ID, "unverified:..." has an unverified email, "offline" cannot reach Google; anything else is forged.
+module GoogleTestHelpers
+  FAKE_VERIFIER = lambda do |id_token, client_ids|
+    raise Google::Auth::IDTokens::KeySourceError, "offline" if id_token == "offline"
+
+    kind, sub, email = id_token.split(":")
+    raise Google::Auth::IDTokens::AudienceMismatchError, "aud" unless client_ids.include?(Accounts::GoogleIdentity::DEFAULT_CLIENT_ID)
+    raise Google::Auth::IDTokens::SignatureError, "forged" unless %w[good unverified].include?(kind)
+
+    { "sub" => sub, "email" => email, "email_verified" => kind == "good", "name" => "  Trần   Bình " }
+  end
+
+  def self.included(base)
+    base.setup do
+      @original_verifier = Accounts::GoogleIdentity.verifier
+      Accounts::GoogleIdentity.verifier = FAKE_VERIFIER
+    end
+    base.teardown { Accounts::GoogleIdentity.verifier = @original_verifier }
+  end
+end
+
 # Firebase Cloud Messaging in the tests (Push::Fcm.current = FakeFcm.new): keeps what would be sent, and answers
 # :invalid_token for the tokens in invalid_tokens.
 class FakeFcm

@@ -4,6 +4,10 @@ Rails.application.routes.draw do
     # The custom controllers only add rate limits; the views stay in app/views/devise.
     devise_for :users, controllers: { sessions: "users/sessions", registrations: "users/registrations",
                                       passwords: "users/passwords", confirmations: "users/confirmations" }
+    # "Sign in with Google": Google's button posts its ID token; someone new then gives a phone number (AP-05).
+    resource :google_sign_in, only: %i[new create], path: "users/google", controller: "users/google" do
+      post :register
+    end
 
     # "Tải dữ liệu của tôi" on the account page.
     resource :account_data, only: :create, path: "account/data", controller: "accounts/data_exports"
@@ -28,6 +32,28 @@ Rails.application.routes.draw do
       post :buy, on: :member
     end
     resources :play_session_tickets, only: :destroy
+
+    # The customers' own tournaments (a tool for their group, the venue takes no part): the list of the ones they
+    # run; each one's page is open to anyone with its link (/tournaments/<share token>).
+    resources :tournaments, param: :token do
+      member do
+        post :draw
+        delete :draw, action: :undo_draw
+        # The bookings it is played on (booking_ids[]).
+        patch :bookings, action: :link_bookings
+        # The organizer link: the page to accept it, accepting, a new link, removing an organizer (?user_id=).
+        get "organize/:organizer_token", action: :organize, as: :organize
+        post "organize/:organizer_token", action: :join
+        patch :organizer_link, action: :reset_organizer_link
+        delete :organizers, action: :remove_organizer
+      end
+      # Players typed one per line (create), a seed or a name (update), removing one.
+      resources :entries, only: %i[create update destroy], controller: :tournament_entries
+      # Calling a match to a court, entering its result.
+      resources :matches, only: :update, controller: :tournament_matches do
+        patch :call, on: :member
+      end
+    end
 
     # The customer's groups. A booking is shared with the group picked in the form (groups page or booking page).
     resources :groups, only: %i[index create destroy] do
@@ -125,6 +151,8 @@ Rails.application.routes.draw do
     get "privacy", to: "pages#privacy"
     resources :payments, only: :show, param: :token do
       get :qr, on: :member
+      # The customer gives up before transferring: what is held is released at once.
+      patch :cancel, on: :member
     end
 
     # The home page is the booking schedule; ?date=YYYY-MM-DD picks the day.
@@ -164,7 +192,9 @@ Rails.application.routes.draw do
           post :review
         end
       end
-      resources :payments, only: :show, param: :token
+      resources :payments, only: :show, param: :token do
+        patch :cancel, on: :member
+      end
       resource :quote, only: :create
       resources :packages, only: :index do
         post :buy, on: :member
@@ -174,6 +204,20 @@ Rails.application.routes.draw do
         post :tickets, on: :member, action: :buy
       end
       resources :tickets, only: :destroy, controller: :play_session_tickets
+      resources :tournaments, param: :token, only: %i[index show create update destroy] do
+        member do
+          post :draw
+          delete :draw, action: :undo_draw
+          patch :bookings, action: :link_bookings
+          post :organize, action: :join
+          patch :organizer_link, action: :reset_organizer_link
+          delete :organizers, action: :remove_organizer
+        end
+        resources :entries, only: %i[create update destroy], controller: :tournament_entries
+        resources :matches, only: :update, controller: :tournament_matches do
+          patch :call, on: :member
+        end
+      end
       resources :groups, only: %i[index create destroy] do
         post :join, on: :collection
         delete :leave, on: :member

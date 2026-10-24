@@ -81,6 +81,21 @@ class Api::OffersTest < ActionDispatch::IntegrationTest
     assert_equal [ 80_000, 20_000, 60_000 ], response.parsed_body.values_at("court_vnd", "discount_vnd", "total_vnd")
   end
 
+  test "a code whose discount rounds down to nothing says so and stops the order" do
+    # 10% of 6 000 is 600, under the 1 000đ the discounts are rounded to.
+    @venue.vouchers.create!(code: "NHO10", kind: "percent", value: 10, valid_from: "2026-10-01", valid_until: "2026-10-31")
+    token = sign_in_api(users(:an))
+    post api_v1_quote_path, params: { slots: @slots, voucher_code: "NHO10" }, headers: auth(token), as: :json
+    assert_equal 18_000, response.parsed_body["discount_vnd"], "a real price is discounted"
+
+    PriceRule.update_all(price_per_hour_vnd: 4_000) # 1.5 hours: 6 000, like a test price
+    post api_v1_quote_path, params: { slots: @slots, voucher_code: "NHO10" }, headers: auth(token), as: :json
+    assert_equal [ 6_000, 0, [ "Mã này không giảm được cho đơn này (số tiền giảm dưới 1.000đ)." ] ],
+                 response.parsed_body.values_at("total_vnd", "discount_vnd", "messages")
+    post api_v1_bookings_path, params: { slots: @slots, voucher_code: "NHO10" }, headers: auth(token), as: :json
+    assert_response :unprocessable_content
+  end
+
   test "the web's confirmation page takes a voucher code too" do
     @venue.vouchers.create!(code: "WEB10", kind: "amount", value: 10_000, valid_from: "2026-10-01", valid_until: "2026-10-31")
     sign_in users(:an)

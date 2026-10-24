@@ -32,9 +32,12 @@ class Booking < ApplicationRecord
   belongs_to :package_purchase, optional: true
   # A block keeping a court for an open play session.
   belongs_to :play_session, optional: true
+  # The customer plays their own tournament (Tournament) on it.
+  belongs_to :tournament, optional: true
 
   # Why a booking was cancelled, besides a plain cancellation (see also BookingSeries reasons).
   PAYMENT_EXPIRED = "payment_expired" # the transfer did not arrive in time
+  PAYMENT_CANCELLED = "payment_cancelled" # the customer gave up on the payment page before transferring
   VENUE_FAULT = "venue_fault"         # the venue could not provide the court (outage, broken court): refunded
   has_one :venue, through: :court
   # Products picked with the booking (racket, shuttlecocks...), paid with it; their sum is items_amount_vnd.

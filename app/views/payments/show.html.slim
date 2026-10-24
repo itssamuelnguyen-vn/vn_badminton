@@ -22,8 +22,8 @@ div class="card mx-auto max-w-lg"
         = link_to t(payment.for_tickets? ? ".view_play_sessions" : ".view_series"), (payment.for_tickets? ? play_sessions_path : series_index_path), class: "btn-primary mt-6"
   - elsif !payment.open?
     div class="text-center" role="status"
-      h1 class="text-2xl font-bold" = t(".closed_title")
-      p class="mt-2 text-sm text-slate-600" = t(".closed_text")
+      h1 class="text-2xl font-bold" = t(payment.cancelled? ? ".cancelled_title" : ".closed_title")
+      p class="mt-2 text-sm text-slate-600" = t(payment.cancelled? ? ".cancelled_text" : ".closed_text")
       = link_to t(".book_again"), root_path, class: "btn-primary mt-6"
   - else
     - received = payment.received_vnd
@@ -59,6 +59,13 @@ div class="card mx-auto max-w-lg"
           dd class="font-semibold tabular-nums select-all" = value
 
     p class="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200" = t(".exact", amount: format_vnd(remaining), code: payment.code)
+
+    / Giving up before transferring releases the courts or places at once (Payment#cancel_by!).
+    - if payment.cancellable_by?(current_user)
+      div class="mt-4 text-center"
+        = button_to t(payment.for_tickets? ? ".cancel_tickets" : ".cancel_bookings"), cancel_payment_path(payment), method: :patch,
+            class: "btn w-full bg-white text-red-600 ring-1 ring-red-200 hover:bg-red-50", form: { data: { turbo_confirm: t(".cancel_confirm") } }
+        p class="mt-1 text-xs text-slate-500" = t(".cancel_hint")
 
   - if @bookings.any?
     div class="mt-6 border-t border-slate-100 pt-4"

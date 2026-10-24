@@ -23,18 +23,14 @@ module Api
       # Nobody yet -> { needs_phone: true, signup_token, name, email }, to finish with RegistrationsController#google.
       def google
         identity = Accounts::GoogleIdentity.verify(params[:id_token])
-        user = User.find_by(google_uid: identity.uid) || User.find_by(email: identity.email)
+        user = Accounts::GoogleIdentity.account_for(identity)
         unless user
           return render json: { needs_phone: true, signup_token: Accounts::GoogleIdentity.signup_token(identity),
                                 name: identity.name, email: identity.email }
         end
-        # The email's account is already linked to another Google account.
-        return render_error(:invalid_google, [ t("api.google.invalid") ], status: :unauthorized) if user.google_uid && user.google_uid != identity.uid
         return render_error(:account_deleted, [ t("devise.failure.account_deleted") ], status: :forbidden) unless user.active_for_authentication?
 
-        user.update_column(:google_uid, identity.uid) unless user.google_uid
-        # Google checked that the address is theirs, as the verification link would have.
-        user.confirm if user.email == identity.email && !user.confirmed?
+        Accounts::GoogleIdentity.link(user, identity)
         render_signed_in(user)
       rescue Accounts::GoogleIdentity::Invalid
         render_error :invalid_google, [ t("api.google.invalid") ], status: :unauthorized

@@ -3,25 +3,8 @@ require "test_helper"
 # "Sign in with Google" in the app (Accounts::GoogleIdentity), with Google's check of the ID token faked.
 class Api::GoogleSignInTest < ActionDispatch::IntegrationTest
   include ApiTestHelpers
+  include GoogleTestHelpers
   include ActionMailer::TestHelper
-
-  # Fake ID tokens: "good:<sub>:<email>" is valid for the web client ID; anything else is refused as Google would.
-  FAKE_VERIFIER = lambda do |id_token, client_ids|
-    raise Google::Auth::IDTokens::KeySourceError, "offline" if id_token == "offline"
-
-    kind, sub, email = id_token.split(":")
-    raise Google::Auth::IDTokens::AudienceMismatchError, "aud" unless client_ids.include?(Accounts::GoogleIdentity::DEFAULT_CLIENT_ID)
-    raise Google::Auth::IDTokens::SignatureError, "forged" unless %w[good unverified].include?(kind)
-
-    { "sub" => sub, "email" => email, "email_verified" => kind == "good", "name" => "  Trần   Bình " }
-  end
-
-  setup do
-    @original_verifier = Accounts::GoogleIdentity.verifier
-    Accounts::GoogleIdentity.verifier = FAKE_VERIFIER
-  end
-
-  teardown { Accounts::GoogleIdentity.verifier = @original_verifier }
 
   test "an account with the Google email signs in and is linked; later by its Google ID even if the email changed" do
     users(:an).update_columns(confirmed_at: nil)

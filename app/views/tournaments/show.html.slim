@@ -1,0 +1,66 @@
+/ A tournament's page (GD-01..07), open to anyone with its link. The creator sets it up here (players, seeds,
+/ courts, organizers, draw); the creator and the organizers call matches and enter results.
+- tournament = @tournament
+- content_for :title, tournament.title
+
+div class="mx-auto max-w-4xl space-y-6"
+  div
+    - if user_signed_in?
+      = link_to t(".back"), tournaments_path, class: "link text-sm"
+    h1 class="mt-2 text-2xl font-bold text-balance break-words sm:text-3xl" = tournament.title
+    p class="mt-1 text-sm text-slate-600"
+      = [ tournament.event_name, t("tournaments.formats.#{tournament.play_format}"), (date = tournament.play_date) && l(date, format: :full) ].compact.join(" · ")
+    div class="mt-3 flex flex-wrap items-center gap-1.5 text-xs font-semibold"
+      = render "tournaments/status", tournament: tournament
+      span class="text-slate-500" = t(".organized_by", name: tournament.created_by.full_name)
+    - if tournament.description.present?
+      p class="mt-3 text-sm whitespace-pre-line text-slate-600" = tournament.description
+    div class="mt-4 flex flex-wrap gap-2" data-controller="share-link" data-share-link-url-value=tournament_url(tournament) data-share-link-title-value=tournament.title data-share-link-copied-value=t(".copied")
+      button type="button" class="btn-secondary px-3 py-1.5 text-xs" data-share-link-target="button" data-action="share-link#share" = t(".share")
+      - if @creator
+        = link_to t(".edit"), edit_tournament_path(tournament), class: "btn-secondary px-3 py-1.5 text-xs"
+        = button_to t(".delete"), tournament_path(tournament), method: :delete, class: "btn px-3 py-1.5 text-xs bg-white text-red-600 ring-1 ring-red-200 hover:bg-red-50",
+            form: { data: { turbo_confirm: t(".delete_confirm") } }
+
+  - if (champion = tournament.champion)
+    div class="flex items-center gap-4 rounded-3xl bg-gradient-to-br from-amber-400 to-orange-500 p-5 text-white shadow-lg shadow-orange-600/25"
+      = render "tournaments/trophy", css: "size-10 shrink-0"
+      div
+        p class="text-sm font-medium opacity-90" = t(".champion")
+        p class="text-xl font-bold break-words" = champion.display_name
+
+  = render "tournaments/courts", tournament: tournament
+
+  - if tournament.setup?
+    = render "tournaments/players", tournament: tournament
+  - else
+    - if @standings.present?
+      section
+        h2 class="section-title" = t(".groups")
+        div class="mt-3 grid gap-4 md:grid-cols-2"
+          - @standings.each do |number, rows|
+            = render "tournaments/standings", tournament: tournament, number: number, rows: rows,
+                matches: @matches.select { |match| match.group? && match.group_number == number }
+    - knockout = @matches.select(&:knockout?)
+    - if knockout.any?
+      section
+        h2 class="section-title" = t(".bracket")
+        = render "tournaments/bracket", matches: knockout
+
+    / The organizers' desk: every match with two sides, to call to a court and enter or correct its result.
+    - if @organizer && tournament.in_progress?
+      - playable = @matches.select { |match| match.entry_a && match.entry_b && (match.ready? || match.editable?) }
+      section id="results" class="card p-0"
+        div class="px-4 pt-4 sm:px-5"
+          h2 class="section-title" = t(".results")
+          p class="mt-1 text-sm text-slate-600" = t(".results_hint")
+        div class="mt-3 divide-y divide-slate-100 border-t border-slate-100"
+          - playable.sort_by { |match| [ match.finished? ? 1 : 0, match.knockout? ? 1 : 0, match.round, match.group_number.to_i, match.position ] }.each do |match|
+            = render "tournaments/match", tournament: tournament, match: match, courts: @courts
+        - if @creator && tournament.redrawable?
+          div class="border-t border-slate-100 px-4 py-3 sm:px-5"
+            = button_to t(".undo_draw"), draw_tournament_path(tournament), method: :delete, class: "btn-secondary px-3 py-1.5 text-xs",
+                form: { data: { turbo_confirm: t(".undo_draw_confirm") } }
+
+  - if @creator
+    = render "tournaments/organizers", tournament: tournament

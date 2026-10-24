@@ -1,0 +1,17 @@
+/ The organizer link opened by a signed-in customer: accept it to enter the tournament's results (GD-02).
+- tournament = @tournament
+- content_for :title, tournament.title
+
+div class="card mx-auto max-w-lg text-center"
+  span class="mx-auto flex size-14 items-center justify-center rounded-2xl bg-amber-50 text-amber-600" aria-hidden="true"
+    = render "tournaments/trophy", css: "size-7"
+  h1 class="mt-4 text-xl font-bold break-words" = tournament.title
+  - if @already
+    p class="mt-2 text-sm text-slate-600" = t(".already")
+    = link_to t(".open"), tournament_path(tournament), class: "btn-primary mt-6"
+  - elsif @valid
+    p class="mt-2 text-sm text-slate-600" = t(".invite", name: tournament.created_by.full_name)
+    = button_to t(".accept"), organize_tournament_path(tournament, organizer_token: params[:organizer_token]), class: "btn-primary mt-6 w-full"
+  - else
+    p class="mt-2 text-sm text-slate-600" = t(".wrong_link")
+    = link_to t(".open"), tournament_path(tournament), class: "btn-secondary mt-6"
