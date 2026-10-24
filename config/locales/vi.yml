@@ -610,6 +610,8 @@ vi:
       note_placeholder: "Ví dụ: cần thuê vợt"
       pay_at_venue: Thanh toán tại sân khi đến chơi.
       back: Chọn giờ khác
+      remove_court: Bỏ sân này
+      remove_court_label: "Bỏ %{court} khỏi lần đặt này"
       submit: Xác nhận & chuyển khoản
       grand_total:
         other: "Tổng tiền (%{count} sân)"
