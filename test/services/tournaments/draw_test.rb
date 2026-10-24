@@ -2,11 +2,6 @@ require "test_helper"
 
 # The draw (Tournaments::Draw), results (TournamentMatch#record) and group tables (Tournaments::Standings).
 class Tournaments::DrawTest < ActiveSupport::TestCase
-  setup do
-    travel_to Time.zone.parse("2026-10-19 10:00")
-    @venue = venues(:phu_nhuan)
-  end
-
   test "knockout: the bracket is the next power of two, the top seeds get the byes and only meet in the final" do
     tournament = make_tournament(play_format: "knockout")
     entries = enter(tournament, 5)
@@ -33,7 +28,7 @@ class Tournaments::DrawTest < ActiveSupport::TestCase
   end
 
   test "round robin: everyone meets everyone once, nobody twice in a round; the table ranks by wins then differences" do
-    tournament = make_tournament(play_format: "round_robin", max_entries: 5)
+    tournament = make_tournament(play_format: "round_robin")
     entries = enter(tournament, 5)
     Tournaments::Draw.call(tournament)
 
@@ -85,19 +80,25 @@ class Tournaments::DrawTest < ActiveSupport::TestCase
     bracket.each_slice(2) { |a, b| assert_not_equal a.group_number, b.group_number if a && b }
   end
 
-  test "entries still waiting for their transfer are dropped; too few entries cannot be drawn" do
-    tournament = make_tournament(play_format: "knockout", fee_vnd: 50_000)
-    entry = TournamentEntry.register(tournament, users(:an))
-    assert entry.pending?
+  test "too few entries cannot be drawn; the draw can be undone until a match is played" do
+    tournament = make_tournament(play_format: "knockout")
+    enter(tournament, 1)
     error = assert_raises(Tournaments::Draw::Error) { Tournaments::Draw.call(tournament) }
-    assert_equal "Cần ít nhất 2 suất đã xác nhận để bốc thăm.", error.message
-    assert entry.reload.pending?, "nothing changes when the draw cannot be made"
+    assert_equal "Cần ít nhất 2 người/cặp để bốc thăm.", error.message
+    assert tournament.reload.setup?
 
-    enter(tournament, 2)
+    enter(tournament, 2, from: 1)
     Tournaments::Draw.call(tournament)
-    assert entry.reload.cancelled?
-    assert entry.payment.reload.cancelled?
-    assert_equal 1, tournament.matches.count
+    assert_equal 3, tournament.matches.count, "a bye, a semi-final, the final"
+    assert tournament.redrawable?, "a bye is not a match played"
+    tournament.undo_draw!
+    assert tournament.reload.setup?
+    assert_equal 0, tournament.matches.count
+
+    Tournaments::Draw.call(tournament)
+    tournament.matches.find { |match| match.ready? }.record(scores: [ [ 21, 10 ] ])
+    assert_not tournament.reload.redrawable?
+    assert_raises(ArgumentError) { tournament.undo_draw! }
   end
 
   test "a result needs a winner by games; a walkover; a knockout result is fixed once the next match is played" do
@@ -124,18 +125,11 @@ class Tournaments::DrawTest < ActiveSupport::TestCase
   private
 
   def make_tournament(**attributes)
-    day = Time.zone.parse("2026-10-25 08:00")
-    tournament = @venue.tournaments.new(title: "Giải thử", discipline: "singles", max_entries: 16, fee_vnd: 0, court_ids: [ courts(:court_one).id ],
-                                        starts_at: day, ends_at: day + 4.hours, registration_closes_at: day - 1.day, **attributes)
-    assert tournament.create_with_blocks(by: users(:staffer)), tournament.errors.full_messages.to_sentence
-    tournament
+    users(:an).tournaments.create!(title: "Giải thử", discipline: "singles", group_size: 4, advance_per_group: 2, **attributes)
   end
 
-  def enter(tournament, count)
-    count.times.map do |i|
-      user = User.create!(email: "p#{i}@example.com", full_name: "Người chơi #{i + 1}", phone: format("0912%06d", i), password: "password123")
-      tournament.entries.create!(user: user, amount_vnd: 0, status: :confirmed)
-    end
+  def enter(tournament, count, from: 0)
+    count.times.map { |i| tournament.entries.create!(name: "Người chơi #{from + i + 1}") }
   end
 
   # Side a wins every open match, round by round (the next round fills as results come in).

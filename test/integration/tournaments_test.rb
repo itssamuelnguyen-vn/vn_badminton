@@ -1,196 +1,165 @@
 require "test_helper"
 
-# In-house tournaments on the web (GD-01..09): staff create and run them, customers enter and pay by transfer.
+# Customers' own tournaments on the web (GD-01..07): a tool for their group, the venue takes no part.
 class TournamentsTest < ActionDispatch::IntegrationTest
-  include ActiveJob::TestHelper
-
   setup do
     travel_to Time.zone.parse("2026-10-19 10:00")
-    @venue = venues(:phu_nhuan)
-    @fcm = Push::Fcm.current
-    Push::Fcm.current = FakeFcm.new
   end
 
-  teardown { Push::Fcm.current = @fcm }
-
-  test "staff create a tournament that blocks its courts; customers enter and pay; the page shows the entries" do
-    tournament = create_tournament(discipline: "singles", fee_vnd: 100_000)
-    assert_equal 2, tournament.blocks.count
-    assert tournament.blocks.all? { |block| block.kind_block? && block.note == "Giải đấu: Giải đơn tháng 11" }
-
+  test "a customer creates a tournament, types the players, draws, enters results; anyone with the link follows it" do
+    sign_in users(:an)
     get tournaments_path
-    assert_select "##{dom_id(tournament)}", text: /Giải đơn tháng 11.*Đơn · Loại trực tiếp.*Lệ phí 100.000đ/m
+    assert_select "p", text: /Bạn chưa có giải nào/
 
-    sign_in users(:an)
-    post enter_tournament_path(tournament)
-    payment = Payment.last
-    assert_redirected_to payment_path(payment)
-    assert_equal [ "tournament", 100_000 ], [ payment.purpose, payment.amount_vnd ]
-    follow_redirect!
-    assert_select "p", text: "Lệ phí giải Giải đơn tháng 11 – Nguyễn An"
-
-    post enter_tournament_path(tournament)
-    assert_equal "Bạn hoặc đồng đội đã đăng ký giải này rồi.", flash[:alert]
-
-    transfer(payment)
-    assert TournamentEntry.last.confirmed?
-    get tournament_path(tournament)
-    assert_select "p", text: "Bạn đã có suất thi đấu: Nguyễn An."
-    assert_select "li", text: "Nguyễn An"
-
-    # Withdrawing while registration is open: no refund.
-    delete tournament_entry_path(TournamentEntry.last)
-    assert TournamentEntry.last.cancelled?
-    assert_nil TournamentEntry.last.refund_vnd
-  end
-
-  test "doubles need a partner, linked to their account; gendered events check genders; nobody plays twice" do
-    tournament = create_tournament(discipline: "mixed_doubles", fee_vnd: 0)
-    sign_in users(:an)
-
-    post enter_tournament_path(tournament), params: { partner: { name: "Lê Chi", phone: "0933 000 111" } }
-    assert_equal "Nội dung này chia theo giới tính, vui lòng chọn giới tính trong trang tài khoản trước.", flash[:alert]
-
-    users(:an).update!(gender: "male")
-    users(:chi).update!(gender: "male")
-    post enter_tournament_path(tournament), params: { partner: { name: "Lê Chi", phone: "0933 000 111", gender: "female" } }
-    assert_equal "Đôi nam nữ cần một nam và một nữ.", flash[:alert], "the partner's own profile wins over what is typed"
-
-    users(:chi).update!(gender: "female")
-    post enter_tournament_path(tournament), params: { partner: { name: "Chi", phone: "0933 000 111" } }
-    assert_redirected_to tournament_path(tournament)
-    assert_equal "Đăng ký thành công, bạn đã có suất thi đấu!", flash[:notice]
-    entry = TournamentEntry.last
-    assert_equal [ "confirmed", users(:chi), "Nguyễn An / Lê Chi" ], [ entry.status, entry.partner, entry.display_name ]
-    assert_nil entry.payment, "a free tournament needs no transfer"
-
-    # The partner sees the entry as theirs but cannot enter again.
-    sign_in users(:chi)
-    get tournament_path(tournament)
-    assert_select "p", text: "Bạn đã có suất thi đấu: Nguyễn An / Lê Chi."
-    assert_select "form[action='#{tournament_entry_path(entry)}']", count: 0, message: "only the one who entered withdraws"
-    post enter_tournament_path(tournament), params: { partner: { name: "Bình", phone: "0912 000 001", gender: "male" } }
-    assert_equal "Bạn hoặc đồng đội đã đăng ký giải này rồi.", flash[:alert]
-
-    # In the partner's own data export too.
-    post account_data_path, params: { current_password: "password123" }
-    assert_equal [ "Nguyễn An / Lê Chi", false ], response.parsed_body["tournament_entries"].sole.values_at("entry", "registered_by_you")
-  end
-
-  test "staff draw, call matches to a court (push), enter scores; the public page shows the bracket and the champion" do
-    tournament = create_tournament(discipline: "singles", fee_vnd: 0)
-    players = [ users(:an), users(:chi), *2.times.map { |i| User.create!(email: "p#{i}@example.com", full_name: "Người #{i}", phone: format("0912%06d", i), password: "password123") } ]
-    players.each { |player| tournament.entries.create!(user: player, amount_vnd: 0, status: :confirmed) }
-    DeviceToken.create!(user: users(:an), api_token: ApiToken.issue(users(:an), device_name: "Pixel").first, token: "fcm-an", platform: "android", last_seen_at: Time.current)
-
-    sign_in users(:staffer)
-    post draw_admin_tournament_path(tournament)
-    assert_redirected_to admin_tournament_path(tournament)
-    assert tournament.reload.in_progress?
-
-    semi = tournament.matches.knockout.where(round: 1).detect { |match| [ match.entry_a.user, match.entry_b.user ].include?(users(:an)) }
-    perform_enqueued_jobs(only: PushNotificationJob) do
-      patch call_admin_tournament_match_path(tournament, semi), params: { court_id: courts(:court_two).id }
-    end
-    assert_equal "Mời vào Sân 2", Push::Fcm.current.sent.sole[:title]
-    get admin_tournament_path(tournament)
-    assert_select "##{dom_id(semi)}", text: /Đang đấu ở Sân 2/
-
-    patch admin_tournament_match_path(tournament, semi), params: { scores: { "0" => { a: "21", b: "21" } } }
-    assert_match "Tỉ số không hợp lệ", flash[:alert]
-    patch admin_tournament_match_path(tournament, semi), params: { scores: { "0" => { a: "21", b: "15" }, "1" => { a: "18", b: "21" }, "2" => { a: "21", b: "19" } } }
-    assert_equal "21-15, 18-21, 21-19", semi.reload.score_text
-    other = tournament.matches.knockout.where(round: 1).where.not(id: semi.id).sole
-    patch admin_tournament_match_path(tournament, other), params: { walkover: "b" }
-    assert other.reload.walkover
-    final = tournament.matches.knockout.find_by(round: 2)
-    patch admin_tournament_match_path(tournament, final), params: { scores: { "0" => { a: "21", b: "10" } } }
-    assert tournament.reload.finished?
-
-    sign_out :user
-    get tournament_path(tournament)
-    assert_select "p", text: final.reload.winner.display_name
-    assert_select "p", text: "Chung kết"
-    assert_select "p", text: "Thắng do đối thủ bỏ cuộc"
-
-    get tournament_path(tournament, locale: "en")
-    assert_select "p", text: "Final"
-    sign_in users(:staffer)
-    get admin_tournaments_path(locale: "en")
-    assert_select "a", text: /Men's singles|Singles · Knockout/
-    get admin_tournament_path(tournament, locale: "en")
-    assert_response :success
-  end
-
-  test "groups then knockout on the public page: the group tables and their matches" do
-    tournament = create_tournament(discipline: "singles", fee_vnd: 0, play_format: "groups_knockout", group_size: 3, advance_per_group: 1)
-    6.times do |i|
-      user = User.create!(email: "g#{i}@example.com", full_name: "Người #{i}", phone: format("0913%06d", i), password: "password123")
-      tournament.entries.create!(user: user, amount_vnd: 0, status: :confirmed)
-    end
-    Tournaments::Draw.call(tournament)
-    get tournament_path(tournament)
-    assert_select "h3", text: "Bảng A"
-    assert_select "h3", text: "Bảng B"
-    assert_select "table", count: 2
-  end
-
-  test "the venue cancels: courts freed, paid entries owed back and told by email; staff remove an entry before the draw" do
-    tournament = create_tournament(discipline: "singles", fee_vnd: 100_000)
-    sign_in users(:an)
-    post enter_tournament_path(tournament)
-    transfer(Payment.last)
-    sign_in users(:chi)
-    post enter_tournament_path(tournament)
-    chi_entry = TournamentEntry.last
-
-    sign_in users(:staffer)
-    patch remove_entry_admin_tournament_path(tournament, entry_id: chi_entry.id)
-    assert chi_entry.reload.cancelled?
-    assert_nil chi_entry.refund_vnd, "it was not paid"
-
-    assert_enqueued_emails(1) { patch cancel_admin_tournament_path(tournament) }
-    assert tournament.reload.cancelled?
-    assert tournament.blocks.all?(&:cancelled?)
-    an_entry = tournament.entries.find_by!(user: users(:an))
-    assert_equal 100_000, an_entry.refund_vnd
-
-    sign_in users(:owner)
-    patch mark_refunded_admin_tournament_path(tournament, entry_id: an_entry.id)
-    assert an_entry.reload.refunded_at
-  end
-
-  test "the customer gives up on the payment page; a late transfer only counts while registration is open" do
-    tournament = create_tournament(discipline: "singles", fee_vnd: 100_000)
-    sign_in users(:an)
-    post enter_tournament_path(tournament)
-    payment = Payment.last
-    patch cancel_payment_path(payment)
-    assert_redirected_to tournament_path(tournament)
-    assert TournamentEntry.last.cancelled?
-    assert_equal tournament.max_entries, tournament.spots_left
-
-    post enter_tournament_path(tournament)
-    late = Payment.last
-    travel_to tournament.registration_closes_at + 1.minute
-    transfer(late)
-    assert_equal "late", BankTransaction.last.review_reason
-    assert TournamentEntry.last.pending?
-  end
-
-  private
-
-  def create_tournament(**overrides)
-    sign_in users(:staffer)
-    get new_admin_tournament_path
-    assert_response :success
-    params = { title: "Giải đơn tháng 11", play_format: "knockout", discipline: "singles", gender: "", level: "", max_entries: 16, fee_vnd: 100_000,
-               group_size: 4, advance_per_group: 2, court_ids: [ courts(:court_one).id, courts(:court_two).id ], date: "2026-10-25",
-               start_minute: 480, end_minute: 720, registration_date: "2026-10-24", registration_minute: 1200 }.merge(overrides)
-    post admin_tournaments_path, params: { tournament: params }
+    post tournaments_path, params: { tournament: { title: "Giải công ty", discipline: "singles", play_format: "knockout" } }
     tournament = Tournament.last
-    assert_redirected_to admin_tournament_path(tournament)
+    assert_redirected_to tournament_path(tournament)
+    assert_equal users(:an), tournament.created_by
+    assert_match(/\A[A-Za-z0-9]{16}\z/, tournament.share_token)
+
+    post tournament_entries_path(tournament), params: { list: "Hùng\n\n  Lan \nMinh\nThảo\n" }
+    assert_equal "Đã thêm 4 người chơi.", flash[:notice]
+    assert_equal %w[Hùng Lan Minh Thảo], tournament.entries.map(&:name)
+    patch tournament_entry_path(tournament, tournament.entries.first), params: { entry: { seed: 1 } }
+    assert_equal 1, tournament.entries.first.reload.seed
+
+    post draw_tournament_path(tournament)
+    assert tournament.reload.in_progress?
+    # The list cannot change after the draw.
+    post tournament_entries_path(tournament), params: { list: "Tuấn" }
+    assert_equal "Giải đã bốc thăm, không đổi danh sách người chơi được nữa.", flash[:alert]
+
+    semi = tournament.matches.knockout.find_by(round: 1, position: 1)
+    patch tournament_match_path(tournament, semi), params: { scores: { "0" => { a: 21, b: 15 }, "1" => { a: 21, b: 18 } } }
+    assert_equal "Đã lưu kết quả.", flash[:notice]
+    assert_equal semi.entry_a, semi.reload.winner
+
+    # Anyone with the link, signed in or not, sees the bracket but no form.
     sign_out :user
-    tournament
+    get tournament_path(tournament)
+    assert_response :success
+    assert_select "h1", text: "Giải công ty"
+    assert_select "h2", text: "Sơ đồ loại trực tiếp"
+    assert_select "#results", count: 0
+    patch tournament_match_path(tournament, tournament.matches.knockout.find_by(round: 1, position: 2)), params: { walkover: "a" }
+    assert_redirected_to new_user_session_path
+
+    sign_in users(:chi)
+    patch tournament_match_path(tournament, tournament.matches.knockout.find_by(round: 1, position: 2)), params: { walkover: "a" }
+    assert_equal "Chỉ người tổ chức giải mới làm được việc này.", flash[:alert]
+    get tournaments_path
+    assert_select "##{dom_id(tournament)}", count: 0, message: "not listed for others"
+  end
+
+  test "doubles take pairs one per line; a bad line adds nothing; a round robin is capped" do
+    sign_in users(:an)
+    tournament = users(:an).tournaments.create!(title: "Giải đôi", discipline: "doubles", play_format: "round_robin")
+
+    post tournament_entries_path(tournament), params: { list: "Hùng / Lan\nMinh" }
+    assert_equal "Dòng 2: Tên đồng đội không thể để trắng", flash[:alert]
+    assert_equal 0, tournament.entries.count
+
+    post tournament_entries_path(tournament), params: { list: "Hùng / Lan\nMinh & Thảo\nTuấn + Hoa" }
+    assert_equal [ "Hùng / Lan", "Minh / Thảo", "Tuấn / Hoa" ], tournament.entries.map(&:display_name)
+
+    post tournament_entries_path(tournament), params: { list: (1..8).map { |i| "A#{i} / B#{i}" }.join("\n") }
+    assert_equal "Giải này tối đa 10 người/cặp.", flash[:alert]
+
+    # The event cannot change once players are typed.
+    patch tournament_path(tournament), params: { tournament: { discipline: "singles", title: "Giải đôi nam" } }
+    assert_equal [ "doubles", "Giải đôi nam" ], tournament.reload.values_at(:discipline, :title)
+  end
+
+  test "the organizer link lets a signed-in customer enter results; the creator removes them or makes a new link" do
+    tournament = users(:an).tournaments.create!(title: "Giải CLB", discipline: "singles", play_format: "knockout")
+    TournamentEntry.add_list(tournament, "Hùng\nLan")
+    Tournaments::Draw.call(tournament)
+    final = tournament.matches.sole
+
+    get organize_tournament_path(tournament, organizer_token: tournament.organizer_token)
+    assert_redirected_to new_user_session_path
+
+    sign_in users(:chi)
+    get organize_tournament_path(tournament, organizer_token: "wrong")
+    assert_select "p", text: /Link này không còn dùng được/
+    get organize_tournament_path(tournament, organizer_token: tournament.organizer_token)
+    assert_select "p", text: "Nguyễn An mời bạn cùng nhập tỉ số cho giải này."
+    post organize_tournament_path(tournament, organizer_token: tournament.organizer_token)
+    assert tournament.organizer?(users(:chi))
+    get tournaments_path
+    assert_select "##{dom_id(tournament)}", text: /Bạn giúp Nguyễn An nhập tỉ số/
+
+    # Organizers enter results but do not set the tournament up.
+    get tournament_path(tournament)
+    assert_select "#results"
+    assert_select "#organizers", count: 0
+    delete tournament_path(tournament)
+    assert_equal "Chỉ người tổ chức giải mới làm được việc này.", flash[:alert]
+    patch tournament_match_path(tournament, final), params: { scores: { "0" => { a: 15, b: 21 }, "1" => { a: 18, b: 21 } } }
+    assert tournament.reload.finished?
+    get tournament_path(tournament)
+    assert_select "p", text: final.reload.entry_b.name, message: "the champion"
+
+    sign_in users(:an)
+    old = tournament.organizer_token
+    patch organizer_link_tournament_path(tournament)
+    assert_not_equal old, tournament.reload.organizer_token
+    delete organizers_tournament_path(tournament, user_id: users(:chi).id)
+    assert_not tournament.organizer?(users(:chi))
+    sign_in users(:chi)
+    post organize_tournament_path(tournament, organizer_token: old)
+    assert_not tournament.organizer?(users(:chi)), "the old link no longer works"
+  end
+
+  test "the creator links their own bookings: courts and date on the page, matches called to those courts" do
+    tournament = users(:an).tournaments.create!(title: "Giải sáng CN", discipline: "singles", play_format: "knockout")
+    TournamentEntry.add_list(tournament, "Hùng\nLan")
+    mine = courts(:court_one).bookings.create!(user: users(:an), starts_at: Time.zone.parse("2026-10-25 08:00"), ends_at: Time.zone.parse("2026-10-25 10:00"))
+    other = courts(:court_two).bookings.create!(user: users(:chi), starts_at: Time.zone.parse("2026-10-25 08:00"), ends_at: Time.zone.parse("2026-10-25 10:00"))
+
+    sign_in users(:an)
+    patch bookings_tournament_path(tournament), params: { booking_ids: [ mine.id, other.id ] }
+    assert_equal tournament, mine.reload.tournament
+    assert_nil other.reload.tournament, "only their own bookings"
+    assert_equal Date.new(2026, 10, 25), tournament.play_date
+    get tournament_path(tournament)
+    assert_select "#courts li", text: /Sân 1/
+
+    Tournaments::Draw.call(tournament)
+    match = tournament.matches.sole
+    patch call_tournament_match_path(tournament, match), params: { court_id: courts(:court_two).id }
+    assert_nil match.reload.court, "not a court of the tournament"
+    patch call_tournament_match_path(tournament, match), params: { court_id: courts(:court_one).id }
+    assert_equal courts(:court_one), match.reload.court
+    get tournament_path(tournament)
+    assert_select "p", text: /Đang đấu ở Sân 1/
+
+    patch bookings_tournament_path(tournament), params: { booking_ids: [ "" ] }
+    assert_nil mine.reload.tournament
+  end
+
+  test "deleting a tournament or the creator's account takes its players and results along" do
+    tournament = users(:an).tournaments.create!(title: "Giải tạm", discipline: "singles", play_format: "knockout")
+    TournamentEntry.add_list(tournament, "Hùng\nLan\nMinh")
+    Tournaments::Draw.call(tournament)
+    tournament.organizers.create!(user: users(:chi))
+
+    sign_in users(:an)
+    delete tournament_path(tournament)
+    assert_redirected_to tournaments_path
+    assert_not Tournament.exists?(tournament.id)
+    assert_equal 0, TournamentEntry.count + TournamentMatch.count + TournamentOrganizer.count
+
+    users(:an).tournaments.create!(title: "Giải khác", discipline: "singles", play_format: "knockout")
+    Accounts::Deletion.new(users(:an)).finish!
+    assert_equal 0, Tournament.count
+  end
+
+  test "a customer has at most 10 tournaments not finished yet" do
+    10.times { |i| users(:an).tournaments.create!(title: "Giải #{i}", discipline: "singles", play_format: "knockout") }
+    sign_in users(:an)
+    post tournaments_path, params: { tournament: { title: "Giải 11", discipline: "singles", play_format: "knockout" } }
+    assert_response :unprocessable_content
+    assert_select "li", text: /tối đa 10 giải chưa kết thúc/
   end
 end

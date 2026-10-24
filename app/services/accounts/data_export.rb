@@ -27,7 +27,7 @@ module Accounts
         packages: packages,
         vouchers_used: vouchers_used,
         play_session_tickets: play_session_tickets,
-        tournament_entries: tournament_entries,
+        tournaments: tournaments,
         groups: groups
       }
     end
@@ -116,11 +116,14 @@ module Accounts
       end
     end
 
-    # As registrant or partner.
-    def tournament_entries
-      TournamentEntry.where(user: @user).or(TournamentEntry.where(partner: @user)).includes(:tournament, :user, :partner).order(:created_at).map do |entry|
-        { tournament: entry.tournament.title, starts_at: entry.tournament.starts_at.iso8601, entry: entry.display_name,
-          registered_by_you: entry.user_id == @user.id, amount_vnd: entry.amount_vnd, status: entry.status, refund_vnd: entry.refund_vnd }
+    # The ones they created, with the names they typed and the results.
+    def tournaments
+      @user.tournaments.includes(:entries, matches: %i[entry_a entry_b winner]).order(:created_at).map do |tournament|
+        { title: tournament.title, description: tournament.description, event: tournament.discipline, format: tournament.play_format,
+          played_on: tournament.played_on&.iso8601, status: tournament.status, players: tournament.entries.map(&:display_name),
+          matches: tournament.matches.select(&:winner).map do |match|
+            { a: match.entry_a&.display_name, b: match.entry_b&.display_name, winner: match.winner.display_name, scores: match.scores, walkover: match.walkover }
+          end }
       end
     end
 

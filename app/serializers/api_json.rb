@@ -85,30 +85,33 @@ module ApiJson
       payment_token: (ticket.payment&.token if ticket.pending? && ticket.payment&.open?(now)) }
   end
 
-  # mine: the viewer's entry (as registrant or partner); only the registrant can withdraw it.
-  def tournament(tournament, mine = nil, viewer: nil, now: Time.current)
-    { id: tournament.id, title: tournament.display_title, description: tournament.description, event: tournament.event_name,
-      discipline: tournament.discipline, gender: tournament.gender, play_format: tournament.play_format, level: tournament.level,
-      courts: tournament.courts.map(&:display_name), starts_at: tournament.starts_at.iso8601, ends_at: tournament.ends_at.iso8601,
-      registration_closes_at: tournament.registration_closes_at.iso8601, max_entries: tournament.max_entries,
-      spots_left: tournament.spots_left(now), fee_vnd: tournament.fee_vnd, status: tournament.status,
-      registration_open: tournament.registration_open?(now), my_entry: mine && tournament_entry(mine, viewer: viewer, now: now) }
+  # A tournament in the customer's list (GD-01): what they run, and whether they created it.
+  def tournament(tournament, viewer: nil)
+    { token: tournament.share_token, title: tournament.title, description: tournament.description, event: tournament.event_name,
+      discipline: tournament.discipline, play_format: tournament.play_format, group_size: tournament.group_size,
+      advance_per_group: tournament.advance_per_group, played_on: tournament.played_on&.iso8601, date: tournament.play_date&.iso8601,
+      status: tournament.status, created_by: tournament.created_by.full_name, creator: tournament.creator?(viewer),
+      # Paths on the website (the app adds its server address) to send to friends.
+      share_path: Rails.application.routes.url_helpers.tournament_path(token: tournament.share_token) }
   end
 
-  def tournament_entry(entry, viewer: nil, now: Time.current)
-    { id: entry.id, name: entry.display_name, status: entry.status, amount_vnd: entry.amount_vnd,
-      can_cancel: entry.user_id == viewer&.id && entry.cancellable_by_customer?(now),
-      payment_token: (entry.payment&.token if entry.pending? && entry.payment&.open?(now)) }
-  end
-
-  # The tournament with its confirmed entries, the group tables and every match, for its page in the app.
-  def tournament_details(tournament, mine = nil, viewer: nil, now: Time.current)
+  # The tournament's page in the app: players, courts, group tables, every match, and what the viewer may do
+  # (the creator sets it up and sees the organizer link; organizers call matches and enter results).
+  def tournament_details(tournament, viewer: nil, now: Time.current)
+    creator = tournament.creator?(viewer)
+    organizer = tournament.organizer?(viewer)
     side = ->(entry) { entry && { id: entry.id, name: entry.display_name } }
     standings = tournament.knockout? ? {} : Tournaments::Standings.new(tournament).groups
-    matches = tournament.matches.ordered.includes(:court, entry_a: %i[user partner], entry_b: %i[user partner])
-    tournament(tournament, mine, viewer: viewer, now: now).merge(
-      champion: tournament.champion&.display_name,
-      entries: tournament.entries.confirmed.includes(:user, :partner).order(:created_at).map { |entry| { id: entry.id, name: entry.display_name, seed: entry.seed } },
+    matches = tournament.matches.ordered.includes(:court, :entry_a, :entry_b)
+    bookings = tournament.bookings.where.not(status: :cancelled).includes(:court).order(:starts_at)
+    tournament(tournament, viewer: viewer).merge(
+      organizer: organizer, champion: tournament.champion&.display_name, redrawable: creator && tournament.redrawable?,
+      entries: tournament.entries.map { |entry| { id: entry.id, name: entry.name, partner_name: entry.partner_name, seed: entry.seed } },
+      bookings: bookings.map { |booking| { id: booking.id, court: booking.court.display_name, starts_at: booking.starts_at.iso8601, ends_at: booking.ends_at.iso8601 } },
+      courts: organizer ? tournament.courts.map { |court| { id: court.id, name: court.display_name } } : [],
+      linkable_bookings: creator ? tournament.linkable_bookings(viewer, now).map { |booking| tournament_booking(booking, tournament) } : [],
+      organizer_path: (Rails.application.routes.url_helpers.organize_tournament_path(token: tournament.share_token, organizer_token: tournament.organizer_token) if creator),
+      organizers: creator ? tournament.organizers.includes(:user).order(:created_at).map { |organizer| { user_id: organizer.user_id, name: organizer.user.full_name } } : [],
       groups: standings.map do |number, rows|
         { number: number, rows: rows.map do |row|
           { entry: side.(row.entry), played: row.played, won: row.won, lost: row.lost, games_for: row.games_for,
@@ -118,9 +121,15 @@ module ApiJson
       matches: matches.map do |match|
         { id: match.id, stage: match.stage, group: match.group_number, round: match.round, round_name: match.round_name, position: match.position,
           a: side.(match.entry_a), b: side.(match.entry_b), winner_id: match.winner_id, scores: match.scores, walkover: match.walkover,
-          bye: match.bye?, court: match.court&.display_name, called_at: match.called_at&.iso8601 }
+          bye: match.bye?, court: match.court&.display_name, court_id: match.court_id, called_at: match.called_at&.iso8601,
+          editable: organizer && match.editable?, ready: match.ready? }
       end
     )
+  end
+
+  def tournament_booking(booking, tournament)
+    { id: booking.id, court: booking.court.display_name, starts_at: booking.starts_at.iso8601, ends_at: booking.ends_at.iso8601,
+      linked: booking.tournament_id == tournament.id }
   end
 
   # Upcoming shared bookings only; members are shown by name.

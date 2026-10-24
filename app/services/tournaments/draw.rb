@@ -1,6 +1,6 @@
 module Tournaments
-  # The draw (GD-05): staff draw the tournament once registration is over. Entries still waiting for their transfer
-  # are dropped; the confirmed ones are placed by seed (seeds first, the others shuffled) and the matches made:
+  # The draw (GD-04): the creator draws once the players are typed. They are placed by seed (seeds first, the
+  # others shuffled) and the matches made:
   #
   # - knockout: a bracket of the next power of two, the top seeds placed apart (1 and 2 only meet in the final)
   #   and given the byes;
@@ -9,7 +9,7 @@ module Tournaments
   #   each a round robin; once every group match is played (.after_result) the best advance_per_group of each
   #   group go on to a knockout bracket where two players of the same group do not meet in the first round.
   #
-  # The tournament finishes with its last match.
+  # The tournament finishes with its last match. Until a match is played the draw can be undone (Tournament#undo_draw!).
   module Draw
     class Error < StandardError; end
 
@@ -17,10 +17,9 @@ module Tournaments
 
     def call(tournament, now: Time.current, random: Random.new)
       tournament.with_lock do
-        raise Error, I18n.t("tournaments.draw.not_open") unless tournament.open?
+        raise Error, I18n.t("tournaments.draw.not_setup") unless tournament.setup?
 
-        tournament.entries.pending.includes(:payment).find_each { |entry| entry.cancel_by_venue!(now: now) }
-        entries = seeded(tournament.entries.confirmed.includes(:user, :partner).to_a, random)
+        entries = seeded(tournament.entries.reload.to_a, random)
         check_enough(tournament, entries)
 
         if tournament.knockout?
@@ -32,7 +31,7 @@ module Tournaments
             build_round_robin(tournament, members, number)
           end
         end
-        tournament.update!(status: :in_progress, drawn_at: now, registration_closes_at: [ tournament.registration_closes_at, now ].min)
+        tournament.update!(status: :in_progress, drawn_at: now)
       end
     end
 

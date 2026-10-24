@@ -34,19 +34,6 @@ class NoticeMailer < ApplicationMailer
     end
   end
 
-  # The venue cancelled a tournament the customer entered (a paid fee is refunded).
-  def tournament_cancelled
-    @entry = params[:entry]
-    @tournament = @entry.tournament
-    user = @entry.user
-    return if user.deleted_at
-
-    I18n.with_locale(user.locale) do
-      mail to: user.email, subject: t(".subject", title: @tournament.display_title,
-                                                  time: l(@tournament.starts_at.in_time_zone(@tournament.venue.zone), format: :slot))
-    end
-  end
-
   # The venue moved the customer's weekly booking (Series::Move): each session moved, old and new slot.
   def series_moved
     @series = params[:series]

@@ -17,8 +17,7 @@ module Push
                                              time: booking.starts_at)
   end
 
-  # Paid for something else than bookings: prepaid hours, places in an open play session, a tournament entry, a month
-  # of a weekly booking.
+  # Paid for something else than bookings: prepaid hours, places in an open play session, a month of a weekly booking.
   def payment_received(payment)
     notify(payment.user, :payment_received, path: "/payments/#{payment.token}", code: payment.code)
   end
@@ -54,23 +53,6 @@ module Push
   def play_session_cancelled(ticket)
     session = ticket.play_session
     notify(ticket.user, :play_session_cancelled, path: "/", title: -> { session.display_title }, time: session.starts_at)
-  end
-
-  def tournament_cancelled(entry)
-    tournament = entry.tournament
-    entry.players.each do |player|
-      notify(player, :tournament_cancelled, path: "/tournaments/#{tournament.id}", title: -> { tournament.display_title }, time: tournament.starts_at)
-    end
-  end
-
-  # Staff call a match to its court (GD-08): pushed alone, there is no email for something happening now.
-  def tournament_match_called(match)
-    [ [ match.entry_a, match.entry_b ], [ match.entry_b, match.entry_a ] ].each do |entry, opponent|
-      entry.players.each do |player|
-        notify(player, :tournament_match_called, path: "/tournaments/#{match.tournament_id}", court: -> { match.court.display_name },
-                                                 opponent: opponent.display_name)
-      end
-    end
   end
 
   # Values are put in the texts in the customer's language: times in the venue's time ("18:00 ngày 20/10/2026"),

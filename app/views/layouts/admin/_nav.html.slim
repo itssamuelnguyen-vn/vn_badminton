@@ -4,7 +4,6 @@
               [ [ t(".board"), admin_root_path, controller_name.in?(%w[boards bookings]) ],
                 [ t(".series"), admin_series_index_path, controller_name == "series" ],
                 [ t(".play_sessions"), admin_play_sessions_path, controller_name == "play_sessions" ],
-                [ t(".tournaments"), admin_tournaments_path, controller_name.in?(%w[tournaments tournament_matches]) ],
                 [ t(".customers"), admin_customers_path, controller_name == "customers" ],
                 [ t(".cash_shifts"), admin_cash_shifts_path, controller_name == "cash_shifts" ],
                 [ t(".reviews"), admin_reviews_path, controller_name == "reviews" ] ] ] ]

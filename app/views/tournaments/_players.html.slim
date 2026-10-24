@@ -1,0 +1,41 @@
+/ Before the draw: the players. The creator types them one per line, sets seeds, renames or removes one, then
+/ makes the draw; the others see the list.
+- entries = @entries
+section id="players" class="card space-y-4"
+  div
+    h2 class="section-title" = t(".title", count: entries.size)
+    - if @creator
+      p class="mt-1 text-sm text-slate-600" = t(".hint")
+  - if entries.any?
+    ol class="divide-y divide-slate-100 rounded-2xl ring-1 ring-slate-200"
+      - entries.each_with_index do |entry, index|
+        li id=dom_id(entry) class="flex flex-wrap items-center gap-2 px-3 py-2 text-sm"
+          span class="w-6 text-right text-xs text-slate-400 tabular-nums" = index + 1
+          - if @creator
+            = form_with model: entry, url: tournament_entry_path(tournament, entry), scope: :entry, method: :patch, class: "flex min-w-0 flex-1 flex-wrap items-center gap-2" do |f|
+              = f.text_field :name, maxlength: 50, required: true, class: "form-input min-w-0 flex-1 px-2 py-1", aria: { label: TournamentEntry.human_attribute_name(:name) }
+              - if tournament.doubles?
+                = f.text_field :partner_name, maxlength: 50, required: true, class: "form-input min-w-0 flex-1 px-2 py-1", aria: { label: TournamentEntry.human_attribute_name(:partner_name) }
+              = f.number_field :seed, min: 1, max: Tournament::MAX_ENTRIES, placeholder: t(".seed"), class: "form-input w-20 px-2 py-1 text-center",
+                  aria: { label: TournamentEntry.human_attribute_name(:seed) }
+              = f.submit t(".save"), class: "btn-secondary px-3 py-1 text-xs"
+            = button_to t(".remove"), tournament_entry_path(tournament, entry), method: :delete, class: "text-xs font-semibold text-red-600 hover:underline",
+                aria: { label: t(".remove_label", name: entry.display_name) }
+          - else
+            span class="font-medium" = entry.display_name
+            - if entry.seed
+              span class="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-800" = t(".seeded", number: entry.seed)
+  - else
+    p class="text-sm text-slate-600" = t(".none")
+
+  - if @creator
+    = form_with url: tournament_entries_path(tournament), class: "space-y-2" do |f|
+      = label_tag :list, t(".add_label"), class: "form-label"
+      = text_area_tag :list, flash[:list], rows: 5, required: true, class: "form-input",
+          placeholder: t(tournament.doubles? ? ".placeholder_doubles" : ".placeholder_singles")
+      p class="form-hint" = t(tournament.doubles? ? ".add_hint_doubles" : ".add_hint_singles")
+      = f.submit t(".add"), class: "btn-secondary"
+    div class="border-t border-slate-100 pt-4"
+      = button_to t(".draw"), draw_tournament_path(tournament), class: "btn-primary w-full sm:w-auto", disabled: entries.size < 2,
+          form: { data: { turbo_confirm: t(".draw_confirm") } }
+      p class="form-hint mt-1" = t(".draw_hint")

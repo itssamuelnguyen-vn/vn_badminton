@@ -2,8 +2,9 @@
 # knockout bracket, where the winner moves on to next_match (slot "a" or "b"). A first-round knockout match with
 # one side empty is a bye: won at once by the entry present.
 #
-# Staff call a match to a court (the players get a push notification) and enter the result: the games' scores
-# (the winner is who won more games) or a walkover. A result can be corrected while nothing depends on it yet.
+# The organizers call a match to one of the tournament's courts (shown on its page) and enter the result: the
+# games' scores (the winner is who won more games) or a walkover. A result can be corrected while nothing depends
+# on it yet.
 class TournamentMatch < ApplicationRecord
   MAX_GAMES = 5
 
@@ -52,12 +53,11 @@ class TournamentMatch < ApplicationRecord
       (knockout? ? !next_match&.finished? : !tournament.matches.knockout.exists?)
   end
 
-  # The players are told to go to the court (push notification to both sides' players with an account).
+  # "Playing on Court 3" on the tournament's page; nil clears it.
   def call!(court, now: Time.current)
     raise ArgumentError, "Not ready" unless ready?
 
-    update!(court: court, called_at: now)
-    Push.tournament_match_called(self)
+    update!(court: court, called_at: court && now)
   end
 
   # scores: [[21, 15], [18, 21], [21, 19]] from side a; or walkover_winner (an entry of the match). False with

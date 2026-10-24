@@ -1,17 +1,8 @@
-/ Where the tournament is: registering (with places left), playing, finished (with the champion), cancelled.
-- now = Time.current
-- if tournament.registration_open?(now)
-  - left = tournament.spots_left(now)
-  - if left.positive?
-    span class="rounded-full bg-sky-50 px-2.5 py-0.5 text-sky-700 ring-1 ring-sky-200" = t("tournaments.status.registering", left: left, max: tournament.max_entries)
-  - else
-    span class="rounded-full bg-red-50 px-2.5 py-0.5 text-red-700 ring-1 ring-red-200" = t("tournaments.status.full")
-- elsif tournament.open?
-  span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-slate-700" = t("tournaments.status.closed")
+/ Where the tournament is: setting up, playing, finished (with the champion).
+- if tournament.setup?
+  span class="rounded-full bg-sky-50 px-2.5 py-0.5 text-sky-700 ring-1 ring-sky-200" = t("tournaments.status.setup")
 - elsif tournament.in_progress?
   span class="rounded-full bg-orange-50 px-2.5 py-0.5 text-orange-700 ring-1 ring-orange-200" = t("tournaments.status.in_progress")
-- elsif tournament.finished?
+- else
   span class="rounded-full bg-amber-50 px-2.5 py-0.5 text-amber-800 ring-1 ring-amber-200"
     = (champion = tournament.champion) ? t("tournaments.status.champion", name: champion.display_name) : t("tournaments.status.finished")
-- else
-  span class="rounded-full bg-red-50 px-2.5 py-0.5 text-red-700 ring-1 ring-red-200" = t("tournaments.status.cancelled")

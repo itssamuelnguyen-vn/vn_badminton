@@ -1,49 +1,96 @@
 module Api
   module V1
-    # In-house tournaments (Tournament): the list, one tournament with its entries, groups, bracket and results, and
-    # entering ({ partner: { name, phone, gender } } for doubles), paid by transfer: answers the payment, or the
-    # tournament when it is free. Reading is public; entering needs an account with a verified email.
+    # The customers' own tournaments (Tournament, GD-01..), as on the website: the ones the customer runs, one
+    # tournament's page (public, like its link), creating and editing one, the draw, the linked bookings and the
+    # organizers. Answers the tournament's details after each change.
     class TournamentsController < BaseController
-      include Slots
+      include RunsTournaments
 
-      skip_before_action :authenticate!, only: %i[index show]
-      before_action(only: %i[index show]) { @current_token = ApiToken.authenticate(request.authorization.to_s[/\ABearer (.+)\z/, 1]) }
-      before_action :require_verified_email, only: :enter
+      skip_before_action :authenticate!, only: :show
+      before_action(only: :show) { @current_token = ApiToken.authenticate(request.authorization.to_s[/\ABearer (.+)\z/, 1]) }
+      rate_limit to: 10, within: 1.hour, only: :create, by: -> { current_user.id }, store: RATE_LIMIT_STORE, with: -> { rate_limited }
+      before_action :set_tournament, except: %i[index create]
+      before_action :require_creator, except: %i[index create show join]
 
       def index
-        tournaments = Venue.main.tournaments.listed.to_a
-        mine = current_user ? TournamentEntry.active.where(tournament: tournaments).merge(player_scope).index_by(&:tournament_id) : {}
-        render json: { tournaments: tournaments.map { |tournament| ApiJson.tournament(tournament, mine[tournament.id], viewer: current_user) } }
+        tournaments = Tournament.managed_by(current_user).includes(:created_by, bookings: :court)
+        render json: { tournaments: tournaments.map { |tournament| ApiJson.tournament(tournament, viewer: current_user) } }
       end
 
       def show
-        tournament = Venue.main.tournaments.find(params[:id])
-        mine = current_user && tournament.entries.active.merge(player_scope).includes(:payment).first
-        render json: ApiJson.tournament_details(tournament, mine, viewer: current_user)
+        render_details
       end
 
-      def enter
-        tournament = Venue.main.tournaments.find(params[:id])
-        if tournament.fee_vnd.positive? && !tournament.venue.payments_enabled?
-          return render_error(:payments_unavailable, [ t("bookings.create.payments_unavailable") ], status: :unprocessable_content)
-        end
-
-        partner = params.fetch(:partner, {}).permit(:name, :phone, :gender).to_h.symbolize_keys
-        entry = TournamentEntry.register(tournament, current_user, partner: partner)
-        if !entry.persisted?
-          render_error :not_open, entry.errors.full_messages, status: :unprocessable_content
-        elsif entry.payment
-          current_user.remember_locale(I18n.locale)
-          render json: ApiJson.payment(entry.payment, tournament.venue), status: :created
+      def create
+        @tournament = current_user.tournaments.new(tournament_params)
+        if @tournament.save
+          render_details status: :created
         else
-          render json: ApiJson.tournament_details(tournament, entry, viewer: current_user), status: :created
+          render_error :invalid, @tournament.errors.full_messages, status: :unprocessable_content
         end
+      end
+
+      def update
+        if @tournament.update(tournament_params)
+          render_details
+        else
+          render_error :invalid, @tournament.errors.full_messages, status: :unprocessable_content
+        end
+      end
+
+      def destroy
+        @tournament.destroy!
+        head :no_content
+      end
+
+      def draw
+        Tournaments::Draw.call(@tournament)
+        render_details
+      rescue Tournaments::Draw::Error => error
+        render_error :invalid, [ error.message ], status: :unprocessable_content
+      end
+
+      def undo_draw
+        @tournament.undo_draw!
+        render_details
+      rescue ArgumentError
+        render_error :not_allowed, [ t("tournaments.undo_draw.not_allowed") ], status: :unprocessable_content
+      end
+
+      # { booking_ids: [...] }
+      def link_bookings
+        link_own_bookings(params[:booking_ids])
+        render_details
+      end
+
+      # { organizer_token } from the organizer link.
+      def join
+        if @tournament.add_organizer(current_user, params.require(:organizer_token))
+          render_details
+        else
+          render_error :invalid, @tournament.errors.full_messages.presence || [ t("tournaments.join.wrong_link") ], status: :unprocessable_content
+        end
+      end
+
+      def reset_organizer_link
+        @tournament.reset_organizer_token!
+        render_details
+      end
+
+      # { user_id }
+      def remove_organizer
+        @tournament.organizers.where(user_id: params.require(:user_id)).delete_all
+        render_details
       end
 
       private
 
-      def player_scope
-        TournamentEntry.where(user_id: current_user.id).or(TournamentEntry.where(partner_id: current_user.id))
+      def render_details(status: :ok)
+        render json: ApiJson.tournament_details(@tournament.reload, viewer: current_user), status: status
+      end
+
+      def refuse_tournament_action
+        render_error :forbidden, [ t("tournaments.not_allowed") ], status: :forbidden
       end
     end
   end

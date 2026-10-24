@@ -17,7 +17,7 @@ module Tournaments
 
     def groups
       @groups ||= begin
-        entries = @tournament.entries.confirmed.where.not(group_number: nil).includes(:user, :partner)
+        entries = @tournament.entries.where.not(group_number: nil)
         rows = entries.to_h { |entry| [ entry.id, Row.new(entry, 0, 0, 0, 0, 0, 0) ] }
         @tournament.matches.group_stage.where.not(winner_id: nil).find_each { |match| count(match, rows) }
         rows.values.group_by { |row| row.entry.group_number }.sort.to_h.transform_values do |list|

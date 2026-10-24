@@ -426,7 +426,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_23_000027) do
     t.string "offer"
     t.bigint "package_purchase_id"
     t.bigint "play_session_ticket_id"
-    t.bigint "tournament_entry_id"
     t.index ["bank_transaction_id"], name: "index_payments_on_bank_transaction_id"
     t.index ["code"], name: "index_payments_on_code", unique: true
     t.index ["created_by_id"], name: "index_payments_on_created_by_id"
@@ -434,14 +433,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_23_000027) do
     t.index ["play_session_ticket_id"], name: "index_payments_on_play_session_ticket_id"
     t.index ["series_id"], name: "index_payments_on_series_id"
     t.index ["token"], name: "index_payments_on_token", unique: true
-    t.index ["tournament_entry_id"], name: "index_payments_on_tournament_entry_id"
     t.index ["user_id"], name: "index_payments_on_user_id"
     t.check_constraint "(status::text = 'paid'::text) = (paid_at IS NOT NULL)", name: "payments_paid_at_consistent"
     t.check_constraint "amount_vnd > 0", name: "payments_amount_positive"
     t.check_constraint "code::text ~ '^VNB[A-Z0-9]{8}$'::text", name: "payments_code_format"
     t.check_constraint "purpose::text <> 'bookings'::text OR expires_at IS NOT NULL", name: "payments_bookings_expiry"
     t.check_constraint "purpose::text <> 'series_period'::text OR series_id IS NOT NULL AND series_month IS NOT NULL", name: "payments_series_period_target"
-    t.check_constraint "purpose::text = ANY (ARRAY['bookings'::character varying, 'series_period'::character varying, 'package'::character varying, 'tickets'::character varying, 'tournament'::character varying]::text[])", name: "payments_purpose_valid"
+    t.check_constraint "purpose::text = ANY (ARRAY['bookings'::character varying, 'series_period'::character varying, 'package'::character varying, 'tickets'::character varying]::text[])", name: "payments_purpose_valid"
     t.check_constraint "status::text = ANY (ARRAY['awaiting'::character varying, 'paid'::character varying, 'expired'::character varying, 'cancelled'::character varying]::text[])", name: "payments_status_valid"
   end
 
@@ -568,28 +566,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_23_000027) do
 
   create_table "tournament_entries", force: :cascade do |t|
     t.bigint "tournament_id", null: false
-    t.bigint "user_id", null: false
-    t.bigint "partner_id"
+    t.string "name", null: false
     t.string "partner_name"
-    t.string "partner_phone"
-    t.string "partner_gender"
-    t.bigint "payment_id"
-    t.bigint "amount_vnd", null: false
-    t.string "status", default: "pending", null: false
     t.integer "seed"
     t.integer "group_number"
-    t.datetime "cancelled_at", precision: 0
-    t.bigint "refund_vnd"
-    t.datetime "refunded_at", precision: 0
     t.datetime "created_at", precision: 0, null: false
     t.datetime "updated_at", precision: 0, null: false
-    t.index ["partner_id"], name: "index_tournament_entries_on_partner_id"
-    t.index ["payment_id"], name: "index_tournament_entries_on_payment_id"
     t.index ["tournament_id"], name: "index_tournament_entries_on_tournament_id"
-    t.index ["user_id"], name: "index_tournament_entries_on_user_id"
-    t.check_constraint "partner_gender IS NULL OR (partner_gender::text = ANY (ARRAY['male'::character varying, 'female'::character varying]::text[]))", name: "tournament_entries_partner_gender_valid"
     t.check_constraint "seed IS NULL OR seed >= 1", name: "tournament_entries_seed_valid"
-    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying, 'confirmed'::character varying, 'cancelled'::character varying]::text[])", name: "tournament_entries_status_valid"
   end
 
   create_table "tournament_matches", force: :cascade do |t|
@@ -621,43 +605,38 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_23_000027) do
     t.check_constraint "winner_id IS NULL OR winner_id = entry_a_id OR winner_id = entry_b_id", name: "tournament_matches_winner_plays"
   end
 
+  create_table "tournament_organizers", force: :cascade do |t|
+    t.bigint "tournament_id", null: false
+    t.bigint "user_id", null: false
+    t.datetime "created_at", precision: 0, null: false
+    t.datetime "updated_at", precision: 0, null: false
+    t.index ["tournament_id", "user_id"], name: "index_tournament_organizers_on_tournament_id_and_user_id", unique: true
+    t.index ["user_id"], name: "index_tournament_organizers_on_user_id"
+  end
+
   create_table "tournaments", force: :cascade do |t|
-    t.bigint "venue_id", null: false
     t.bigint "created_by_id", null: false
     t.string "title", null: false
-    t.string "title_en"
     t.text "description"
     t.string "play_format", null: false
     t.string "discipline", null: false
-    t.string "gender"
-    t.string "level"
-    t.bigint "court_ids", null: false, array: true
-    t.datetime "starts_at", precision: 0, null: false
-    t.datetime "ends_at", precision: 0, null: false
-    t.datetime "registration_closes_at", precision: 0, null: false
-    t.integer "max_entries", null: false
-    t.bigint "fee_vnd", default: 0, null: false
+    t.date "played_on"
     t.integer "group_size"
     t.integer "advance_per_group"
-    t.string "status", default: "open", null: false
+    t.string "status", default: "setup", null: false
+    t.string "share_token", null: false
+    t.string "organizer_token", null: false
     t.datetime "drawn_at", precision: 0
     t.datetime "finished_at", precision: 0
-    t.datetime "cancelled_at", precision: 0
     t.datetime "created_at", precision: 0, null: false
     t.datetime "updated_at", precision: 0, null: false
     t.index ["created_by_id"], name: "index_tournaments_on_created_by_id"
-    t.index ["starts_at"], name: "index_tournaments_on_starts_at"
-    t.index ["venue_id"], name: "index_tournaments_on_venue_id"
-    t.check_constraint "cardinality(court_ids) >= 1", name: "tournaments_courts_present"
+    t.index ["organizer_token"], name: "index_tournaments_on_organizer_token", unique: true
+    t.index ["share_token"], name: "index_tournaments_on_share_token", unique: true
     t.check_constraint "discipline::text = ANY (ARRAY['singles'::character varying, 'doubles'::character varying, 'mixed_doubles'::character varying]::text[])", name: "tournaments_discipline_valid"
-    t.check_constraint "ends_at > starts_at", name: "tournaments_range_valid"
-    t.check_constraint "fee_vnd >= 0 AND (fee_vnd % 1000::bigint) = 0", name: "tournaments_fee_valid"
-    t.check_constraint "gender IS NULL OR (gender::text = ANY (ARRAY['male'::character varying, 'female'::character varying]::text[])) AND discipline::text <> 'mixed_doubles'::text", name: "tournaments_gender_valid"
-    t.check_constraint "max_entries >= 2 AND max_entries <= 64", name: "tournaments_max_entries_valid"
     t.check_constraint "play_format::text <> 'groups_knockout'::text OR group_size >= 3 AND group_size <= 6 AND advance_per_group >= 1 AND advance_per_group <= 2", name: "tournaments_groups_valid"
     t.check_constraint "play_format::text = ANY (ARRAY['knockout'::character varying, 'groups_knockout'::character varying, 'round_robin'::character varying]::text[])", name: "tournaments_format_valid"
-    t.check_constraint "registration_closes_at <= starts_at", name: "tournaments_registration_before_start"
-    t.check_constraint "status::text = ANY (ARRAY['open'::character varying, 'in_progress'::character varying, 'finished'::character varying, 'cancelled'::character varying]::text[])", name: "tournaments_status_valid"
+    t.check_constraint "status::text = ANY (ARRAY['setup'::character varying, 'in_progress'::character varying, 'finished'::character varying]::text[])", name: "tournaments_status_valid"
   end
 
   create_table "users", force: :cascade do |t|
@@ -819,7 +798,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_23_000027) do
   add_foreign_key "bookings", "package_purchases"
   add_foreign_key "bookings", "payments"
   add_foreign_key "bookings", "play_sessions"
-  add_foreign_key "bookings", "tournaments"
+  add_foreign_key "bookings", "tournaments", on_delete: :nullify
   add_foreign_key "bookings", "users"
   add_foreign_key "bookings", "users", column: "cancelled_by_id"
   add_foreign_key "bookings", "users", column: "created_by_id"
@@ -846,7 +825,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_23_000027) do
   add_foreign_key "payments", "booking_series", column: "series_id"
   add_foreign_key "payments", "package_purchases"
   add_foreign_key "payments", "play_session_tickets"
-  add_foreign_key "payments", "tournament_entries"
   add_foreign_key "payments", "users"
   add_foreign_key "payments", "users", column: "created_by_id"
   add_foreign_key "play_session_tickets", "payments"
@@ -862,18 +840,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_23_000027) do
   add_foreign_key "series_requests", "booking_series", column: "series_id"
   add_foreign_key "series_requests", "users", column: "decided_by_id"
   add_foreign_key "series_requests", "users", on_delete: :cascade
-  add_foreign_key "tournament_entries", "payments"
   add_foreign_key "tournament_entries", "tournaments"
-  add_foreign_key "tournament_entries", "users"
-  add_foreign_key "tournament_entries", "users", column: "partner_id"
   add_foreign_key "tournament_matches", "courts"
   add_foreign_key "tournament_matches", "tournament_entries", column: "entry_a_id"
   add_foreign_key "tournament_matches", "tournament_entries", column: "entry_b_id"
   add_foreign_key "tournament_matches", "tournament_entries", column: "winner_id"
   add_foreign_key "tournament_matches", "tournament_matches", column: "next_match_id"
   add_foreign_key "tournament_matches", "tournaments"
+  add_foreign_key "tournament_organizers", "tournaments"
+  add_foreign_key "tournament_organizers", "users"
   add_foreign_key "tournaments", "users", column: "created_by_id"
-  add_foreign_key "tournaments", "venues"
   add_foreign_key "users", "users", column: "deletion_requested_by_id"
   add_foreign_key "voucher_redemptions", "payments"
   add_foreign_key "voucher_redemptions", "users", on_delete: :cascade

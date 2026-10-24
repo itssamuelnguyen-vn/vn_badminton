@@ -1,0 +1,6 @@
+- content_for :title, t(".title")
+
+div class="card mx-auto max-w-2xl"
+  h1 class="mb-2 text-2xl font-bold" = t(".title")
+  p class="mb-6 text-sm text-slate-600" = t(".explanation")
+  = render "tournaments/form", tournament: @tournament

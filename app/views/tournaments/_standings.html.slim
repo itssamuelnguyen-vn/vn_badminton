@@ -12,7 +12,7 @@ div class="surface overflow-hidden"
         th class="px-4 py-2 text-right font-medium" title=t("tournaments.standings.points_long") = t("tournaments.standings.points")
     tbody class="divide-y divide-slate-100"
       - rows.each_with_index do |row, index|
-        tr class=[ ("bg-emerald-50/60" if index < advancing && row.played.positive?), ("font-semibold" if row.entry.id == mine_id) ]
+        tr class=("bg-emerald-50/60" if index < advancing && row.played.positive?)
           td class="px-4 py-2" = "#{index + 1}. #{row.entry.display_name}"
           td class="px-2 py-2 text-right tabular-nums" = row.played
           td class="px-2 py-2 text-right tabular-nums" = row.won

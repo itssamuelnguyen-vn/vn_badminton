@@ -30,8 +30,9 @@ class Booking < ApplicationRecord
   belongs_to :refunded_by, class_name: "User", optional: true
   # Paid with prepaid hours (PackagePurchase): package_minutes were taken off it.
   belongs_to :package_purchase, optional: true
-  # A block keeping a court for an open play session or a tournament.
+  # A block keeping a court for an open play session.
   belongs_to :play_session, optional: true
+  # The customer plays their own tournament (Tournament) on it.
   belongs_to :tournament, optional: true
 
   # Why a booking was cancelled, besides a plain cancellation (see also BookingSeries reasons).

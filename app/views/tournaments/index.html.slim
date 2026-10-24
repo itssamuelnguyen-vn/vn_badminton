@@ -1,9 +1,11 @@
 - content_for :title, t(".title")
 
 div class="mx-auto max-w-2xl"
-  div class="mb-8"
-    h1 class="text-2xl font-bold sm:text-3xl" = t(".title")
-    p class="mt-2 text-sm text-slate-600" = t(".intro")
+  div class="mb-8 flex flex-wrap items-end justify-between gap-4"
+    div
+      h1 class="text-2xl font-bold sm:text-3xl" = t(".title")
+      p class="mt-2 text-sm text-slate-600" = t(".intro")
+    = link_to t(".new"), new_tournament_path, class: "btn-primary"
 
   - if @tournaments.empty?
     div class="card flex flex-col items-center gap-3 text-center"
@@ -13,4 +15,15 @@ div class="mx-auto max-w-2xl"
   - else
     div class="space-y-4"
       - @tournaments.each do |tournament|
-        = render "tournaments/card", tournament: tournament, mine: @mine[tournament.id]
+        = link_to tournament_path(tournament), id: dom_id(tournament), class: "surface block p-4 transition hover:ring-emerald-300 sm:p-5" do
+          div class="flex items-start gap-4"
+            span class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-md shadow-orange-600/25" aria-hidden="true"
+              = render "tournaments/trophy", css: "size-6"
+            div class="min-w-0 flex-1"
+              h2 class="font-bold text-balance break-words" = tournament.title
+              p class="mt-0.5 text-sm text-slate-600"
+                = [ tournament.event_name, t("tournaments.formats.#{tournament.play_format}"), (date = tournament.play_date) && l(date, format: :full) ].compact.join(" · ")
+              div class="mt-2 flex flex-wrap gap-1.5 text-xs font-semibold"
+                = render "tournaments/status", tournament: tournament
+                - unless tournament.creator?(current_user)
+                  span class="rounded-full bg-violet-50 px-2.5 py-0.5 text-violet-700 ring-1 ring-violet-200" = t(".organizer_of", name: tournament.created_by.full_name)

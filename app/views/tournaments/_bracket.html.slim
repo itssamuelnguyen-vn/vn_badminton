@@ -8,7 +8,7 @@ div class="-mx-4 mt-3 overflow-x-auto px-4 pb-2"
         p class="mb-2 text-xs font-semibold tracking-wide text-slate-500 uppercase" = list.first.round_name
         div class="flex flex-1 flex-col justify-around gap-3"
           - list.sort_by(&:position).each do |match|
-            div id=dom_id(match) class="surface overflow-hidden text-sm #{"ring-2 ring-violet-300" if mine_id && [ match.entry_a_id, match.entry_b_id ].include?(mine_id)}"
+            div class="surface overflow-hidden text-sm"
               - [ [ match.entry_a, 0 ], [ match.entry_b, 1 ] ].each do |entry, side|
                 - won = entry && match.winner_id == entry.id
                 div class="flex items-center justify-between gap-2 px-3 py-2 #{"border-t border-slate-100" if side == 1} #{won ? "bg-emerald-50 font-semibold text-emerald-900" : ""}"

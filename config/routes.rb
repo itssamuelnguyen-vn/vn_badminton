@@ -33,11 +33,27 @@ Rails.application.routes.draw do
     end
     resources :play_session_tickets, only: :destroy
 
-    # In-house tournaments: public pages (entries, bracket, results); entering leads to the payment page.
-    resources :tournaments, only: %i[index show] do
-      post :enter, on: :member
+    # The customers' own tournaments (a tool for their group, the venue takes no part): the list of the ones they
+    # run; each one's page is open to anyone with its link (/tournaments/<share token>).
+    resources :tournaments, param: :token do
+      member do
+        post :draw
+        delete :draw, action: :undo_draw
+        # The bookings it is played on (booking_ids[]).
+        patch :bookings, action: :link_bookings
+        # The organizer link: the page to accept it, accepting, a new link, removing an organizer (?user_id=).
+        get "organize/:organizer_token", action: :organize, as: :organize
+        post "organize/:organizer_token", action: :join
+        patch :organizer_link, action: :reset_organizer_link
+        delete :organizers, action: :remove_organizer
+      end
+      # Players typed one per line (create), a seed or a name (update), removing one.
+      resources :entries, only: %i[create update destroy], controller: :tournament_entries
+      # Calling a match to a court, entering its result.
+      resources :matches, only: :update, controller: :tournament_matches do
+        patch :call, on: :member
+      end
     end
-    resources :tournament_entries, only: :destroy
 
     # The customer's groups. A booking is shared with the group picked in the form (groups page or booking page).
     resources :groups, only: %i[index create destroy] do
@@ -110,20 +126,6 @@ Rails.application.routes.draw do
           patch :cancel
           patch :check_in
           patch :mark_refunded
-        end
-      end
-      resources :tournaments, only: %i[index new create show] do
-        member do
-          patch :cancel
-          post :draw
-          # Per entry (?entry_id=): its seed, removing it (refunded if paid), marking its refund done.
-          patch :seed
-          patch :remove_entry
-          patch :mark_refunded
-        end
-        # Calling a match to a court, entering its result.
-        resources :matches, only: :update, controller: :tournament_matches do
-          patch :call, on: :member
         end
       end
       get "reports", to: "reports#show", as: :reports
@@ -202,10 +204,20 @@ Rails.application.routes.draw do
         post :tickets, on: :member, action: :buy
       end
       resources :tickets, only: :destroy, controller: :play_session_tickets
-      resources :tournaments, only: %i[index show] do
-        post :entries, on: :member, action: :enter
+      resources :tournaments, param: :token, only: %i[index show create update destroy] do
+        member do
+          post :draw
+          delete :draw, action: :undo_draw
+          patch :bookings, action: :link_bookings
+          post :organize, action: :join
+          patch :organizer_link, action: :reset_organizer_link
+          delete :organizers, action: :remove_organizer
+        end
+        resources :entries, only: %i[create update destroy], controller: :tournament_entries
+        resources :matches, only: :update, controller: :tournament_matches do
+          patch :call, on: :member
+        end
       end
-      resources :tournament_entries, only: :destroy
       resources :groups, only: %i[index create destroy] do
         post :join, on: :collection
         delete :leave, on: :member
