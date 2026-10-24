@@ -8,6 +8,8 @@ The UI is in Vietnamese (default) and English.
 `docs/business-rules.md` lists every business rule with an ID, the code that enforces it and its tests.
 When a change adds, removes or changes a rule, update that file in the same PR (and its "Cập nhật" line).
 If the document and the tests disagree, the tests are right: fix the document.
+`docs/business-processes.md` describes the step-by-step processes per role, citing those rule IDs: update it in the same PR
+when a change alters a process (a new step, screen or role).
 
 ## Conventions
 
