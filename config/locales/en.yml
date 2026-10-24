@@ -520,6 +520,7 @@ en:
     show:
       title: Book a court
       continue: Continue
+      clear: Clear
       closed: The venue is closed on this day.
       too_short: "Please choose at least %{minutes} minutes"
       too_long: "You can book at most %{minutes} minutes at a time"
@@ -617,6 +618,8 @@ en:
       note_placeholder: "For example: need to rent rackets"
       pay_at_venue: Pay at the venue when you arrive.
       back: Choose another time
+      remove_court: Remove this court
+      remove_court_label: "Remove %{court} from this booking"
       submit: Confirm & pay by transfer
       grand_total:
         one: "Total (%{count} court)"

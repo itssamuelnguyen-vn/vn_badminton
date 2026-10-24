@@ -33,6 +33,17 @@ class BookingLimitsTest < ActionDispatch::IntegrationTest
 
     assert_select "#error_explanation li", text: "Mỗi tài khoản giữ tối đa 2 lượt đặt sắp tới; bạn chỉ còn đặt thêm được 1 sân."
     assert_select "input[type=submit]", count: 0
+    # Each card still shows its own price (not held, but priced), and can drop its court.
+    assert_select "dd", text: "120.000đ", minimum: 2
+    assert_select "dd", text: "0đ", count: 0
+    remove = css_select("a[aria-label='Bỏ Sân 2 khỏi lần đặt này']").sole
+
+    # Dropping court 2 opens the page again with court 1 alone, now within the limit and held.
+    assert_difference("Booking.pending.count", 1) { get remove["href"] }
+    assert_select "#error_explanation", count: 0
+    assert_select "input[type=submit]"
+    assert_select "a", text: /Bỏ sân này/, count: 0, message: "a single court has nothing to drop"
+    assert_equal [ courts(:court_one) ], Booking.pending.map(&:court)
   end
 
   test "bookings are up to 4 hours" do

@@ -39,7 +39,9 @@
           ul class="font-semibold" data-slot-picker-target="summaryList"
           p class="text-sm font-bold text-emerald-700" data-slot-picker-target="total"
           p class="text-xs text-red-700" data-slot-picker-target="hint"
-        = link_to t(".continue"), new_booking_path, class: "btn-primary px-6 py-3 aria-disabled:pointer-events-none aria-disabled:opacity-50", data: { slot_picker_target: "continue", turbo_prefetch: false }
+        div class="flex items-center gap-2"
+          button type="button" class="btn-secondary px-4 py-3" data-action="slot-picker#clear" = t(".clear")
+          = link_to t(".continue"), new_booking_path, class: "btn-primary px-6 py-3 aria-disabled:pointer-events-none aria-disabled:opacity-50", data: { slot_picker_target: "continue", turbo_prefetch: false }
     - if waitlist
       = render "schedules/waitlist", day: @day
 - else

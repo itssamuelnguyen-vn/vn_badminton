@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 
 // Picks consecutive free 30-minute slots on the schedule grid: one range per court.
 // Click a free slot to start, click a later (or earlier) free slot on the same court to extend,
-// click inside a range to start over from that slot, click a lone selected slot to clear it.
+// click inside a range to start over from that slot, click a lone selected slot to clear it; "Bỏ chọn" clears all.
 // With the "several courts" box ticked, each court keeps its own range; otherwise picking
 // another court replaces the selection.
 //
@@ -73,6 +73,13 @@ export default class extends Controller {
     if (!this.multiple) {
       for (const court of [...this.ranges.keys()]) if (court !== this.lastCourt) this.ranges.delete(court)
     }
+    this.render("")
+  }
+
+  // The "Bỏ chọn" button of the summary bar: drops every picked range at once.
+  clear() {
+    this.ranges.clear()
+    this.lastCourt = null
     this.render("")
   }
 

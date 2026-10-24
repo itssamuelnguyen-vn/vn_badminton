@@ -13,6 +13,8 @@ class BookingFlowTest < ActionDispatch::IntegrationTest
     assert_select "button[data-available=true][data-court-name='Sân 1'][data-starts-label='18:00']"
     assert_select "div[data-court-name='Sân 2'][data-starts-label='18:00']", text: "Đã đặt"
     assert_select "[role=dialog] [aria-current=date]", text: "20"
+    # The selection bar clears every picked slot with one button.
+    assert_select "[data-slot-picker-target=summary] button[data-action='slot-picker#clear']", text: "Bỏ chọn"
   end
 
   test "today's schedule starts at the next slot instead of listing the ones that already started" do
