@@ -114,7 +114,6 @@ class Api::AppExtrasTest < ActionDispatch::IntegrationTest
     post review_api_v1_booking_path(booking.code), params: { rating: 5 }, headers: auth(token), as: :json
     assert_response :unprocessable_content, "not played yet"
 
-    booking.check_in!(now: at("18:05"))
     travel_to at("20:00")
     get api_v1_booking_path(booking.code), headers: auth(token)
     assert response.parsed_body["can_review"]
@@ -131,7 +130,6 @@ class Api::AppExtrasTest < ActionDispatch::IntegrationTest
     assert_select "p", text: "Sân tốt, hơi nóng"
 
     other = book_and_pay(sign_in_api(users(:chi)), slots: [ { court_id: courts(:court_two).id, starts_at: at("21:00").iso8601, ends_at: at("22:00").iso8601 } ])
-    other.check_in!(now: at("21:00"))
     travel_to at("22:00") + Review::WINDOW + 1.minute
     post review_api_v1_booking_path(other.code), params: { rating: 3 }, headers: auth(sign_in_api(users(:chi))), as: :json
     assert_response :unprocessable_content, "too late"

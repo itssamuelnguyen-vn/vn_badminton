@@ -12,7 +12,7 @@ module Reports
   class Month
     COUNTED_STATUSES = %w[confirmed checked_in completed no_show].freeze
 
-    Day = Data.define(:date, :bookings, :booked_minutes, :open_minutes, :expected_vnd, :collected_vnd, :no_shows, :cancelled) do
+    Day = Data.define(:date, :bookings, :booked_minutes, :open_minutes, :expected_vnd, :collected_vnd, :cancelled) do
       def occupancy = open_minutes.zero? ? nil : booked_minutes.fdiv(open_minutes)
     end
     Hour = Data.define(:hour, :booked_minutes, :open_minutes) do
@@ -34,12 +34,12 @@ module Reports
         Day.new(date: date, bookings: counted.size, booked_minutes: counted.sum(&:duration_minutes),
                 open_minutes: open_minutes(date), expected_vnd: counted.sum(&:charged_vnd),
                 collected_vnd: counted.select(&:payment_paid?).sum(&:charged_vnd),
-                no_shows: counted.count(&:no_show?), cancelled: list.count(&:cancelled?))
+                cancelled: list.count(&:cancelled?))
       end
     end
 
     def totals
-      Day.new(date: nil, **%i[bookings booked_minutes open_minutes expected_vnd collected_vnd no_shows cancelled]
+      Day.new(date: nil, **%i[bookings booked_minutes open_minutes expected_vnd collected_vnd cancelled]
                              .to_h { |key| [ key, days.sum(&key) ] })
     end
 

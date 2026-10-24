@@ -22,7 +22,7 @@ class BookingReminderJobTest < ActiveJob::TestCase
 
   test "skips bookings that do not need a reminder" do
     book(:court_one, "18:00").cancel!(by: users(:an))
-    book(:court_two, "18:00").check_in!
+    book(:court_two, "18:00").update!(status: :checked_in, checked_in_at: Time.current) # an older booking checked in early
     courts(:court_one).bookings.create!(kind: :block, starts_at: at("17:00"), ends_at: at("18:00"))
     courts(:court_one).bookings.create!(source: :walk_in, customer_name: "Khách lẻ", customer_phone: "0912 345 678",
                                         starts_at: at("19:00"), ends_at: at("20:00"))

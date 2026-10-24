@@ -114,7 +114,6 @@ class WebAppFeaturesTest < ActionDispatch::IntegrationTest
     assert_redirected_to booking_path(booking)
     assert_nil booking.reload.review
 
-    booking.check_in!(now: at("18:05"))
     travel_to at("20:00")
     reset! # the earlier session timed out meanwhile
     sign_in users(:an)
@@ -165,11 +164,16 @@ class WebAppFeaturesTest < ActionDispatch::IntegrationTest
     assert_select "#loyalty-title + p", text: "Đồng"
     assert_select "p", text: /Chơi thêm 20 giờ để lên hạng Bạc/
 
+    # Paid sessions over count as played (no check-in recorded); an unpaid or a cancelled one does not.
     10.times do |i|
       starts_at = (Time.current - (i + 2).days).change(hour: 8)
       Booking.create!(court: courts(:court_two), user: users(:an), source: :walk_in, starts_at: starts_at, ends_at: starts_at + 2.hours,
-                      status: :checked_in, checked_in_at: starts_at, payment_status: :paid, paid_at: starts_at)
+                      payment_status: :paid, paid_at: starts_at)
     end
+    starts_at = (Time.current - 20.days).change(hour: 8)
+    Booking.create!(court: courts(:court_two), user: users(:an), source: :walk_in, starts_at: starts_at, ends_at: starts_at + 2.hours)
+    Booking.create!(court: courts(:court_one), user: users(:an), source: :walk_in, starts_at: starts_at, ends_at: starts_at + 2.hours,
+                    payment_status: :paid, paid_at: starts_at, status: :cancelled, cancelled_at: starts_at)
     get edit_user_registration_path
     assert_select "#loyalty-title + p", text: "Bạc"
     assert_select "span", text: "Giảm 3% tiền sân"

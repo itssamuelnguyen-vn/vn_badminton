@@ -95,9 +95,7 @@ div class="mb-6 grid gap-6 lg:grid-cols-3"
 
   / Share of the month's bookings by outcome.
   section class=card aria-labelledby="status-title"
-    - played = totals.bookings - totals.no_shows
-    - parts = [ [ t(".played"), played, "bg-emerald-600" ], [ t(".no_shows"), totals.no_shows, "bg-amber-400" ],
-                [ t(".cancelled"), totals.cancelled, "bg-slate-300" ] ]
+    - parts = [ [ t(".played"), totals.bookings, "bg-emerald-600" ], [ t(".cancelled"), totals.cancelled, "bg-slate-300" ] ]
     - all = parts.sum { |part| part[1] }
     h2#status-title class="text-base font-semibold" = t(".status_title")
     p class="mt-0.5 text-xs text-slate-500" = t(".status_hint")
@@ -173,7 +171,6 @@ details class="group rounded-2xl bg-white ring-1 ring-slate-200"
               th class="px-3 py-2 text-right font-medium" = t(".occupancy")
               th class="px-3 py-2 text-right font-medium" = t(".expected")
               th class="px-3 py-2 text-right font-medium" = t(".collected")
-              th class="px-3 py-2 text-right font-medium" = t(".no_shows")
               th class="px-3 py-2 text-right font-medium" = t(".cancelled")
           tbody class="divide-y divide-slate-100 tabular-nums"
             - report.days.each do |day|
@@ -185,7 +182,6 @@ details class="group rounded-2xl bg-white ring-1 ring-slate-200"
                 td class="px-3 py-2 text-right" = percent.(day.occupancy)
                 td class="px-3 py-2 text-right" = format_vnd(day.expected_vnd)
                 td class="px-3 py-2 text-right" = format_vnd(day.collected_vnd)
-                td class="px-3 py-2 text-right" = day.no_shows
                 td class="px-3 py-2 text-right" = day.cancelled
           tfoot class="border-t border-slate-200 font-semibold tabular-nums"
             tr
@@ -195,7 +191,6 @@ details class="group rounded-2xl bg-white ring-1 ring-slate-200"
               td class="px-3 py-2 text-right" = percent.(totals.occupancy)
               td class="px-3 py-2 text-right" = format_vnd(totals.expected_vnd)
               td class="px-3 py-2 text-right" = format_vnd(totals.collected_vnd)
-              td class="px-3 py-2 text-right" = totals.no_shows
               td class="px-3 py-2 text-right" = totals.cancelled
 
     section aria-labelledby="hours-title"

@@ -7,7 +7,7 @@ module Customers
   class Directory
     LIMIT = 100
 
-    Entry = Data.define(:phone, :name, :user, :bookings_count, :upcoming_count, :no_shows, :self_cancellations,
+    Entry = Data.define(:phone, :name, :user, :bookings_count, :upcoming_count, :self_cancellations,
                         :revenue_vnd, :last_booking_at, :profile) do
       def blocked? = profile&.blocked? || false
 
@@ -85,19 +85,18 @@ module Customers
         (array_agg(customer_name ORDER BY created_at DESC))[1],
         count(*),
         count(*) FILTER (WHERE status IN ('confirmed', 'checked_in') AND ends_at > #{Booking.connection.quote(@now)}),
-        count(*) FILTER (WHERE status = 'no_show'),
         count(*) FILTER (WHERE status = 'cancelled' AND cancelled_by_id = user_id),
         coalesce(sum(total_amount_vnd + items_amount_vnd) FILTER (WHERE status IN ('confirmed', 'checked_in', 'completed')), 0),
         max(starts_at)
       SQL
     end
 
-    STATS_COLUMNS = %w[phone name count upcoming no_shows self_cancellations revenue last_at].freeze
+    STATS_COLUMNS = %w[phone name count upcoming self_cancellations revenue last_at].freeze
 
     def build(phone, stats, user, profile)
       Entry.new(phone: phone, name: stats&.dig("name") || user&.full_name, user: user,
                 bookings_count: stats&.dig("count") || 0, upcoming_count: stats&.dig("upcoming") || 0,
-                no_shows: stats&.dig("no_shows") || 0, self_cancellations: stats&.dig("self_cancellations") || 0,
+                self_cancellations: stats&.dig("self_cancellations") || 0,
                 revenue_vnd: stats&.dig("revenue").to_i, last_booking_at: stats&.dig("last_at"), profile: profile)
     end
   end

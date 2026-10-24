@@ -22,7 +22,7 @@ class ReportsTest < ActionDispatch::IntegrationTest
     assert_includes row.text, "2h30"
     assert_includes row.text, "7,4%" # 150 / 2040
     cells = css_select("tbody tr").find { |tr| tr.text.include?("21/10/2026") }.css("td").map { |td| td.text.strip }
-    assert_equal [ "0", "0h", "0%", "0đ", "0đ", "0", "1" ], cells.drop(1) # only a cancelled booking that day
+    assert_equal [ "0", "0h", "0%", "0đ", "0đ", "1" ], cells.drop(1) # only a cancelled booking that day
     assert_select "td[title='18:00 – 19:00: 3,2% (2h / 62h)']" # 120 booked minutes / (31 days x 2 courts x 60)
     assert_select "td[title='Thứ 3 · 18:00 – 19:00: 25%']" # 120 / (4 Tuesdays x 2 courts x 60)
     assert_select "td[title='Thứ 3 · 21:00 – 22:00: 0%']"

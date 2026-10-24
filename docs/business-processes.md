@@ -9,7 +9,7 @@ có ngoại lệ. Dùng để **đào tạo nhân viên**, **kiểm thử** và 
 - Các con số đánh dấu ⚙️ chỉnh được trong **Quản lý → Hệ thống → Cài đặt**; số ghi ở đây là mặc định.
 - App Android (Flutter) dùng **cùng quy trình** cho mọi việc của khách (AP-03); việc của chủ sân/nhân viên **chỉ có trên web** (AP-01).
 
-> Cập nhật: 24/10/2026, theo `main` sau PR #30.
+> Cập nhật: 24/10/2026, theo `main` sau PR #31, cộng nhánh `bug-fixes`: bỏ Nhận sân / Không đến.
 
 ---
 
@@ -70,15 +70,14 @@ stateDiagram-v2
     ChoChuyenKhoan --> DaHuy: Hết hạn / khách tự huỷ (TT-03, TT-11)
     [*] --> DaXacNhan: Đặt hộ khách đến trực tiếp, đặt bằng gói giờ, buổi lịch cố định
     DaXacNhan: Đã xác nhận
-    DaXacNhan --> DaNhanSan: Nhân viên bấm Nhận sân
-    DaXacNhan --> KhongDen: Nhân viên bấm Không đến
     DaXacNhan --> DaHuy: Khách huỷ (trước hạn) / sân huỷ
-    DaNhanSan: Đã nhận sân
-    DaNhanSan --> DaXacNhan: Huỷ nhận sân (hoàn tác)
-    KhongDen: Không đến
-    KhongDen --> DaXacNhan: Huỷ "không đến" (hoàn tác)
+    DaXacNhan --> DaChoi: Qua giờ kết thúc, đã thanh toán (tự động)
+    DaChoi: Coi là đã chơi
     DaHuy: Đã huỷ
 ```
+
+Nhân viên **không ghi nhận** khách đến hay không đến (VH-04): lượt **không huỷ, đã qua giờ** tự được coi là **đã chơi**:
+khách đánh giá được (TI-03), và nếu **đã thanh toán** thì được tính vào hạng thành viên (UD-01). Lượt cũ đã ghi "Đã nhận sân" / "Không đến" trước 24/10/2026 vẫn hiện như cũ.
 
 Song song với trạng thái, mỗi lượt có **tình trạng tiền**: *chưa thanh toán* → *đã thanh toán* (chuyển khoản tự xác nhận,
 xác nhận tay, hoặc **Đã thu** tiền mặt) → *đã hoàn* (chỉ khi sân có lỗi, TT-07). Mọi thay đổi được ghi vào **Lịch sử lượt
@@ -180,7 +179,7 @@ sequenceDiagram
    - Còn lại → lượt **chờ chuyển khoản 15 phút** (DAT-07), mở trang thanh toán (mục 5).
 4. Nhận đủ tiền → **đã xác nhận + đã thanh toán**, email xác nhận (một email cho nhiều sân), thông báo đẩy nếu dùng app.
 5. **3 giờ trước giờ chơi**: email nhắc lịch (EM-04).
-6. Đến sân: nhân viên **Nhận sân** (mục 8).
+6. Đến sân và chơi; khách đến trực tiếp chưa trả thì nhân viên thu tiền mặt (mục 8). Không cần ghi nhận khách đã đến.
 
 ### 4.2 Ngoại lệ
 | Tình huống | Hệ thống làm | Quy tắc |
@@ -298,12 +297,11 @@ Khách tự huỷ **không bao giờ** được hoàn. Lịch cố định hoàn
 flowchart LR
     A[Khách đến] --> B[Tìm lượt trên Lịch trong ngày<br/>theo sân và giờ, đối chiếu tên / mã đặt sân]
     B --> C{Đã thanh toán?}
-    C -- Có --> D[Nhận sân]
-    C -- Chưa --> E[Thu tiền mặt → Đã thu] --> D
-    D --> F[Giao đồ thuê thêm<br/>theo dòng 'Chuẩn bị: …']
+    C -- Có --> F[Giao đồ thuê thêm<br/>theo dòng 'Chuẩn bị: …']
+    C -- Chưa --> E[Thu tiền mặt → Đã thu] --> F
 ```
-- **Nhận sân**, **Không đến**, **Đã thu** đều **hoàn tác** được khi bấm nhầm (VH-04). Sau giờ kết thúc vẫn ghi bù được; lượt
-  quá giờ chưa ghi nhận hiện nhãn **"Đã qua giờ – chưa ghi nhận"** (VH-09).
+- **Không có** bước "Nhận sân" hay "Không đến": khách đã trả trước, đến hay không không ảnh hưởng tiền (VH-04).
+- **Đã thu** hoàn tác được khi bấm nhầm (**Huỷ "đã thu"**); sau giờ kết thúc vẫn thu được (VH-09).
 - Hai người cùng thao tác một lượt: người sau thấy "Lượt đặt vừa được cập nhật ở nơi khác", tải lại rồi làm tiếp (VH-05).
 - Lịch tự cập nhật khi có đặt/huỷ/giữ chỗ (VH-08); mục **Khách đang giữ chỗ** trên trang Đặt sân để gọi khách khi cần (VH-10).
 
@@ -385,7 +383,7 @@ flowchart TD
 giao lưu (UD-03, GL-04).
 
 ### 10.1 Hạng thành viên (tự động)
-- Hệ thống tính số giờ đã chơi trong 12 tháng (lượt đã nhận sân và đã thanh toán) → hạng Đồng / Bạc / Vàng / Kim cương ⚙️
+- Hệ thống tính số giờ đã chơi trong 12 tháng (lượt đã thanh toán, không huỷ, đã qua giờ) → hạng Đồng / Bạc / Vàng / Kim cương ⚙️
   → tự giảm khi khách đặt online (UD-01). Khách xem hạng ở trang tài khoản; nhân viên xem ở trang khách.
 
 ### 10.2 Mã giảm giá (chủ sân)
@@ -413,7 +411,7 @@ flowchart LR
 
 1. Chủ sân: **Bán hàng → Đồ thuê thêm** — tạo món (tên vi/en, giá, thứ tự, đang bán); món đã có người chọn thì **tắt** (TI-01).
 2. Khách chọn món và số lượng ở bước xác nhận (web/app); tiền cộng vào khoản chuyển khoản. Trả bằng gói thì không chọn được (thuê tại quầy).
-3. **Lịch trong ngày** hiện **"Chuẩn bị: …"** trên lượt sớm nhất của lần đặt → nhân viên chuẩn bị và giao khi nhận sân.
+3. **Lịch trong ngày** hiện **"Chuẩn bị: …"** trên lượt sớm nhất của lần đặt → nhân viên chuẩn bị và giao khi khách đến.
 4. Khách tự huỷ: không hoàn; sự cố của sân: hoàn cả tiền đồ.
 
 ---
@@ -489,7 +487,7 @@ flowchart TD
 3. Xem và bỏ chờ ở **Lượt đặt của tôi**.
 
 ### 15.2 Đánh giá buổi chơi
-- Sau giờ kết thúc, trong 14 ngày, lượt **đã nhận sân**: khách đánh giá 1–5 sao + góp ý, một lần (TI-03).
+- Sau giờ kết thúc, trong 14 ngày, lượt **không bị huỷ**: khách đánh giá 1–5 sao + góp ý, một lần (TI-03).
 - Nhân viên/chủ sân xem ở **Vận hành → Đánh giá**.
 
 ### 15.3 Bảng tin
@@ -505,7 +503,6 @@ flowchart TD
 - **Danh sách đen**: thêm khi khách bỏ sân nhiều lần, gây rối… → khách không đặt online, không đăng ký giao lưu; nhân viên
   vẫn đặt hộ được (có cảnh báo). Bỏ khỏi danh sách đen bất cứ lúc nào.
 - **Khoá đặt online 7 ngày** (tự động, HUY-03): nhân viên/chủ sân **mở khoá sớm** ở trang khách khi có lý do.
-- Gợi ý xử lý: xem **tỷ lệ không đến** ở Báo cáo khách (mục 17.2) trước khi đưa vào danh sách đen.
 
 ---
 
@@ -516,13 +513,13 @@ Doanh thu dự kiến / đã thu, số lượt, tỷ lệ lấp đầy, so với
 và chỗ giao lưu ghi riêng; **xuất CSV** cho kế toán (VH-07).
 
 ### 17.2 Báo cáo khách (Thu chi → **Báo cáo khách**)
-Top khách chơi nhiều / chi nhiều; **khách quen lâu không quay lại** (gọi hỏi thăm, gửi mã giảm giá); **tỷ lệ không đến** (VH-13).
+Top khách chơi nhiều / chi nhiều; **khách quen lâu không quay lại** (gọi hỏi thăm, gửi mã giảm giá) (VH-13).
 
 ### 17.3 Việc cuối tháng của chủ sân
 1. Đối chiếu **Báo cáo tháng** (đã thu) với sao kê ngân hàng và **lịch sử chốt ca** (tiền mặt).
 2. Xử lý hết **Giao dịch → Cần xử lý** và các khoản **cần hoàn** (sự cố của sân, giao lưu bị huỷ).
 3. Nhắc khách lịch cố định đóng tiền tháng mới (mục 9.2).
-4. Xem Báo cáo khách: gửi mã giảm giá cho khách lâu không quay lại; cân nhắc khách hay không đến.
+4. Xem Báo cáo khách: gửi mã giảm giá cho khách lâu không quay lại.
 5. Cập nhật bảng giá, bảng tin, mã giảm giá cho tháng sau nếu cần.
 
 ---
@@ -574,14 +571,12 @@ Chi tiết lịch chạy: mục 12 của `business-rules.md` và `config/recurri
 - [ ] Xem **Lịch trong ngày**: lượt sắp đến, dòng **"Chuẩn bị: …"** (đồ thuê thêm), buổi giao lưu, sân bị khoá.
 
 **Trong ca**
-- [ ] Khách đến: tìm lượt theo sân và giờ → thu tiền mặt nếu chưa trả (**Đã thu**) → **Nhận sân** → giao đồ.
-- [ ] Khách không đến sau giờ bắt đầu: **Không đến**.
+- [ ] Khách đến: tìm lượt theo sân và giờ → thu tiền mặt nếu chưa trả (**Đã thu**) → giao đồ thuê thêm.
 - [ ] Khách gọi đặt: **đặt hộ** chuyển khoản, gửi link thanh toán; khách tại quầy: đặt hộ tiền mặt.
 - [ ] Sự cố (mất điện, sân hỏng): **Huỷ do sự cố của sân**, báo chủ sân để hoàn tiền.
 - [ ] Khách nói đã chuyển mà chưa xác nhận: kiểm tra trong ngân hàng (chủ sân) rồi **Đã nhận tiền (xác nhận tay)**.
 
 **Cuối ca**
-- [ ] Ghi bù các lượt **"Đã qua giờ – chưa ghi nhận"** (Nhận sân / Không đến).
 - [ ] **Chốt ca**: đếm két, nhập số thực tế, ghi chú nếu chênh lệch.
 
 **Hằng ngày (chủ sân)**

@@ -48,24 +48,6 @@ class CustomerReportsTest < ActionDispatch::IntegrationTest
     assert_select "section[aria-labelledby=lapsed] li", text: /Lê Chi.*Danh sách đen.*Lần cuối 03\/09\/2026 · 3 lượt/m
   end
 
-  test "no-show rate per customer, highest first, linking to the customer page" do
-    book("0901234567", "Nguyễn An", "2026-10-01 06:00", 60, status: :no_show)
-    book("0901234567", "Nguyễn An", "2026-10-02 06:00", 60, status: :completed)
-    book("0901234567", "Nguyễn An", "2026-10-25 06:00", 60) # not played yet: not counted
-    book("0933000111", "Lê Chi", "2026-10-03 06:00", 60, status: :no_show)
-    book("0933000111", "Lê Chi", "2026-10-04 06:00", 60, status: :cancelled)
-
-    report = Reports::Customers.new(venue: venues(:phu_nhuan), month: Date.new(2026, 10, 1))
-    assert_equal [ [ "Lê Chi", 1, 1 ], [ "Nguyễn An", 2, 1 ] ], report.no_shows.map { |r| [ r.name, r.ended, r.no_show_count ] }
-
-    sign_in users(:owner)
-    get admin_customer_reports_path(month: "2026-10")
-    rows = css_select("section[aria-labelledby=no-shows] tbody tr").map { |tr| tr.css("td").map { |td| td.text.squish } }
-    assert_equal [ "1", "1", "100%" ], rows.first.drop(1)
-    assert_equal [ "2", "1", "50%" ], rows.second.drop(1)
-    assert_select "section[aria-labelledby=no-shows] a[href=?]", admin_customer_path("0933000111"), text: "Lê Chi"
-  end
-
   test "only the owner" do
     sign_in users(:staffer)
     get admin_customer_reports_path

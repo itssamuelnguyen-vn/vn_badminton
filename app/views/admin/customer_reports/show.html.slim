@@ -3,7 +3,6 @@
 - month_param = ->(month) { month.strftime("%Y-%m") }
 - period = report.months == 1 ? l(report.month, format: :month_year) : t(".period", from: l(report.first_month, format: :month_year), to: l(report.month, format: :month_year))
 - card = "rounded-2xl bg-white ring-1 ring-slate-200"
-- percent = ->(value) { number_to_percentage(value * 100, precision: 0) }
 
 div class="mb-6 flex flex-wrap items-end justify-between gap-4"
   div
@@ -59,29 +58,3 @@ section class="#{card} mb-6" aria-labelledby="lapsed"
               span class="ml-2 rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 ring-1 ring-red-200" = t("admin.customers.blacklisted")
             p class="text-xs text-slate-500" = t(".last_visit", date: l(row.last_visit_at.to_date, format: :day_month_year), visits: t(".visits", count: row.visits))
           = link_to PhoneNumber.to_local(row.phone), "tel:#{row.phone}", class: "btn-secondary px-3 py-1.5 text-xs tabular-nums"
-
-section class=card aria-labelledby="no-shows"
-  div class="border-b border-slate-100 px-4 py-3 sm:px-5"
-    h2#no-shows class="text-base font-semibold" = t(".no_shows")
-    p class="text-xs text-slate-500" = t(".no_shows_hint")
-  - if report.no_shows.empty?
-    p class="px-4 py-8 text-center text-sm text-slate-500" = t(".no_no_shows")
-  - else
-    table class="w-full text-sm"
-      thead class="text-xs text-slate-500"
-        tr
-          th class="px-4 py-2 text-left font-medium sm:px-5" scope="col" = t(".customer")
-          th class="px-2 py-2 text-right font-medium" scope="col" = t(".bookings")
-          th class="px-2 py-2 text-right font-medium" scope="col" = t(".no_show_count")
-          th class="px-4 py-2 text-right font-medium sm:px-5" scope="col" = t(".rate")
-      tbody class="divide-y divide-slate-100"
-        - report.no_shows.each do |row|
-          tr
-            td class="px-4 py-2 sm:px-5"
-              = link_to row.name, admin_customer_path(row), class: "font-medium link"
-              - if row.blocked?
-                span class="ml-2 rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 ring-1 ring-red-200" = t("admin.customers.blacklisted")
-              span class="block text-xs text-slate-500 tabular-nums" = PhoneNumber.to_local(row.phone)
-            td class="px-2 py-2 text-right tabular-nums" = row.ended
-            td class="px-2 py-2 text-right tabular-nums" = row.no_show_count
-            td class=[ "px-4 py-2 text-right font-semibold tabular-nums sm:px-5", (row.no_show_rate >= 0.3 ? "text-red-700" : "text-slate-700") ] = percent.(row.no_show_rate)

@@ -131,60 +131,37 @@ class AdminTest < ActionDispatch::IntegrationTest
     assert_select "select[name='booking[end_minute]'] option[selected]", text: "19:00"
   end
 
-  test "checks in, records payment and marks no-shows" do
+  test "records a cash payment and undoes it; no check-in or no-show to record" do
     booking = courts(:court_one).bookings.create!(user: users(:an), starts_at: at("18:00"), ends_at: at("19:00"))
-    other = courts(:court_two).bookings.create!(user: users(:an), starts_at: at("18:00"), ends_at: at("19:00"))
 
     get admin_booking_path(booking)
     assert_select "a[href='tel:+84901234567']", text: "0901 234 567"
+    assert_select "button", text: "Nhận sân", count: 0
+    assert_select "button", text: "Không đến", count: 0
 
-    patch check_in_admin_booking_path(booking)
     patch mark_paid_admin_booking_path(booking)
-    booking.reload
-    assert booking.checked_in?
-    assert booking.payment_paid?
-
-    patch check_in_admin_booking_path(booking)
+    assert booking.reload.payment_paid?
+    patch mark_paid_admin_booking_path(booking)
     assert_equal "Không thể thực hiện thao tác này với lượt đặt hiện tại.", flash[:alert]
-
-    patch no_show_admin_booking_path(other)
-    assert other.reload.no_show?
-  end
-
-  test "undoes a check-in, a payment and a no-show pressed by mistake" do
-    booking = courts(:court_one).bookings.create!(user: users(:an), starts_at: at("18:00"), ends_at: at("19:00"))
-    booking.check_in!
-    booking.mark_paid!
 
     get admin_booking_path(booking)
-    assert_select "button", text: "Huỷ nhận sân"
     assert_select "button", text: "Huỷ \"đã thu\""
-
-    patch undo_check_in_admin_booking_path(booking)
     patch undo_payment_admin_booking_path(booking)
     booking.reload
-    assert booking.confirmed?
-    assert_nil booking.checked_in_at
     assert booking.payment_unpaid?
     assert_nil booking.paid_at
-
-    booking.mark_no_show!
-    patch undo_no_show_admin_booking_path(booking)
-    assert booking.reload.confirmed?
-
-    patch undo_payment_admin_booking_path(booking)
-    assert_equal "Không thể thực hiện thao tác này với lượt đặt hiện tại.", flash[:alert]
+    assert booking.confirmed?
   end
 
   test "a booking changed meanwhile shows a message instead of an error page" do
     booking = courts(:court_one).bookings.create!(user: users(:an), starts_at: at("18:00"), ends_at: at("19:00"))
-    # As if the customer cancelled between loading the booking and saving the check-in.
-    original = Booking.instance_method(:check_in!)
-    Booking.define_method(:check_in!) { |**| raise ActiveRecord::StaleObjectError.new(self, "update") }
+    # As if the customer cancelled between loading the booking and saving the payment.
+    original = Booking.instance_method(:mark_paid!)
+    Booking.define_method(:mark_paid!) { |**| raise ActiveRecord::StaleObjectError.new(self, "update") }
     begin
-      patch check_in_admin_booking_path(booking)
+      patch mark_paid_admin_booking_path(booking)
     ensure
-      Booking.define_method(:check_in!, original)
+      Booking.define_method(:mark_paid!, original)
     end
 
     assert_redirected_to admin_booking_path(booking)
@@ -202,16 +179,14 @@ class AdminTest < ActionDispatch::IntegrationTest
     assert booking.reload.cancelled?
   end
 
-  test "once a booking is over it can be checked in or marked no-show, but no longer cancelled or moved" do
+  test "once a booking is over it can no longer be cancelled or moved, and needs nothing recorded" do
     booking = courts(:court_one).bookings.create!(user: users(:an), starts_at: at("18:30", "2026-10-19"), ends_at: at("19:30", "2026-10-19"),
                                                   payment_status: :paid, paid_at: Time.current)
     other = courts(:court_two).bookings.create!(user: users(:an), starts_at: at("18:30", "2026-10-19"), ends_at: at("19:30", "2026-10-19"))
     travel_to Time.zone.parse("2026-10-19 19:37")
 
     get admin_root_path(date: "2026-10-19")
-    assert_select "span", text: "Đã qua giờ – chưa ghi nhận", count: 2
-    assert_select "button", text: "Nhận sân", count: 2
-    assert_select "button", text: "Không đến", count: 2
+    assert_select "span", text: "Đã qua giờ – chưa ghi nhận", count: 0
     assert_select "button", text: "Huỷ do sự cố của sân", count: 1
     assert_select "button", text: "Huỷ", count: 0
     get admin_booking_path(booking)
@@ -223,11 +198,6 @@ class AdminTest < ActionDispatch::IntegrationTest
     patch reschedule_admin_booking_path(other), params: { booking: { court_id: courts(:court_two).id, date: "2026-10-20", start_minute: 1110, end_minute: 1170 } }
     assert_response :unprocessable_content
     assert_equal at("18:30", "2026-10-19"), other.reload.starts_at
-
-    patch no_show_admin_booking_path(other)
-    assert other.reload.no_show?
-    get admin_root_path(date: "2026-10-19")
-    assert_select "span", text: "Đã qua giờ – chưa ghi nhận", count: 1
   end
 
   test "a venue fault can be recorded until the end of the booking's day" do

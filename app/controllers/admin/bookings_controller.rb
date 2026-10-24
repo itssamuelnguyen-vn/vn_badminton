@@ -1,8 +1,9 @@
 module Admin
   # Bookings taken by the owner (phone calls, walk-ins) and maintenance blocks, plus the day-to-day
-  # actions on any booking: check-in, no-show, payment and cancellation.
+  # actions on any booking: cash payment, cancellation, rescheduling. Check-ins and no-shows are not recorded:
+  # bookings are paid before they are played (VH-04).
   class BookingsController < BaseController
-    before_action :set_booking, only: %i[show check_in no_show mark_paid cancel undo_check_in undo_no_show undo_payment edit_schedule reschedule
+    before_action :set_booking, only: %i[show mark_paid cancel undo_payment edit_schedule reschedule
                                          confirm_payment cancel_venue_fault mark_refunded]
 
     def show
@@ -67,14 +68,6 @@ module Admin
       redirect_back_or_to admin_booking_path(@booking), alert: t("admin.bookings.not_allowed")
     end
 
-    def check_in
-      transition(:check_in!)
-    end
-
-    def no_show
-      transition(:mark_no_show!)
-    end
-
     def mark_paid
       transition(:mark_paid!)
     end
@@ -98,14 +91,6 @@ module Admin
       else
         render :edit_schedule, status: :unprocessable_content
       end
-    end
-
-    def undo_check_in
-      transition(:undo_check_in!)
-    end
-
-    def undo_no_show
-      transition(:undo_no_show!)
     end
 
     def undo_payment
@@ -155,7 +140,7 @@ module Admin
       redirect_back_or_to admin_booking_path(@booking), notice: t(".success")
     rescue ArgumentError, ActiveRecord::RecordInvalid
       redirect_back_or_to admin_booking_path(@booking), alert: t("admin.bookings.not_allowed")
-    # The booking changed since it was loaded (lock_version), e.g. the customer cancelled during the check-in.
+    # The booking changed since it was loaded (lock_version), e.g. the customer cancelled meanwhile.
     rescue ActiveRecord::StaleObjectError
       redirect_back_or_to admin_booking_path(@booking), alert: t("bookings.changed_meanwhile")
     end

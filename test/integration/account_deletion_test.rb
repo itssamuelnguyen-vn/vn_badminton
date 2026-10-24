@@ -140,7 +140,7 @@ class AccountDeletionTest < ActionDispatch::IntegrationTest
 
     staff = users(:staffer)
     courts(:court_two).bookings.create!(user: customer, starts_at: at("08:00"), ends_at: at("09:00"))
-      .tap { |b| sign_in(staff) && patch(check_in_admin_booking_path(b)) }
+      .tap { |b| sign_in(staff) && patch(mark_paid_admin_booking_path(b)) }
     sign_in users(:owner)
     delete admin_user_path(staff)
     assert staff.reload.deleted_at
@@ -148,9 +148,9 @@ class AccountDeletionTest < ActionDispatch::IntegrationTest
     get admin_staff_members_path
     assert_select "p", text: "Phạm Nhân Viên", count: 0
 
-    checked_in = Booking.find_by!(court: courts(:court_two), starts_at: at("08:00"))
-    get admin_booking_path(checked_in)
-    assert_select "li", text: /Nhận sân.*Phạm Nhân Viên \(nhân viên, đã nghỉ\)/m
+    paid = Booking.find_by!(court: courts(:court_two), starts_at: at("08:00"))
+    get admin_booking_path(paid)
+    assert_select "li", text: /Đã thu.*Phạm Nhân Viên \(nhân viên, đã nghỉ\)/m
 
     delete admin_user_path(users(:owner))
     assert_nil users(:owner).reload.deletion_requested_at, "the owner's account cannot be deleted"
