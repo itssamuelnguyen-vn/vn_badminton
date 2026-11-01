@@ -1,0 +1,54 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+# One web service built from the Dockerfile plus one PostgreSQL instance.
+# The cache, queue and cable databases live on the same instance (see config/database.yml);
+# bin/docker-entrypoint runs `bin/rails db:prepare`, which creates and migrates them on every start.
+#
+# Secrets (sync: false) are never in this file: Render asks for them when the Blueprint is first applied.
+#
+# Free plans: the web service sleeps after 15 minutes without traffic (recurring jobs such as booking reminders
+# do not run while it sleeps), the free database expires after 30 days, and there is no persistent disk,
+# so uploaded files (Active Storage) are lost on each deploy. For real use switch both plans to paid ones
+# (e.g. starter / basic-256mb) and uncomment the disk below.
+databases:
+  - name: vn_badminton-db
+    databaseName: vn_badminton
+    user: vn_badminton
+    plan: free
+    region: singapore
+    postgresMajorVersion: "17"
+
+services:
+  - type: web
+    name: vn_badminton
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    # Puma listens on Render's PORT directly (Thruster's default port 80 is not usable here).
+    # The entrypoint still runs db:prepare because the command ends with "./bin/rails server".
+    dockerCommand: ./bin/rails server
+    healthCheckPath: /up
+    autoDeploy: true
+    # disk:
+    #   name: storage
+    #   mountPath: /rails/storage
+    #   sizeGB: 1
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: vn_badminton-db
+          property: connectionString
+      - key: RAILS_MASTER_KEY
+        sync: false
+      # Public host name used in e-mail links, e.g. vn-badminton.onrender.com or your own domain.
+      - key: APP_HOST
+        sync: false
+      # Run Solid Queue (background and recurring jobs) inside Puma: no separate worker service needed.
+      - key: SOLID_QUEUE_IN_PUMA
+        value: "true"
+      - key: RAILS_MAX_THREADS
+        value: "3"
+      - key: WEB_CONCURRENCY
+        value: "1"
+      - key: RAILS_LOG_LEVEL
+        value: info
