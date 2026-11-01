@@ -96,6 +96,10 @@ test:
 # Read https://guides.rubyonrails.org/configuring.html#configuring-a-database
 # for a full overview on how database connection configuration can be specified.
 #
+# On Render (render.yaml) only DATABASE_URL is set: it replaces the primary settings below, and the cache, queue
+# and cable databases get the same server and credentials with a suffixed name (e.g. vn_badminton_cache).
+# bin/rails db:prepare creates them on the first deploy. Without DATABASE_URL (Kamal) nothing changes.
+<% production_url = ->(suffix) { ENV["DATABASE_URL"].present? && URI(ENV["DATABASE_URL"]).tap { |uri| uri.path += suffix }.to_s } %>
 production:
   primary: &primary_production
     <<: *default
@@ -106,11 +110,14 @@ production:
     <<: *primary_production
     database: vn_badminton_production_cache
     migrations_paths: db/cache_migrate
+    <% if production_url.("_cache") %>url: <%= production_url.("_cache") %><% end %>
   queue:
     <<: *primary_production
     database: vn_badminton_production_queue
     migrations_paths: db/queue_migrate
+    <% if production_url.("_queue") %>url: <%= production_url.("_queue") %><% end %>
   cable:
     <<: *primary_production
     database: vn_badminton_production_cable
     migrations_paths: db/cable_migrate
+    <% if production_url.("_cable") %>url: <%= production_url.("_cable") %><% end %>
