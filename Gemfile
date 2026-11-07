@@ -52,7 +52,7 @@ gem "devise", "~> 5.0"
 # CSV export of the monthly report (no longer a default gem since Ruby 3.4)
 gem "csv", "~> 3.3"
 # Push notifications (FCM access tokens from the service account) and Google sign-in (ID token checks) of the app
-gem "googleauth", "~> 1.14"
+gem "googleauth", "~> 1.17"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
